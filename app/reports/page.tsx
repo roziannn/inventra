@@ -211,10 +211,16 @@ export default function ReportsPage() {
           >
             <IconEye size={16} />
           </button>
-          <button className="p-1.5 text-gray-400 hover:text-emerald-600 rounded-lg hover:bg-emerald-50 transition-all">
+          <button 
+            onClick={() => handleEditClick(item)}
+            className="p-1.5 text-gray-400 hover:text-emerald-600 rounded-lg hover:bg-emerald-50 transition-all"
+          >
             <IconEdit size={16} />
           </button>
-          <button className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-all">
+          <button 
+            onClick={() => handleDeleteClick(item)}
+            className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-all"
+          >
             <IconTrash size={16} />
           </button>
         </div>
@@ -474,6 +480,67 @@ export default function ReportsPage() {
               </button>
               <button type="submit" className="flex-1 px-4 py-3 bg-[#064E3B] text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-[#043327] shadow-lg shadow-emerald-900/20 transition-all">
                 Simpan Laporan
+              </button>
+            </div>
+          </form>
+        </Modal>
+
+        {/* Delete Confirmation Modal */}
+        <Modal isOpen={isDeleteModalOpen} onClose={handleCloseDeleteModal} title="Konfirmasi Hapus Laporan">
+          <form onSubmit={handleConfirmDelete} className="space-y-6">
+            <div className="flex flex-col items-center text-center gap-2 p-4 bg-red-50 rounded-2xl border border-red-100">
+              <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-2">
+                <IconAlertTriangle size={28} />
+              </div>
+              <h3 className="text-lg font-bold text-red-900">Apakah Anda yakin?</h3>
+              <p className="text-xs text-red-600 font-medium leading-relaxed">
+                Tindakan ini tidak dapat dibatalkan. Menghapus laporan <span className="font-black uppercase">{reportToDelete?.id}</span> akan menghapus seluruh data terkait secara permanen.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                  <IconMail size={16} /> Konfirmasi Email
+                </label>
+                <input 
+                  required
+                  type="email" 
+                  value={confirmEmail}
+                  onChange={(e) => setConfirmEmail(e.target.value)}
+                  placeholder="Masukkan email Anda"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/5 transition-all"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                  <IconLock size={16} /> Kata Sandi
+                </label>
+                <input 
+                  required
+                  type="password" 
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/5 transition-all"
+                />
+              </div>
+            </div>
+
+            <div className="pt-2 flex gap-3">
+              <button 
+                type="button" 
+                onClick={handleCloseDeleteModal} 
+                className="flex-1 px-4 py-3.5 border border-gray-100 text-gray-500 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-gray-50 transition-all"
+              >
+                Batal
+              </button>
+              <button 
+                type="submit" 
+                className="flex-1 px-4 py-3.5 bg-red-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-700 shadow-lg shadow-red-900/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+              >
+                <IconTrash size={16} stroke={3} /> Hapus Permanen
               </button>
             </div>
           </form>
