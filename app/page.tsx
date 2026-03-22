@@ -44,7 +44,7 @@ export default function FullDashboard() {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-4">
         <Breadcrumb items={[{ label: "Dashboard" }]} />
 
         {/* Page Title */}

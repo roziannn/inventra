@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   IconLayoutDashboard,
   IconPackage,
@@ -13,27 +13,97 @@ import {
   IconMenu2,
   IconBell,
   IconHistory,
+  IconArrowRight,
+  IconBuildingSkyscraper,
 } from "@tabler/icons-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { searchData } from "@/lib/search-data";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredResults, setFilteredResults] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const searchRef = useRef<HTMLDivElement>(null);
 
   const sidebarItems = [
     { name: "Dashboard", icon: IconLayoutDashboard, href: "/" },
     { name: "Inventory", icon: IconPackage, href: "/inventory" },
     { name: "Assets", icon: IconBoxSeam, href: "/assets" },
+    { name: "Vendors", icon: IconBuildingSkyscraper, href: "/vendors" },
     { name: "Users", icon: IconUsers, href: "/users" },
     { name: "Reports", icon: IconFileAnalytics, href: "/reports" },
     { name: "Audit Trail", icon: IconHistory, href: "/audit-trail" },
   ];
 
+  // Handle Search logic
+  useEffect(() => {
+    if (searchQuery.trim().length > 1) {
+      const results: any[] = [];
+      
+      // Search in Inventory
+      searchData.inventory.forEach(item => {
+        if (item.title.toLowerCase().includes(searchQuery.toLowerCase()) || item.sku.toLowerCase().includes(searchQuery.toLowerCase())) {
+          results.push({ ...item, type: "Inventory", href: "/inventory", icon: IconPackage });
+        }
+      });
+
+      // Search in Assets
+      searchData.assets.forEach(item => {
+        if (item.title.toLowerCase().includes(searchQuery.toLowerCase()) || item.serial.toLowerCase().includes(searchQuery.toLowerCase())) {
+          results.push({ ...item, type: "Asset", href: "/assets", icon: IconBoxSeam });
+        }
+      });
+
+      // Search in Reports
+      searchData.reports.forEach(item => {
+        if (item.title.toLowerCase().includes(searchQuery.toLowerCase()) || item.id.toLowerCase().includes(searchQuery.toLowerCase())) {
+          results.push({ ...item, type: "Report", href: "/reports", icon: IconFileAnalytics });
+        }
+      });
+
+      // Search in Users
+      searchData.users.forEach(item => {
+        if (item.title.toLowerCase().includes(searchQuery.toLowerCase()) || item.email.toLowerCase().includes(searchQuery.toLowerCase())) {
+          results.push({ ...item, type: "User", href: "/users", icon: IconUsers });
+        }
+      });
+
+      // Search in Vendors
+      searchData.vendors.forEach(item => {
+        if (item.title.toLowerCase().includes(searchQuery.toLowerCase()) || item.email.toLowerCase().includes(searchQuery.toLowerCase())) {
+          results.push({ ...item, type: "Vendor", href: "/vendors", icon: IconBuildingSkyscraper });
+        }
+      });
+
+      setFilteredResults(results.slice(0, 6)); // Limit to 6 results
+      setShowSuggestions(true);
+    } else {
+      setFilteredResults([]);
+      setShowSuggestions(false);
+    }
+  }, [searchQuery]);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   // Close mobile menu on route change
   useEffect(() => {
     setIsMobileMenuOpen(false);
+    setSearchQuery("");
+    setShowSuggestions(false);
   }, [pathname]);
 
   return (
@@ -69,7 +139,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           })}
         </nav>
 
-        <div className="p-4 border-t border-white/5 shrink-0">
+        <div className="h-14 border-t border-white/5 shrink-0 flex items-center px-3">
           <button className={`flex items-center w-full text-emerald-100/50 hover:text-red-400 transition-all duration-300 group ${isCollapsed ? "justify-center" : "gap-3 px-3 py-2"}`}>
             <IconLogout size={20} stroke={2} />
             <span className={`text-sm font-medium transition-all duration-300 ${isCollapsed ? "opacity-0 w-0 hidden" : "opacity-100 w-auto"}`}>Logout</span>
@@ -90,20 +160,64 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <button onClick={() => setIsMobileMenuOpen(true)} className="lg:hidden p-2 hover:bg-gray-100 rounded-lg text-gray-600">
               <IconMenu2 size={24} />
             </button>
-            <div className="relative w-48 md:w-64 lg:w-96 group">
+            <div className="relative w-48 md:w-64 lg:w-96 group" ref={searchRef}>
               <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#10B981]" size={18} />
               <input
                 type="text"
-                placeholder="Cari data..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => searchQuery.trim().length > 1 && setShowSuggestions(true)}
+                placeholder="Cari assets, inventory, reports etc"
                 className="w-full pl-10 pr-4 py-2 bg-gray-50/50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#064E3B]/5 transition-all"
               />
+
+              {/* Suggestions Dropdown */}
+              {showSuggestions && filteredResults.length > 0 && (
+                <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-[200]">
+                  <div className="p-2 border-b border-gray-50 bg-gray-50/50">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2">Hasil Pencarian</p>
+                  </div>
+                  <div className="max-h-[320px] overflow-y-auto">
+                    {filteredResults.map((result, idx) => (
+                      <button
+                        key={`${result.type}-${result.id}-${idx}`}
+                        onClick={() => {
+                          router.push(result.href);
+                          setShowSuggestions(false);
+                          setSearchQuery("");
+                        }}
+                        className="w-full flex items-center justify-between p-3 hover:bg-emerald-50 transition-colors group text-left border-b border-gray-50 last:border-0"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-emerald-100 text-gray-500 group-hover:text-emerald-600 flex items-center justify-center transition-colors">
+                            <result.icon size={16} />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-gray-900 group-hover:text-emerald-900 transition-colors">{result.title || result.name}</p>
+                            <p className="text-[10px] text-gray-400 font-medium tracking-tight">
+                              {result.type} &bull; {result.id} {result.sku || result.serial || result.email ? `&bull; ${result.sku || result.serial || result.email}` : ""}
+                            </p>
+                          </div>
+                        </div>
+                        <IconArrowRight size={14} className="text-gray-300 group-hover:text-emerald-500 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {showSuggestions && filteredResults.length === 0 && (
+                <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 p-6 z-[200] text-center">
+                  <p className="text-sm text-gray-500 font-medium">Tidak ada hasil ditemukan untuk &quot;{searchQuery}&quot;</p>
+                </div>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <button className="p-2 text-gray-400 hover:text-[#064E3B] transition-colors relative">
+            <Link href="/notifications" className="p-2 text-gray-400 hover:text-[#064E3B] transition-colors relative">
                 <IconBell size={20} />
-                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-            </button>
+                <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+            </Link>
             <div className="flex items-center gap-3 pl-4 border-l border-gray-100">
               <div className="text-right hidden md:block">
                 <p className="text-sm font-bold text-gray-900 leading-tight">Admin User</p>
@@ -118,6 +232,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <section className="flex-1 overflow-y-auto p-4 lg:p-6 bg-[#F9FAFB]">
           {children}
         </section>
+
+        {/* Footer */}
+        <footer className="h-14 bg-white border-t border-gray-100 flex items-center justify-between px-4 lg:px-8 shrink-0 z-[80]">
+           <p className="text-[10px] text-gray-400 font-medium tracking-wider">
+              &copy; {new Date().getFullYear()} <span className="text-[#064E3B] font-bold">INVENTRA</span>. ASSET & INVENTORY.
+           </p>
+           <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1.5">
+                 <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
+                 <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest hidden sm:block">System Online</span>
+              </div>
+              <span className="text-[10px] px-2 py-0.5 bg-gray-50 border border-gray-100 text-gray-400 rounded-md font-mono">
+                 v1.0.2
+              </span>
+           </div>
+        </footer>
       </main>
     </div>
   );

@@ -62,7 +62,7 @@ export default function LabelGeneratorPage() {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col gap-6 max-w-6xl mx-auto pb-10">
+      <div className="flex flex-col gap-4 max-w-6xl mx-auto pb-10">
         <Breadcrumb items={[{ label: "Label generator" }]} />
 
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">

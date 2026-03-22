@@ -1,10 +1,20 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import Breadcrumb from "@/components/Breadcrumb";
 import DataTable from "@/components/DataTable";
-import { IconHistory, IconSearch, IconUser, IconSettings, IconPackage, IconTrash } from "@tabler/icons-react";
+import Modal from "@/components/Modal";
+import { 
+  IconHistory, 
+  IconSearch, 
+  IconUser, 
+  IconSettings, 
+  IconPackage, 
+  IconTrash,
+  IconFileExport,
+  IconCalendar
+} from "@tabler/icons-react";
 
 const dummyLogs = Array.from({ length: 30 }, (_, i) => ({
   id: `LOG-${5000 + i}`,
@@ -16,6 +26,25 @@ const dummyLogs = Array.from({ length: 30 }, (_, i) => ({
 }));
 
 export default function AuditTrailPage() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
+  const today = new Date().toISOString().split("T")[0];
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setStartDate("");
+    setEndDate("");
+  };
+
+  const handleExport = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Logic export dummy
+    alert(`Mengekspor data dari ${startDate} hingga ${endDate}`);
+    handleCloseModal();
+  };
+
   const columns = [
     {
       header: "Aktivitas",
@@ -39,12 +68,7 @@ export default function AuditTrailPage() {
     { 
       header: "Oleh", 
       accessor: (item: any) => (
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-600">
-            {item.user.split(" ").map((n: string) => n[0]).join("")}
-          </div>
-          <span className="font-medium text-gray-700">{item.user}</span>
-        </div>
+        <span className="font-semibold text-gray-700 text-sm">{item.user}</span>
       )
     },
     { 
@@ -57,12 +81,20 @@ export default function AuditTrailPage() {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
         <Breadcrumb items={[{ label: "Audit trail" }]} />
 
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Audit trail</h2>
-          <p className="text-xs text-gray-500">Log aktivitas sistem untuk pemantauan keamanan dan perubahan data.</p>
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Audit trail</h2>
+            <p className="text-xs text-gray-500">Log aktivitas sistem untuk pemantauan keamanan dan perubahan data.</p>
+          </div>
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="bg-[#064E3B] hover:bg-[#043327] text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all active:scale-95"
+          >
+            <IconFileExport size={16} stroke={3} /> Export Logs
+          </button>
         </div>
 
         {/* Search */}
@@ -78,6 +110,64 @@ export default function AuditTrailPage() {
         </div>
 
         <DataTable data={dummyLogs} columns={columns} pageSize={10} />
+
+        <Modal isOpen={isModalOpen} onClose={handleCloseModal} title="Export Audit Trail">
+          <form onSubmit={handleExport} className="space-y-6">
+            <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+              <p className="text-sm text-emerald-800 leading-relaxed font-medium">
+                Pilih rentang tanggal untuk mengekspor log aktivitas. Pastikan tanggal "Hingga" tidak lebih kecil dari tanggal "Dari".
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                  <IconCalendar size={16} /> Dari Tanggal
+                </label>
+                <input 
+                  required
+                  type="date" 
+                  max={today}
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#064E3B]/5 transition-all"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                  <IconCalendar size={16} /> Hingga Tanggal
+                </label>
+                <input 
+                  required
+                  type="date" 
+                  min={startDate}
+                  max={today}
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#064E3B]/5 transition-all"
+                />
+              </div>
+            </div>
+
+            <div className="pt-4 flex gap-4">
+              <button 
+                type="button" 
+                onClick={handleCloseModal} 
+                className="flex-1 px-4 py-3.5 border border-gray-100 text-gray-500 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-gray-50 transition-all"
+              >
+                Batal
+              </button>
+              <button 
+                type="submit" 
+                disabled={!startDate || !endDate || endDate < startDate}
+                className="flex-1 px-4 py-3.5 bg-[#064E3B] disabled:bg-gray-200 text-white rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-[#043327] shadow-lg shadow-emerald-900/20 transition-all active:scale-95"
+              >
+                Mulai Export
+              </button>
+            </div>
+          </form>
+        </Modal>
       </div>
     </DashboardLayout>
   );
