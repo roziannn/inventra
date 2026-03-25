@@ -25,6 +25,7 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { searchData } from "@/lib/search-data";
+import toast from "react-hot-toast";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -153,6 +154,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     setIsProfileOpen(false);
   }, [pathname]);
 
+  const handleLogout = () => {
+    toast.error("Anda telah keluar dari sistem.");
+    // Logika logout bisa ditambahkan di sini
+  };
+
   return (
     <div className="flex h-screen bg-[#F9FAFB] font-sans text-gray-900 overflow-hidden relative">
       {/* --- SIDEBAR --- */}
@@ -232,7 +238,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </nav>
 
         <div className="h-14 border-t border-white/5 shrink-0 flex items-center px-3">
-          <button className={`flex items-center w-full text-emerald-100/50 hover:text-red-400 transition-all duration-300 group ${isCollapsed ? "justify-center" : "gap-3 px-3 py-2"}`}>
+          <button 
+            onClick={handleLogout}
+            className={`flex items-center w-full text-emerald-100/50 hover:text-red-400 transition-all duration-300 group ${isCollapsed ? "justify-center" : "gap-3 px-3 py-2"}`}
+          >
             <IconLogout size={20} stroke={2} />
             <span className={`text-sm font-medium transition-all duration-300 ${isCollapsed ? "opacity-0 w-0 hidden" : "opacity-100 w-auto"}`}>Logout</span>
           </button>
@@ -357,7 +366,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <div className="h-px bg-gray-50 my-2 mx-4"></div>
                   
                   <div className="px-2">
-                    <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-xl transition-colors group">
+                    <button 
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-xl transition-colors group"
+                    >
                       <div className="w-8 h-8 rounded-lg bg-red-50 group-hover:bg-white flex items-center justify-center transition-colors">
                         <IconLogout size={18} stroke={2} />
                       </div>

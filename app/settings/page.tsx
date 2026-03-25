@@ -3,10 +3,19 @@
 import React, { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { IconSettings, IconLock, IconBell, IconShield, IconDeviceLaptop, IconChevronRight, IconEye, IconEyeOff } from "@tabler/icons-react";
+import toast from "react-hot-toast";
 
 export default function SettingsPage() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
+
+  const handleUpdatePassword = () => {
+    toast.success("Kata sandi berhasil diperbarui!");
+  };
+
+  const handleTogglePref = (title: string) => {
+    toast.success(`${title} diperbarui!`);
+  };
 
   return (
     <DashboardLayout>
@@ -106,7 +115,10 @@ export default function SettingsPage() {
 
                 <div className="pt-4 flex items-center justify-between border-t border-gray-50">
                   <p className="text-[10px] text-gray-400 font-medium italic">*Anda akan diminta untuk login kembali setelah mengganti kata sandi.</p>
-                  <button className="px-6 py-2.5 bg-[#064E3B] text-white rounded-xl text-sm font-bold shadow-md hover:bg-[#053F30] transition-colors">
+                  <button 
+                    onClick={handleUpdatePassword}
+                    className="px-6 py-2.5 bg-[#064E3B] text-white rounded-xl text-sm font-bold shadow-md hover:bg-[#053F30] transition-colors"
+                  >
                     Perbarui Kata Sandi
                   </button>
                 </div>
@@ -129,7 +141,10 @@ export default function SettingsPage() {
                           <p className="text-sm font-bold text-gray-800">{pref.title}</p>
                           <p className="text-[11px] text-gray-500 font-medium">{pref.desc}</p>
                        </div>
-                       <div className={`w-11 h-6 rounded-full relative transition-colors cursor-pointer ${pref.checked ? "bg-emerald-500" : "bg-gray-200"}`}>
+                       <div 
+                         onClick={() => handleTogglePref(pref.title)}
+                         className={`w-11 h-6 rounded-full relative transition-colors cursor-pointer ${pref.checked ? "bg-emerald-500" : "bg-gray-200"}`}
+                       >
                           <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${pref.checked ? "left-6" : "left-1"}`}></div>
                        </div>
                     </div>
