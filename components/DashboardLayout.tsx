@@ -19,6 +19,8 @@ import {
   IconPrinter,
   IconQrcode,
   IconTags,
+  IconUser,
+  IconSettings,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -27,6 +29,7 @@ import { searchData } from "@/lib/search-data";
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredResults, setFilteredResults] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -34,6 +37,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const router = useRouter();
   const searchRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -133,6 +137,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setShowSuggestions(false);
       }
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -143,6 +150,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     setIsMobileMenuOpen(false);
     setSearchQuery("");
     setShowSuggestions(false);
+    setIsProfileOpen(false);
   }, [pathname]);
 
   return (
@@ -302,12 +310,62 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <IconBell size={20} />
                 <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
             </Link>
-            <div className="flex items-center gap-3 pl-4 border-l border-gray-100">
-              <div className="text-right hidden md:block">
-                <p className="text-sm font-bold text-gray-900 leading-tight">Admin User</p>
-                <p className="text-[10px] text-[#10B981] font-semibold tracking-wide">Manager</p>
-              </div>
-              <div className="w-9 h-9 bg-[#064E3B] rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md">AD</div>
+            
+            <div className="relative" ref={profileRef}>
+              <button 
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className="flex items-center gap-3 pl-4 border-l border-gray-100 focus:outline-none group transition-all"
+              >
+                <div className="text-right hidden md:block">
+                  <p className="text-sm font-bold text-gray-900 leading-tight group-hover:text-[#064E3B] transition-colors">Admin User</p>
+                  <p className="text-[10px] text-[#10B981] font-semibold tracking-wide">Manager</p>
+                </div>
+                <div className={`w-9 h-9 bg-[#064E3B] rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md group-hover:ring-4 group-hover:ring-emerald-50 transition-all ${isProfileOpen ? "ring-4 ring-emerald-50" : ""}`}>
+                  AD
+                </div>
+              </button>
+
+              {/* Profile Dropdown */}
+              {isProfileOpen && (
+                <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-[200] animate-in fade-in zoom-in duration-200 origin-top-right">
+                  <div className="px-4 py-3 border-b border-gray-50 mb-1">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Informasi Akun</p>
+                    <div className="flex items-center gap-3 mt-2">
+                       <div className="w-10 h-10 bg-[#064E3B] rounded-full flex items-center justify-center text-white font-bold text-xs">AD</div>
+                       <div>
+                          <p className="text-sm font-bold text-gray-900">Admin User</p>
+                          <p className="text-[11px] text-gray-500 font-medium">admin@inventra.com</p>
+                       </div>
+                    </div>
+                  </div>
+                  
+                  <div className="px-2 space-y-0.5">
+                    <Link href="/profile" className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 rounded-xl transition-colors group">
+                      <div className="w-8 h-8 rounded-lg bg-gray-50 group-hover:bg-white flex items-center justify-center transition-colors">
+                        <IconUser size={18} stroke={2} />
+                      </div>
+                      <span className="font-medium">Profil Saya</span>
+                    </Link>
+                    <Link href="/settings" className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 rounded-xl transition-colors group">
+                      <div className="w-8 h-8 rounded-lg bg-gray-50 group-hover:bg-white flex items-center justify-center transition-colors">
+                        <IconSettings size={18} stroke={2} />
+                      </div>
+                      <span className="font-medium">Pengaturan</span>
+                    </Link>
+                  </div>
+                  
+                  <div className="h-px bg-gray-50 my-2 mx-4"></div>
+                  
+                  <div className="px-2">
+                    <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-xl transition-colors group">
+                      <div className="w-8 h-8 rounded-lg bg-red-50 group-hover:bg-white flex items-center justify-center transition-colors">
+                        <IconLogout size={18} stroke={2} />
+                      </div>
+                      <span className="font-bold">Keluar Aplikasi</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </header>
