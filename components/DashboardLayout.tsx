@@ -15,6 +15,10 @@ import {
   IconHistory,
   IconArrowRight,
   IconBuildingSkyscraper,
+  IconChevronDown,
+  IconPrinter,
+  IconQrcode,
+  IconTags,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -26,9 +30,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredResults, setFilteredResults] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [openSubMenu, setOpenSubMenu] = useState<string | null>(null);
   const pathname = usePathname();
   const router = useRouter();
   const searchRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const sidebarItems = [
     { name: "Dashboard", icon: IconLayoutDashboard, href: "/" },
@@ -36,9 +46,38 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: "Assets", icon: IconBoxSeam, href: "/assets" },
     { name: "Vendors", icon: IconBuildingSkyscraper, href: "/vendors" },
     { name: "Users", icon: IconUsers, href: "/users" },
+    { 
+      name: "Labeling", 
+      icon: IconTags, 
+      href: "/labeling",
+      subItems: [
+        { name: "Print Label", href: "/labeling/print" },
+        { name: "QR Code", href: "/labeling/qr" },
+      ]
+    },
     { name: "Reports", icon: IconFileAnalytics, href: "/reports" },
     { name: "Audit Trail", icon: IconHistory, href: "/audit-trail" },
   ];
+
+  // Auto-open sub-menu if current path is a sub-item
+  useEffect(() => {
+    sidebarItems.forEach(item => {
+      if (item.subItems) {
+        if (pathname.startsWith(item.href)) {
+          setOpenSubMenu(item.name);
+        }
+      }
+    });
+  }, [pathname]);
+
+  const toggleSubMenu = (name: string) => {
+    if (openSubMenu === name) {
+      setOpenSubMenu(null);
+    } else {
+      setOpenSubMenu(name);
+      if (isCollapsed) setIsCollapsed(false);
+    }
+  };
 
   // Handle Search logic
   useEffect(() => {
@@ -123,17 +162,62 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         <nav className="flex-1 px-3 space-y-1 mt-4 overflow-y-auto scrollbar-hide">
           {sidebarItems.map((item) => {
-            const isActive = pathname === item.href;
+            const hasSubItems = !!item.subItems;
+            const isSubMenuOpen = openSubMenu === item.name;
+            const isActive = pathname === item.href || (hasSubItems && pathname.startsWith(item.href));
+
+            if (hasSubItems) {
+              return (
+                <div key={item.name} className="flex flex-col">
+                  <button
+                    onClick={() => toggleSubMenu(item.name)}
+                    className={`w-full flex items-center rounded-xl px-3 py-2.5 gap-3 ${
+                      isActive ? "bg-white/10 text-white" : "text-emerald-100/60 hover:bg-white/5 hover:text-white"
+                    }`}
+                  >
+                    <item.icon size={20} stroke={2} className="shrink-0" />
+                    {!isCollapsed && (
+                      <div className="flex-1 flex items-center justify-between">
+                        <span className="text-sm font-medium whitespace-nowrap">{item.name}</span>
+                        <IconChevronDown size={14} className={isSubMenuOpen ? "rotate-180" : ""} />
+                      </div>
+                    )}
+                  </button>
+                  
+                  {!isCollapsed && isSubMenuOpen && (
+                    <div className="flex flex-col space-y-0.5 mt-0.5">
+                      {item.subItems?.map((subItem) => {
+                        const isSubActive = pathname === subItem.href;
+                        return (
+                          <Link
+                            key={subItem.name}
+                            href={subItem.href}
+                            className={`flex items-center pl-12 pr-3 py-2 rounded-xl text-sm font-medium ${
+                              isSubActive ? "text-white bg-white/5" : "text-emerald-100/40 hover:text-white hover:bg-white/5"
+                            }`}
+                          >
+                            <span>{subItem.name}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             return (
               <Link
                 key={item.name}
                 href={item.href}
-                className={`w-full flex items-center rounded-xl transition-all duration-200 group relative overflow-hidden ${isCollapsed ? "justify-center py-2.5" : "px-3 py-2.5 gap-3"} ${
+                className={`w-full flex items-center rounded-xl px-3 py-2.5 gap-3 ${
                   isActive ? "bg-white/10 text-white shadow-sm" : "text-emerald-100/60 hover:bg-white/5 hover:text-white"
                 }`}
               >
-                <item.icon size={20} stroke={2} className={`shrink-0 transition-transform ${isActive ? "scale-110" : "group-hover:scale-110"}`} />
-                <span className={`text-sm font-medium whitespace-nowrap transition-all duration-300 ${isCollapsed ? "opacity-0 w-0 hidden" : "opacity-100 w-auto"}`}>{item.name}</span>
+                <item.icon size={20} stroke={2} className="shrink-0" />
+                {!isCollapsed && (
+                  <span className="text-sm font-medium whitespace-nowrap opacity-100">{item.name}</span>
+                )}
               </Link>
             );
           })}
@@ -236,7 +320,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Footer */}
         <footer className="h-14 bg-white border-t border-gray-100 flex items-center justify-between px-4 lg:px-8 shrink-0 z-[80]">
            <p className="text-[10px] text-gray-400 font-medium tracking-wider">
-              &copy; {new Date().getFullYear()} <span className="text-[#064E3B] font-bold">INVENTRA</span>. ASSET & INVENTORY.
+              &copy; {mounted ? new Date().getFullYear() : ""} <span className="text-[#064E3B] font-bold">INVENTRA</span>. ASSET & INVENTORY.
            </p>
            <div className="flex items-center gap-4">
               <div className="flex items-center gap-1.5">

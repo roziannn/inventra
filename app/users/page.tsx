@@ -14,7 +14,7 @@ const initialUsers = Array.from({ length: 25 }, (_, i) => ({
   email: `user${i}@inventra.co.id`,
   role: i % 4 === 0 ? "Super Admin" : i % 4 === 1 ? "Manager" : "Staff",
   status: i % 6 === 0 ? "Inactive" : "Active",
-  lastActive: `${Math.floor(Math.random() * 24)}h ago`,
+  lastActive: `${(i * 3) % 24}h ago`,
 }));
 
 const initialRoles = [

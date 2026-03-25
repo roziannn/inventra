@@ -12,9 +12,9 @@ const initialInventory = Array.from({ length: 25 }, (_, i) => ({
   name: i % 2 === 0 ? `Item ${i + 1} Pro` : `Standard Item ${i + 1}`,
   category: i % 3 === 0 ? "Electronic" : i % 3 === 1 ? "Stationery" : "Furniture",
   sku: `SKU-${8000 + i}`,
-  stock: Math.floor(Math.random() * 500) + 10,
+  stock: (i * 15 + 10) % 500,
   unit: "Pcs",
-  status: Math.random() > 0.2 ? "In stock" : "Low stock",
+  status: (i * 15 + 10) % 500 > 50 ? "In stock" : "Low stock",
 }));
 
 const initialCategories = [

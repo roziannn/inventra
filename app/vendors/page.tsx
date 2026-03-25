@@ -28,7 +28,7 @@ const initialVendors = Array.from({ length: 15 }, (_, i) => ({
   email: `vendor${i + 1}@example.com`,
   phone: `0812-3456-789${i}`,
   category: i % 3 === 0 ? "IT Hardware" : i % 3 === 1 ? "Office Supplies" : "Maintenance",
-  status: Math.random() > 0.1 ? "Active" : "Inactive",
+  status: i % 10 !== 0 ? "Active" : "Inactive",
   address: "Jl. Industri No. 123, Jakarta",
 }));
 

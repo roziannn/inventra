@@ -29,8 +29,13 @@ export default function AuditTrailPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [mounted, setMounted] = useState(false);
 
-  const today = new Date().toISOString().split("T")[0];
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const today = mounted ? new Date().toISOString().split("T")[0] : "";
 
   const handleCloseModal = () => {
     setIsModalOpen(false);

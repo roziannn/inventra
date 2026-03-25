@@ -7,7 +7,27 @@ import Breadcrumb from "@/components/Breadcrumb";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
 import SearchableSelect from "@/components/SearchableSelect";
-import { IconSearch, IconPlus, IconEye, IconEdit, IconTrash, IconChevronLeft, IconUser, IconTool, IconTruck, IconMessage, IconCheck, IconBookmark, IconSend, IconFilter, IconLock, IconMail, IconAlertTriangle } from "@tabler/icons-react";
+import {
+  IconSearch,
+  IconPlus,
+  IconEye,
+  IconEdit,
+  IconTrash,
+  IconChevronLeft,
+  IconUser,
+  IconTool,
+  IconTruck,
+  IconMessage,
+  IconCheck,
+  IconBookmark,
+  IconSend,
+  IconFilter,
+  IconLock,
+  IconMail,
+  IconAlertTriangle,
+  IconFileExport,
+  IconCalendar,
+} from "@tabler/icons-react";
 
 // Dummy Data for Selects
 const userOptions = [
@@ -33,7 +53,7 @@ const initialReports = Array.from({ length: 25 }, (_, i) => ({
   author: "Admin System",
   status: i % 3 === 0 ? "Pending" : i % 3 === 1 ? "In progress" : "Resolved",
   reportDate: "2026-03-20",
-  token: `TOKEN-${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
+  token: `TOKEN-${1000 + i}X`,
   problem: "Layar berkedip saat digunakan lebih dari 2 jam. Kemungkinan overheat pada chipset grafis.",
   serviceType: i % 2 === 0 ? "Self service" : "By vendor",
   assignee: i % 2 === 0 ? "Teknisi Andi" : "PT Sejahtera Service",
@@ -55,6 +75,16 @@ export default function ReportsPage() {
   const [reportToDelete, setReportToDelete] = useState<any>(null);
   const [confirmEmail, setConfirmEmail] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [mounted, setMounted] = useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const today = mounted ? new Date().toISOString().split("T")[0] : "";
 
   const [formData, setFormData] = useState({
     item: "",
@@ -75,6 +105,18 @@ export default function ReportsPage() {
     setReportToDelete(null);
     setConfirmEmail("");
     setConfirmPassword("");
+  };
+
+  const handleCloseExportModal = () => {
+    setIsExportModalOpen(false);
+    setStartDate("");
+    setEndDate("");
+  };
+
+  const handleExport = (e: React.FormEvent) => {
+    e.preventDefault();
+    alert(`Mengekspor data laporan dari ${startDate} hingga ${endDate}`);
+    handleCloseExportModal();
   };
 
   const handleDeleteClick = (report: any) => {
@@ -211,16 +253,10 @@ export default function ReportsPage() {
           >
             <IconEye size={16} />
           </button>
-          <button 
-            onClick={() => handleEditClick(item)}
-            className="p-1.5 text-gray-400 hover:text-emerald-600 rounded-lg hover:bg-emerald-50 transition-all"
-          >
+          <button onClick={() => handleEditClick(item)} className="p-1.5 text-gray-400 hover:text-emerald-600 rounded-lg hover:bg-emerald-50 transition-all">
             <IconEdit size={16} />
           </button>
-          <button 
-            onClick={() => handleDeleteClick(item)}
-            className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-all"
-          >
+          <button onClick={() => handleDeleteClick(item)} className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-all">
             <IconTrash size={16} />
           </button>
         </div>
@@ -404,9 +440,17 @@ export default function ReportsPage() {
             <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Reports</h2>
             <p className="text-xs text-gray-500">Laporan kerusakan dan perbaikan inventaris.</p>
           </div>
-          <button onClick={() => setIsModalOpen(true)} className="bg-[#064E3B] hover:bg-[#043327] text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all active:scale-95">
-            <IconPlus size={16} stroke={3} /> Buat laporan baru
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsExportModalOpen(true)}
+              className="bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 shadow-sm hover:bg-gray-50 transition-all active:scale-95"
+            >
+              <IconFileExport size={16} stroke={3} /> Export Data
+            </button>
+            <button onClick={() => setIsModalOpen(true)} className="bg-[#064E3B] hover:bg-[#043327] text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all active:scale-95">
+              <IconPlus size={16} stroke={3} /> Buat laporan baru
+            </button>
+          </div>
         </div>
 
         {/* Search & Filter */}
@@ -493,19 +537,19 @@ export default function ReportsPage() {
                 <IconAlertTriangle size={28} />
               </div>
               <h3 className="text-lg font-bold text-red-900">Apakah Anda yakin?</h3>
-              <p className="text-xs text-red-600 font-medium leading-relaxed">
+              <p className="text-sm text-red-600 font-medium leading-relaxed">
                 Tindakan ini tidak dapat dibatalkan. Menghapus laporan <span className="font-black uppercase">{reportToDelete?.id}</span> akan menghapus seluruh data terkait secara permanen.
               </p>
             </div>
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
                   <IconMail size={16} /> Konfirmasi Email
                 </label>
-                <input 
+                <input
                   required
-                  type="email" 
+                  type="email"
                   value={confirmEmail}
                   onChange={(e) => setConfirmEmail(e.target.value)}
                   placeholder="Masukkan email Anda"
@@ -514,12 +558,12 @@ export default function ReportsPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
                   <IconLock size={16} /> Kata Sandi
                 </label>
-                <input 
+                <input
                   required
-                  type="password" 
+                  type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
@@ -529,18 +573,67 @@ export default function ReportsPage() {
             </div>
 
             <div className="pt-2 flex gap-3">
-              <button 
-                type="button" 
-                onClick={handleCloseDeleteModal} 
-                className="flex-1 px-4 py-3.5 border border-gray-100 text-gray-500 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-gray-50 transition-all"
-              >
+              <button type="button" onClick={handleCloseDeleteModal} className="flex-1 px-4 py-3.5 border border-gray-100 text-gray-500 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-gray-50 transition-all">
                 Batal
               </button>
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="flex-1 px-4 py-3.5 bg-red-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-700 shadow-lg shadow-red-900/20 transition-all active:scale-95 flex items-center justify-center gap-2"
               >
                 <IconTrash size={16} stroke={3} /> Hapus Permanen
+              </button>
+            </div>
+          </form>
+        </Modal>
+
+        {/* Export Reports Modal */}
+        <Modal isOpen={isExportModalOpen} onClose={handleCloseExportModal} title="Export Data Laporan">
+          <form onSubmit={handleExport} className="space-y-6">
+            <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+              <p className="text-sm text-emerald-800 leading-relaxed font-medium">Pilih rentang tanggal untuk mengekspor data laporan kerusakan dan perbaikan.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                  <IconCalendar size={16} /> Dari Tanggal
+                </label>
+                <input
+                  required
+                  type="date"
+                  max={today}
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#064E3B]/5 transition-all"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                  <IconCalendar size={16} /> Hingga Tanggal
+                </label>
+                <input
+                  required
+                  type="date"
+                  min={startDate}
+                  max={today}
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#064E3B]/5 transition-all"
+                />
+              </div>
+            </div>
+
+            <div className="pt-4 flex gap-4">
+              <button type="button" onClick={handleCloseExportModal} className="flex-1 px-4 py-3.5 border border-gray-100 text-gray-500 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-gray-50 transition-all">
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={!startDate || !endDate || endDate < startDate}
+                className="flex-1 px-4 py-3.5 bg-[#064E3B] disabled:bg-gray-200 text-white rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-[#043327] shadow-lg shadow-emerald-900/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+              >
+                <IconFileExport size={16} /> Mulai Export
               </button>
             </div>
           </form>
