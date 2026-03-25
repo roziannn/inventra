@@ -1,6 +1,7 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import Breadcrumb from "@/components/Breadcrumb";
 import QRCode from "qrcode";
@@ -48,6 +49,7 @@ export default function QRCodePage() {
   // Initial generation
   useEffect(() => {
     generateQRCode();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleGenerate = (e: React.FormEvent) => {
@@ -155,7 +157,7 @@ export default function QRCodePage() {
 
           {/* Preview Side */}
           <div className="lg:col-span-2">
-            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm h-full flex flex-col items-center justify-center min-h-[450px]">
+            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm h-full flex flex-col items-center justify-center min-h-112.5">
               <div className="flex flex-col md:flex-row items-center gap-10">
                 {/* QR Display */}
                 <div className="relative group">

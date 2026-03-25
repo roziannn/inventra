@@ -381,7 +381,7 @@ export default function ReportsPage() {
                 <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
                   <IconMessage size={18} className="text-gray-400" /> Diskusi
                 </h4>
-                <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 scrollbar-hide">
+                <div className="space-y-4 max-h-75 overflow-y-auto pr-2 scrollbar-hide">
                   {selectedReport.comments.length > 0 ? (
                     selectedReport.comments.map((c: any, i: number) => (
                       <div key={i} className="bg-gray-50 p-3 rounded-xl space-y-1 group">
