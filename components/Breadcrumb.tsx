@@ -15,11 +15,11 @@ interface BreadcrumbProps {
 
 export default function Breadcrumb({ items }: BreadcrumbProps) {
   return (
-    <nav className="flex items-center space-x-2 text-gray-500 text-xs md:text-sm mb-4">
+    <nav className="flex items-center space-x-2 text-gray-500 text-xs md:text-sm">
       <Link href="/" className="hover:text-[#10B981] transition-colors flex items-center">
         <IconHome size={16} stroke={2} />
       </Link>
-      
+
       {items.map((item, index) => (
         <React.Fragment key={index}>
           <IconChevronRight size={14} stroke={3} className="text-gray-300" />
