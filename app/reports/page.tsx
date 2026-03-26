@@ -397,7 +397,7 @@ export default function ReportsPage() {
                               </div>
                             </td>
                             <td className="px-6 py-4 text-gray-600 font-semibold">{sol.author}</td>
-                            <td className="px-6 py-4 text-gray-400 text-xs font-medium">{sol.date}</td>
+                            <td className="px-6 py-4 text-gray-400 text-xs font-medium">{formatDateTimeShort(sol.date)}</td>
                             <td className="px-6 py-4">
                               <div className="flex justify-center">
                                 <button
@@ -437,7 +437,7 @@ export default function ReportsPage() {
                       <div key={i} className="bg-gray-50 p-3 rounded-xl space-y-1 group">
                         <div className="flex justify-between text-[10px]">
                           <span className="font-bold text-gray-900">{c.user}</span>
-                          <span className="text-gray-400">{c.date}</span>
+                          <span className="text-gray-400">{formatDateTimeShort(c.date)}</span>
                         </div>
                         <p className="text-xs text-gray-600 leading-relaxed">{c.text}</p>
                       </div>
