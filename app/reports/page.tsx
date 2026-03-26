@@ -291,9 +291,9 @@ export default function ReportsPage() {
     },
     {
       header: "Aksi",
-      className: "text-right",
+      className: "text-center",
       accessor: (item: any) => (
-        <div className="flex items-center justify-end gap-1">
+        <div className="flex items-center justify-center gap-1">
           <button
             onClick={() => {
               setSelectedReport(item);

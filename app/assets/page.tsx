@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState } from "react";
@@ -5,7 +6,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import Breadcrumb from "@/components/Breadcrumb";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
-import { IconPlus, IconSearch, IconFilter, IconEdit, IconBoxSeam, IconHash, IconTags, IconUser, IconInfoCircle, IconLayoutGrid, IconTrash, IconCircleCheck, IconCircleX } from "@tabler/icons-react";
+import { IconPlus, IconSearch, IconFilter, IconEdit, IconBoxSeam, IconHash, IconTags, IconUser, IconInfoCircle, IconLayoutGrid, IconCircleCheck, IconCircleX } from "@tabler/icons-react";
 import { toast } from "react-hot-toast";
 
 const initialAssets = Array.from({ length: 30 }, (_, i) => ({
@@ -31,7 +32,7 @@ export default function AssetsPage() {
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [editingAsset, setEditingAsset] = useState<any>(null);
-  
+
   const [formData, setFormData] = useState({
     name: "",
     serialNumber: "",
@@ -59,32 +60,34 @@ export default function AssetsPage() {
   };
 
   const handleAddCategory = () => {
-    if (newCategoryName.trim() && !categories.some(c => c.name === newCategoryName.trim())) {
+    if (newCategoryName.trim() && !categories.some((c) => c.name === newCategoryName.trim())) {
       setCategories([...categories, { name: newCategoryName.trim(), isActive: true }]);
       toast.success(`Kategori "${newCategoryName.trim()}" berhasil ditambahkan`);
       setNewCategoryName("");
-    } else if (categories.some(c => c.name === newCategoryName.trim())) {
+    } else if (categories.some((c) => c.name === newCategoryName.trim())) {
       toast.error("Kategori sudah ada");
     }
   };
 
   const handleToggleCategory = (categoryName: string) => {
-    setCategories(categories.map(c => {
-      if (c.name === categoryName) {
-        const newState = !c.isActive;
-        toast.success(`Kategori "${categoryName}" ${newState ? "diaktifkan" : "dinonaktifkan"}`);
-        return { ...c, isActive: newState };
-      }
-      return c;
-    }));
+    setCategories(
+      categories.map((c) => {
+        if (c.name === categoryName) {
+          const newState = !c.isActive;
+          toast.success(`Kategori "${categoryName}" ${newState ? "diaktifkan" : "dinonaktifkan"}`);
+          return { ...c, isActive: newState };
+        }
+        return c;
+      }),
+    );
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (editingAsset) {
       // Logic Update
-      const updatedAssets = assets.map(asset => {
+      const updatedAssets = assets.map((asset) => {
         if (asset.id === editingAsset.id) {
           return {
             ...asset,
@@ -104,7 +107,7 @@ export default function AssetsPage() {
       setAssets([newAsset, ...assets]);
       toast.success("Aset berhasil ditambahkan");
     }
-    
+
     handleCloseModal();
   };
 
@@ -124,39 +127,33 @@ export default function AssetsPage() {
       ),
     },
     { header: "Serial number", accessor: "serialNumber" as const },
-    { 
-      header: "Kategori", 
-      accessor: (item: any) => (
-        <span className="text-xs text-gray-500 font-medium">{item.category}</span>
-      )
+    {
+      header: "Kategori",
+      accessor: (item: any) => <span className="text-xs text-gray-500 font-medium">{item.category}</span>,
     },
-    { 
-      header: "PIC / Assignee", 
-      accessor: (item: any) => (
-        <span className="text-sm font-semibold text-gray-700">{item.assignee}</span>
-      )
+    {
+      header: "PIC / Assignee",
+      accessor: (item: any) => <span className="text-sm font-semibold text-gray-700">{item.assignee}</span>,
     },
-    { 
-      header: "Kondisi", 
+    {
+      header: "Kondisi",
       accessor: (item: any) => (
-        <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md ${
-          item.condition === "Good" ? "bg-emerald-100 text-emerald-700" : item.condition === "Maintenance" ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"
-        }`}>
+        <span
+          className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md ${
+            item.condition === "Good" ? "bg-emerald-100 text-emerald-700" : item.condition === "Maintenance" ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"
+          }`}
+        >
           {item.condition}
         </span>
-      )
+      ),
     },
-    { 
-      header: "Aksi", 
-      className: "text-right",
+    {
+      header: "Aksi",
       accessor: (item: any) => (
-        <button 
-          onClick={() => handleEditClick(item)}
-          className="p-1.5 text-gray-400 hover:text-emerald-600 rounded-lg hover:bg-emerald-50 transition-all"
-        >
+        <button onClick={() => handleEditClick(item)} className="p-1.5 text-gray-400 hover:text-emerald-600 rounded-lg hover:bg-emerald-50 transition-all">
           <IconEdit size={18} />
         </button>
-      )
+      ),
     },
   ];
 
@@ -171,16 +168,13 @@ export default function AssetsPage() {
             <p className="text-xs text-gray-500">Daftar aset tetap dan inventaris perusahaan Anda.</p>
           </div>
           <div className="flex items-center gap-2">
-            <button 
+            <button
               onClick={() => setIsCategoryModalOpen(true)}
               className="bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 shadow-sm hover:bg-gray-50 transition-all active:scale-95"
             >
               <IconLayoutGrid size={16} /> Asset Group
             </button>
-            <button 
-              onClick={() => setIsModalOpen(true)}
-              className="bg-[#064E3B] hover:bg-[#043327] text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all active:scale-95"
-            >
+            <button onClick={() => setIsModalOpen(true)} className="bg-[#064E3B] hover:bg-[#043327] text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all active:scale-95">
               <IconPlus size={16} stroke={3} /> Tambah aset
             </button>
           </div>
@@ -190,22 +184,22 @@ export default function AssetsPage() {
         <div className="flex flex-col md:flex-row gap-4 justify-between items-center py-2">
           <div className="relative w-full md:w-80 group">
             <IconSearch className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#10B981] transition-colors" size={18} />
-            <input
-              type="text"
-              placeholder="Cari nama aset atau serial..."
-              className="w-full pl-7 pr-4 py-2 bg-transparent border-b border-gray-200 text-sm focus:outline-none focus:border-[#064E3B] transition-all"
-            />
+            <input type="text" placeholder="Cari nama aset atau serial..." className="w-full pl-7 pr-4 py-2 bg-transparent border-b border-gray-200 text-sm focus:outline-none focus:border-[#064E3B] transition-all" />
           </div>
           <div className="flex items-center gap-3 w-full md:w-auto">
             <div className="flex items-center gap-2 text-sm font-medium text-gray-500">
-                <IconFilter size={16} />
-                <span>Filter:</span>
+              <IconFilter size={16} />
+              <span>Filter:</span>
             </div>
             <select className="bg-transparent border-b border-gray-200 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:border-[#064E3B] transition-all">
               <option>Semua kategori</option>
-              {categories.filter(c => c.isActive).map(cat => (
-                <option key={cat.name} value={cat.name}>{cat.name}</option>
-              ))}
+              {categories
+                .filter((c) => c.isActive)
+                .map((cat) => (
+                  <option key={cat.name} value={cat.name}>
+                    {cat.name}
+                  </option>
+                ))}
             </select>
           </div>
         </div>
@@ -220,11 +214,11 @@ export default function AssetsPage() {
                 <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
                   <IconBoxSeam size={16} /> Nama Aset
                 </label>
-                <input 
+                <input
                   required
-                  type="text" 
+                  type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="Contoh: MacBook Pro M1 2021"
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#064E3B]/5 transition-all"
                 />
@@ -235,11 +229,11 @@ export default function AssetsPage() {
                   <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
                     <IconHash size={16} /> Serial Number
                   </label>
-                  <input 
+                  <input
                     required
-                    type="text" 
+                    type="text"
                     value={formData.serialNumber}
-                    onChange={(e) => setFormData({...formData, serialNumber: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })}
                     placeholder="SN-XXXX-XXXX"
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#064E3B]/5 transition-all"
                   />
@@ -248,14 +242,18 @@ export default function AssetsPage() {
                   <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
                     <IconTags size={16} /> Kategori
                   </label>
-                  <select 
+                  <select
                     value={formData.category}
-                    onChange={(e) => setFormData({...formData, category: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#064E3B]/5 transition-all appearance-none cursor-pointer"
                   >
-                    {categories.filter(c => c.isActive).map(cat => (
-                      <option key={cat.name} value={cat.name}>{cat.name}</option>
-                    ))}
+                    {categories
+                      .filter((c) => c.isActive)
+                      .map((cat) => (
+                        <option key={cat.name} value={cat.name}>
+                          {cat.name}
+                        </option>
+                      ))}
                   </select>
                 </div>
               </div>
@@ -265,10 +263,10 @@ export default function AssetsPage() {
                   <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
                     <IconUser size={16} /> PIC / Assignee
                   </label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={formData.assignee}
-                    onChange={(e) => setFormData({...formData, assignee: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, assignee: e.target.value })}
                     placeholder="Nama penanggung jawab..."
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#064E3B]/5 transition-all"
                   />
@@ -277,9 +275,9 @@ export default function AssetsPage() {
                   <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
                     <IconInfoCircle size={16} /> Kondisi
                   </label>
-                  <select 
+                  <select
                     value={formData.condition}
-                    onChange={(e) => setFormData({...formData, condition: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#064E3B]/5 transition-all appearance-none cursor-pointer"
                   >
                     <option value="Good">Good</option>
@@ -291,17 +289,10 @@ export default function AssetsPage() {
             </div>
 
             <div className="pt-4 flex gap-4">
-              <button 
-                type="button" 
-                onClick={handleCloseModal} 
-                className="flex-1 px-4 py-3.5 border border-gray-100 text-gray-500 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-gray-50 transition-all"
-              >
+              <button type="button" onClick={handleCloseModal} className="flex-1 px-4 py-3.5 border border-gray-100 text-gray-500 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-gray-50 transition-all">
                 Batal
               </button>
-              <button 
-                type="submit" 
-                className="flex-1 px-4 py-3.5 bg-[#064E3B] text-white rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-[#043327] shadow-lg shadow-emerald-900/20 transition-all active:scale-95"
-              >
+              <button type="submit" className="flex-1 px-4 py-3.5 bg-[#064E3B] text-white rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-[#043327] shadow-lg shadow-emerald-900/20 transition-all active:scale-95">
                 Simpan Aset
               </button>
             </div>
@@ -312,22 +303,20 @@ export default function AssetsPage() {
         <Modal isOpen={isCategoryModalOpen} onClose={() => setIsCategoryModalOpen(false)} title="Manajemen Kategori Aset">
           <div className="space-y-6">
             <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
-              <p className="text-sm text-emerald-800 leading-relaxed font-medium">
-                Kelola kategori aset untuk pengelompokan yang lebih baik di platform Inventra.
-              </p>
+              <p className="text-sm text-emerald-800 leading-relaxed font-medium">Kelola kategori aset untuk pengelompokan yang lebih baik di platform Inventra.</p>
             </div>
 
             <div className="space-y-3">
               <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Tambah Kategori Baru</label>
               <div className="flex gap-2">
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={newCategoryName}
                   onChange={(e) => setNewCategoryName(e.target.value)}
                   placeholder="Contoh: Perangkat Jaringan"
                   className="flex-1 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#064E3B]/5 transition-all"
                 />
-                <button 
+                <button
                   onClick={handleAddCategory}
                   disabled={!newCategoryName.trim()}
                   className="px-4 bg-[#064E3B] disabled:bg-gray-200 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-[#043327] transition-all active:scale-95"
@@ -339,7 +328,7 @@ export default function AssetsPage() {
 
             <div className="space-y-3">
               <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">List Kategori Terdaftar</label>
-              <div className="grid grid-cols-1 gap-2 max-h-[250px] overflow-y-auto pr-2 scrollbar-hide">
+              <div className="grid grid-cols-1 gap-2 max-h-62.5 overflow-y-auto pr-2 scrollbar-hide">
                 {categories.map((cat) => (
                   <div key={cat.name} className={`flex items-center justify-between p-3.5 border rounded-xl transition-all ${cat.isActive ? "bg-white border-gray-100" : "bg-gray-50/50 border-gray-200 opacity-60"}`}>
                     <div className="flex items-center gap-3">
@@ -348,17 +337,13 @@ export default function AssetsPage() {
                       </div>
                       <div className="flex flex-col">
                         <span className={`text-sm font-bold ${cat.isActive ? "text-gray-700" : "text-gray-400"}`}>{cat.name}</span>
-                        <span className={`text-[10px] font-bold uppercase tracking-tight ${cat.isActive ? "text-emerald-500" : "text-gray-400"}`}>
-                          {cat.isActive ? "Active" : "Inactive"}
-                        </span>
+                        <span className={`text-[10px] font-bold uppercase tracking-tight ${cat.isActive ? "text-emerald-500" : "text-gray-400"}`}>{cat.isActive ? "Active" : "Inactive"}</span>
                       </div>
                     </div>
-                    <button 
+                    <button
                       onClick={() => handleToggleCategory(cat.name)}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${
-                        cat.isActive 
-                          ? "bg-amber-50 text-amber-600 hover:bg-amber-100" 
-                          : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
+                        cat.isActive ? "bg-amber-50 text-amber-600 hover:bg-amber-100" : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
                       }`}
                     >
                       {cat.isActive ? <IconCircleX size={14} /> : <IconCircleCheck size={14} />}
@@ -370,10 +355,7 @@ export default function AssetsPage() {
             </div>
 
             <div className="pt-4">
-              <button 
-                onClick={() => setIsCategoryModalOpen(false)} 
-                className="w-full px-4 py-3.5 bg-gray-900 text-white rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-black transition-all active:scale-95"
-              >
+              <button onClick={() => setIsCategoryModalOpen(false)} className="w-full px-4 py-3.5 bg-gray-900 text-white rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-black transition-all active:scale-95">
                 Tutup
               </button>
             </div>

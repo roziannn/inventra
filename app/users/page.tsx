@@ -6,7 +6,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import Breadcrumb from "@/components/Breadcrumb";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
-import { IconPlus, IconSearch, IconEdit, IconFilter, IconUser, IconMail, IconBriefcase, IconShield, IconTrash, IconCircleCheck, IconCircleX, IconShieldCheck } from "@tabler/icons-react";
+import { IconPlus, IconSearch, IconEdit, IconFilter, IconUser, IconMail, IconBriefcase, IconShield, IconCircleCheck, IconCircleX, IconShieldCheck } from "@tabler/icons-react";
 import { toast } from "react-hot-toast";
 
 const initialUsers = Array.from({ length: 25 }, (_, i) => ({
@@ -68,22 +68,24 @@ export default function UsersPage() {
   };
 
   const handleToggleRole = (roleName: string) => {
-    setRoles(roles.map((r) => {
-      if (r.name === roleName) {
-        const newState = !r.isActive;
-        toast.success(`Role "${roleName}" ${newState ? "diaktifkan" : "dinonaktifkan"}`);
-        return { ...r, isActive: newState };
-      }
-      return r;
-    }));
+    setRoles(
+      roles.map((r) => {
+        if (r.name === roleName) {
+          const newState = !r.isActive;
+          toast.success(`Role "${roleName}" ${newState ? "diaktifkan" : "dinonaktifkan"}`);
+          return { ...r, isActive: newState };
+        }
+        return r;
+      }),
+    );
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (editingUser) {
       // Logic Update
-      const updatedUsers = users.map(u => {
+      const updatedUsers = users.map((u) => {
         if (u.id === editingUser.id) {
           return {
             ...u,
@@ -110,7 +112,7 @@ export default function UsersPage() {
       setUsers([newUser, ...users]);
       toast.success("User berhasil ditambahkan");
     }
-    
+
     handleCloseModal();
   };
 
@@ -148,12 +150,8 @@ export default function UsersPage() {
     { header: "Last active", accessor: "lastActive" as const },
     {
       header: "Aksi",
-      className: "text-right",
       accessor: (item: any) => (
-        <button 
-          onClick={() => handleEditClick(item)}
-          className="p-1.5 text-gray-400 hover:text-emerald-600 rounded-lg hover:bg-emerald-50 transition-all"
-        >
+        <button onClick={() => handleEditClick(item)} className="p-1.5 text-gray-400 hover:text-emerald-600 rounded-lg hover:bg-emerald-50 transition-all">
           <IconEdit size={18} />
         </button>
       ),
@@ -266,24 +264,22 @@ export default function UsersPage() {
               {editingUser && (
                 <div className="pt-2 flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.status === 'Active' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
-                      {formData.status === 'Active' ? <IconCircleCheck size={20} /> : <IconCircleX size={20} />}
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.status === "Active" ? "bg-emerald-100 text-emerald-600" : "bg-red-100 text-red-600"}`}>
+                      {formData.status === "Active" ? <IconCircleCheck size={20} /> : <IconCircleX size={20} />}
                     </div>
                     <div>
                       <p className="text-sm font-bold text-gray-900">Status User</p>
                       <p className="text-xs font-medium text-gray-500">
-                        User saat ini <span className={formData.status === 'Active' ? 'text-emerald-600 font-bold' : 'text-red-600 font-bold'}>{formData.status}</span>
+                        User saat ini <span className={formData.status === "Active" ? "text-emerald-600 font-bold" : "text-red-600 font-bold"}>{formData.status}</span>
                       </p>
                     </div>
                   </div>
                   <button
                     type="button"
-                    onClick={() => setFormData({...formData, status: formData.status === 'Active' ? 'Inactive' : 'Active'})}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${formData.status === 'Active' ? 'bg-emerald-600' : 'bg-gray-300'}`}
+                    onClick={() => setFormData({ ...formData, status: formData.status === "Active" ? "Inactive" : "Active" })}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${formData.status === "Active" ? "bg-emerald-600" : "bg-gray-300"}`}
                   >
-                    <span
-                      className={`${formData.status === 'Active' ? 'translate-x-6' : 'translate-x-1'} inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
-                    />
+                    <span className={`${formData.status === "Active" ? "translate-x-6" : "translate-x-1"} inline-block h-4 w-4 transform rounded-full bg-white transition-transform`} />
                   </button>
                 </div>
               )}
@@ -329,7 +325,7 @@ export default function UsersPage() {
 
             <div className="space-y-3">
               <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">List Role Terdaftar</label>
-              <div className="grid grid-cols-1 gap-2 max-h-[250px] overflow-y-auto pr-2 scrollbar-hide">
+              <div className="grid grid-cols-1 gap-2 max-h-62.5 overflow-y-auto pr-2 scrollbar-hide">
                 {roles.map((role) => (
                   <div key={role.name} className={`flex items-center justify-between p-3.5 border rounded-xl transition-all ${role.isActive ? "bg-white border-gray-100" : "bg-gray-50/50 border-gray-200 opacity-60"}`}>
                     <div className="flex items-center gap-3">
