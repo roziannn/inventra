@@ -1,22 +1,66 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import Breadcrumb from "@/components/Breadcrumb";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
-import { IconPlus, IconSearch, IconEdit, IconFilter, IconUser, IconMail, IconBriefcase, IconShield, IconCircleCheck, IconCircleX, IconShieldCheck } from "@tabler/icons-react";
+import { IconPlus, IconSearch, IconEdit, IconFilter, IconUser, IconMail, IconBriefcase, IconShield, IconCircleCheck, IconCircleX, IconShieldCheck, IconCircleCheckFilled, IconCircleXFilled } from "@tabler/icons-react";
 import { toast } from "react-hot-toast";
 
-const initialUsers = Array.from({ length: 25 }, (_, i) => ({
-  id: `USR-${500 + i}`,
-  name: i % 3 === 0 ? `Ahmad ${i + 1}` : i % 3 === 1 ? `Sarah Miller ${i + 1}` : `John Doe ${i + 1}`,
-  email: `user${i}@inventra.co.id`,
-  role: i % 4 === 0 ? "Super Admin" : i % 4 === 1 ? "Manager" : "Staff",
-  status: i % 6 === 0 ? "Inactive" : "Active",
-  lastActive: `${(i * 3) % 24}h ago`,
-}));
+const initialUsers = [
+  {
+    id: "USR-501",
+    name: "Ahmad Fauzan",
+    email: "ahmad.fauzan@inventra.co.id",
+    role: "Super Admin",
+    status: "Active",
+    lastActive: "2h ago",
+    createdBy: "Administrator",
+    createdAt: new Date(2026, 2, 3),
+  },
+  {
+    id: "USR-502",
+    name: "Sarah Wijaya",
+    email: "sarah.wijaya@inventra.co.id",
+    role: "Manager",
+    status: "Active",
+    lastActive: "5h ago",
+    createdBy: "Administrator",
+    createdAt: new Date(2026, 2, 5),
+  },
+  {
+    id: "USR-503",
+    name: "John Pratama",
+    email: "john.pratama@inventra.co.id",
+    role: "Staff",
+    status: "Inactive",
+    lastActive: "1d ago",
+    createdBy: "Administrator",
+    createdAt: new Date(2026, 2, 8),
+  },
+  {
+    id: "USR-504",
+    name: "Dewi Lestari",
+    email: "dewi.lestari@inventra.co.id",
+    role: "Staff",
+    status: "Active",
+    lastActive: "30m ago",
+    createdBy: "Administrator",
+    createdAt: new Date(2026, 2, 10),
+  },
+  {
+    id: "USR-505",
+    name: "Rizky Ananda",
+    email: "rizky.ananda@inventra.co.id",
+    role: "Manager",
+    status: "Active",
+    lastActive: "10h ago",
+    createdBy: "Administrator",
+    createdAt: new Date(2026, 2, 12),
+  },
+];
 
 const initialRoles = [
   { name: "Super Admin", isActive: true },
@@ -29,6 +73,10 @@ export default function UsersPage() {
   const [roles, setRoles] = useState(initialRoles);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedRole, setSelectedRole] = useState("Semua role");
+
   const [newRoleName, setNewRoleName] = useState("");
   const [editingUser, setEditingUser] = useState<any>(null);
 
@@ -38,6 +86,23 @@ export default function UsersPage() {
     role: "Staff",
     status: "Active",
   });
+
+  const formatDate = (date: Date) => {
+    return new Date(date).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const filteredUsers = useMemo(() => {
+    const query = searchQuery.toLowerCase().trim();
+    return users.filter((user) => {
+      const matchesSearch = user.name.toLowerCase().includes(query) || user.email.toLowerCase().includes(query);
+      const matchesRole = selectedRole === "Semua role" || user.role === selectedRole;
+      return matchesSearch && matchesRole;
+    });
+  }, [users, searchQuery, selectedRole]);
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
@@ -58,61 +123,51 @@ export default function UsersPage() {
   };
 
   const handleAddRole = () => {
-    if (newRoleName.trim() && !roles.some((r) => r.name === newRoleName.trim())) {
-      setRoles([...roles, { name: newRoleName.trim(), isActive: true }]);
-      toast.success(`Role "${newRoleName.trim()}" berhasil ditambahkan`);
+    const trimmed = newRoleName.trim();
+    if (trimmed && !roles.some((r) => r.name === trimmed)) {
+      setRoles([...roles, { name: trimmed, isActive: true }]);
+      toast.success(`Role "${trimmed}" ditambahkan`);
       setNewRoleName("");
-    } else if (roles.some((r) => r.name === newRoleName.trim())) {
+    } else if (roles.some((r) => r.name === trimmed)) {
       toast.error("Role sudah ada");
     }
   };
 
   const handleToggleRole = (roleName: string) => {
-    setRoles(
-      roles.map((r) => {
-        if (r.name === roleName) {
-          const newState = !r.isActive;
-          toast.success(`Role "${roleName}" ${newState ? "diaktifkan" : "dinonaktifkan"}`);
-          return { ...r, isActive: newState };
-        }
-        return r;
-      }),
-    );
+    setRoles(roles.map((r) => (r.name === roleName ? { ...r, isActive: !r.isActive } : r)));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
     if (editingUser) {
-      // Logic Update
-      const updatedUsers = users.map((u) => {
-        if (u.id === editingUser.id) {
-          return {
-            ...u,
-            name: formData.name,
-            email: `${formData.emailPrefix}@inventra.co.id`,
-            role: formData.role,
-            status: formData.status,
-          };
-        }
-        return u;
-      });
-      setUsers(updatedUsers);
-      toast.success("User berhasil diperbarui");
+      setUsers(
+        users.map((u) =>
+          u.id === editingUser.id
+            ? {
+                ...u,
+                name: formData.name,
+                email: `${formData.emailPrefix}@inventra.co.id`,
+                role: formData.role,
+                status: formData.status,
+              }
+            : u,
+        ),
+      );
+      toast.success("User diperbarui");
     } else {
-      // Logic Create
       const newUser = {
-        id: `USR-${500 + users.length}`,
+        id: `USR-${500 + users.length + 1}`,
         name: formData.name,
         email: `${formData.emailPrefix}@inventra.co.id`,
         role: formData.role,
         status: "Active",
         lastActive: "Just now",
+        createdBy: "Admin",
+        createdAt: new Date(),
       };
       setUsers([newUser, ...users]);
-      toast.success("User berhasil ditambahkan");
+      toast.success("User ditambahkan");
     }
-
     handleCloseModal();
   };
 
@@ -120,38 +175,54 @@ export default function UsersPage() {
     {
       header: "User",
       accessor: (item: any) => (
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-xs shrink-0">
+        <div className="flex items-center gap-3 py-1">
+          <div className="w-9 h-9 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-xs shrink-0 border border-emerald-100 uppercase tabular-nums">
             {item.name
               .split(" ")
               .map((n: string) => n[0])
               .join("")}
           </div>
           <div className="min-w-0">
-            <p className="font-bold text-gray-900 truncate">{item.name}</p>
-            <p className="text-xs text-gray-400 truncate">{item.email}</p>
+            <p className="font-bold text-gray-900 truncate leading-tight">{item.name}</p>
+            <p className="text-[10px] text-gray-400 truncate tracking-wide">{item.email}</p>
           </div>
         </div>
       ),
     },
     {
       header: "Role",
-      accessor: (item: any) => <span className={`text-xs font-semibold ${item.role === "Super Admin" ? "text-purple-600" : item.role === "Manager" ? "text-blue-600" : "text-gray-600"}`}>{item.role}</span>,
+      accessor: (item: any) => <span className="text-sm text-gray-700 font-medium">{item.role}</span>,
     },
     {
       header: "Status",
-      accessor: (item: any) => (
-        <div className="flex items-center gap-2">
-          <div className={`w-2 h-2 rounded-full ${item.status === "Active" ? "bg-emerald-500" : "bg-gray-300"}`} />
-          <span className="text-sm text-gray-700 font-medium">{item.status}</span>
-        </div>
-      ),
+      accessor: (item: any) => {
+        const isActive = item.status === "Active";
+        return (
+          <span
+            className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-full text-[11px] font-semibold border ${isActive ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20" : "bg-rose-500/10 text-rose-600 border border-rose-500/20"}`}
+          >
+            {isActive ? <IconCircleCheckFilled size={12} /> : <IconCircleXFilled size={12} />}
+            {item.status}
+          </span>
+        );
+      },
     },
-    { header: "Last active", accessor: "lastActive" as const },
+    {
+      header: "Last active",
+      accessor: (item: any) => <span className="text-sm text-gray-700 font-medium">{item.lastActive}</span>,
+    },
+    {
+      header: "Created by",
+      accessor: (item: any) => <span className="text-sm text-gray-700 font-medium">{item.createdBy}</span>,
+    },
+    {
+      header: "Created at",
+      accessor: (item: any) => <span className="text-sm text-gray-700 font-medium tabular-nums">{formatDate(item.createdAt)}</span>,
+    },
     {
       header: "Aksi",
       accessor: (item: any) => (
-        <button onClick={() => handleEditClick(item)} className="p-1.5 text-gray-400 hover:text-emerald-600 rounded-lg hover:bg-emerald-50 transition-all">
+        <button onClick={() => handleEditClick(item)} className="p-1.5 text-gray-400 hover:text-emerald-600 rounded-lg hover:bg-emerald-50 transition-all active:scale-90">
           <IconEdit size={18} />
         </button>
       ),
@@ -166,7 +237,7 @@ export default function UsersPage() {
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Users</h2>
-            <p className="text-xs text-gray-500">Kelola anggota tim dan hak akses mereka.</p>
+            <p className="text-xs text-gray-500 font-medium">Kelola anggota tim dan hak akses mereka.</p>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -181,19 +252,28 @@ export default function UsersPage() {
           </div>
         </div>
 
-        {/* Integrated Search & Filter */}
         <div className="flex flex-col md:flex-row gap-4 justify-between items-center py-2">
           <div className="relative w-full md:w-80 group">
             <IconSearch className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#10B981] transition-colors" size={18} />
-            <input type="text" placeholder="Cari nama atau email..." className="w-full pl-7 pr-4 py-2 bg-transparent border-b border-gray-200 text-sm focus:outline-none focus:border-[#064E3B] transition-all" />
+            <input
+              type="text"
+              placeholder="Cari nama atau email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-7 pr-4 py-2 bg-transparent border-b border-gray-200 text-sm focus:outline-none focus:border-[#064E3B] transition-all"
+            />
           </div>
           <div className="flex items-center gap-3 w-full md:w-auto">
             <div className="flex items-center gap-2 text-sm font-medium text-gray-500">
               <IconFilter size={16} />
-              <span>Role:</span>
+              <span>Filter:</span>
             </div>
-            <select className="bg-transparent border-b border-gray-200 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:border-[#064E3B] transition-all">
-              <option>Semua role</option>
+            <select
+              value={selectedRole}
+              onChange={(e) => setSelectedRole(e.target.value)}
+              className="bg-transparent border-b border-gray-200 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:border-[#064E3B] transition-all cursor-pointer"
+            >
+              <option value="Semua role">Semua role</option>
               {roles
                 .filter((r) => r.isActive)
                 .map((role) => (
@@ -205,8 +285,9 @@ export default function UsersPage() {
           </div>
         </div>
 
-        {/* DataTable */}
-        <DataTable data={users} columns={columns} pageSize={10} />
+        <div className="min-h-100">
+          <DataTable data={filteredUsers} columns={columns} pageSize={10} />
+        </div>
 
         <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={editingUser ? "Edit User" : "Tambah User Baru"}>
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -224,7 +305,6 @@ export default function UsersPage() {
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#064E3B]/5 transition-all"
                 />
               </div>
-
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
                   <IconMail size={16} /> Email Perusahaan
@@ -238,10 +318,9 @@ export default function UsersPage() {
                     placeholder="nama.user"
                     className="flex-1 px-4 py-3 bg-transparent text-sm focus:outline-none"
                   />
-                  <span className="px-4 py-3 bg-gray-100 text-gray-400 text-xs font-bold border-l border-gray-100">@inventra.co.id</span>
+                  <span className="px-4 py-3 bg-gray-100 text-gray-400 text-[10px] font-black border-l border-gray-100 tracking-tighter">@inventra.co.id</span>
                 </div>
               </div>
-
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
                   <IconBriefcase size={16} /> Role / Jabatan
@@ -260,18 +339,15 @@ export default function UsersPage() {
                     ))}
                 </select>
               </div>
-
               {editingUser && (
-                <div className="pt-2 flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                <div className="pt-2 flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 shadow-inner">
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.status === "Active" ? "bg-emerald-100 text-emerald-600" : "bg-red-100 text-red-600"}`}>
-                      {formData.status === "Active" ? <IconCircleCheck size={20} /> : <IconCircleX size={20} />}
+                      {formData.status === "Active" ? <IconCircleCheckFilled size={20} /> : <IconCircleXFilled size={20} />}
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-gray-900">Status User</p>
-                      <p className="text-xs font-medium text-gray-500">
-                        User saat ini <span className={formData.status === "Active" ? "text-emerald-600 font-bold" : "text-red-600 font-bold"}>{formData.status}</span>
-                      </p>
+                      <p className="text-sm font-bold text-gray-900 leading-none mb-1">Status User</p>
+                      <p className="text-[10px] font-medium text-gray-500 italic uppercase tracking-tighter">Status: {formData.status}</p>
                     </div>
                   </div>
                   <button
@@ -279,12 +355,11 @@ export default function UsersPage() {
                     onClick={() => setFormData({ ...formData, status: formData.status === "Active" ? "Inactive" : "Active" })}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${formData.status === "Active" ? "bg-emerald-600" : "bg-gray-300"}`}
                   >
-                    <span className={`${formData.status === "Active" ? "translate-x-6" : "translate-x-1"} inline-block h-4 w-4 transform rounded-full bg-white transition-transform`} />
+                    <span className={`${formData.status === "Active" ? "translate-x-6" : "translate-x-1"} inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm`} />
                   </button>
                 </div>
               )}
             </div>
-
             <div className="pt-4 flex gap-4">
               <button type="button" onClick={handleCloseModal} className="flex-1 px-4 py-3.5 border border-gray-100 text-gray-500 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-gray-50 transition-all">
                 Batal
@@ -296,13 +371,11 @@ export default function UsersPage() {
           </form>
         </Modal>
 
-        {/* Role Group Modal */}
         <Modal isOpen={isRoleModalOpen} onClose={() => setIsRoleModalOpen(false)} title="Manajemen Role Group">
           <div className="space-y-6">
             <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
-              <p className="text-sm text-emerald-800 leading-relaxed font-medium">Daftar role yang tersedia. Nonaktifkan role untuk menyembunyikannya dari pilihan pendaftaran user.</p>
+              <p className="text-xs text-emerald-800 leading-relaxed font-bold uppercase tracking-tighter">Daftar role yang tersedia. Nonaktifkan role untuk menyembunyikannya dari pilihan pendaftaran user.</p>
             </div>
-
             <div className="space-y-3">
               <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Tambah Role Baru</label>
               <div className="flex gap-2">
@@ -322,7 +395,6 @@ export default function UsersPage() {
                 </button>
               </div>
             </div>
-
             <div className="space-y-3">
               <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">List Role Terdaftar</label>
               <div className="grid grid-cols-1 gap-2 max-h-62.5 overflow-y-auto pr-2 scrollbar-hide">
@@ -339,9 +411,7 @@ export default function UsersPage() {
                     </div>
                     <button
                       onClick={() => handleToggleRole(role.name)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${
-                        role.isActive ? "bg-amber-50 text-amber-600 hover:bg-amber-100" : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
-                      }`}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${role.isActive ? "bg-amber-50 text-amber-600 hover:bg-amber-100" : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"}`}
                     >
                       {role.isActive ? <IconCircleX size={14} /> : <IconCircleCheck size={14} />}
                       {role.isActive ? "Deactivate" : "Activate"}
@@ -350,7 +420,6 @@ export default function UsersPage() {
                 ))}
               </div>
             </div>
-
             <div className="pt-4">
               <button onClick={() => setIsRoleModalOpen(false)} className="w-full px-4 py-3.5 bg-gray-900 text-white rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-black transition-all active:scale-95">
                 Tutup

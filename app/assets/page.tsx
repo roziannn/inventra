@@ -6,7 +6,23 @@ import DashboardLayout from "@/components/DashboardLayout";
 import Breadcrumb from "@/components/Breadcrumb";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
-import { IconPlus, IconSearch, IconFilter, IconEdit, IconBoxSeam, IconHash, IconTags, IconUser, IconInfoCircle, IconLayoutGrid, IconCircleCheck, IconCircleX } from "@tabler/icons-react";
+import {
+  IconPlus,
+  IconSearch,
+  IconFilter,
+  IconEdit,
+  IconCircleCheckFilled,
+  IconSettingsFilled,
+  IconCircleXFilled,
+  IconBoxSeam,
+  IconHash,
+  IconTags,
+  IconUser,
+  IconInfoCircle,
+  IconLayoutGrid,
+  IconCircleCheck,
+  IconCircleX,
+} from "@tabler/icons-react";
 import { toast } from "react-hot-toast";
 
 const initialAssets = Array.from({ length: 30 }, (_, i) => ({
@@ -129,7 +145,7 @@ export default function AssetsPage() {
     { header: "Serial number", accessor: "serialNumber" as const },
     {
       header: "Kategori",
-      accessor: (item: any) => <span className="text-xs text-gray-500 font-medium">{item.category}</span>,
+      accessor: (item: any) => <span className="text-[10px] px-2.5 py-1 bg-gray-50 text-gray-500 border border-gray-100 rounded-full font-bold uppercase tracking-widest">{item.category}</span>,
     },
     {
       header: "PIC / Assignee",
@@ -137,15 +153,36 @@ export default function AssetsPage() {
     },
     {
       header: "Kondisi",
-      accessor: (item: any) => (
-        <span
-          className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md ${
-            item.condition === "Good" ? "bg-emerald-100 text-emerald-700" : item.condition === "Maintenance" ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"
-          }`}
-        >
-          {item.condition}
-        </span>
-      ),
+      accessor: (item: any) => {
+        const config: any = {
+          Good: {
+            style: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+            icon: <IconCircleCheckFilled size={12} />,
+          },
+          Maintenance: {
+            style: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+            icon: <IconSettingsFilled size={12} />,
+          },
+          Broken: {
+            style: "bg-rose-500/10 text-rose-600 border-rose-500/20",
+            icon: <IconCircleXFilled size={12} />,
+          },
+        };
+
+        const current = config[item.condition] || config.Good;
+
+        return (
+          <span
+            className={`
+            inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-full text-[11px] font-semibold border
+            ${current.style}
+          `}
+          >
+            {current.icon}
+            {item.condition}
+          </span>
+        );
+      },
     },
     {
       header: "Aksi",

@@ -27,10 +27,12 @@ import {
   IconAlertTriangle,
   IconFileExport,
   IconCalendar,
+  IconCircleCheckFilled,
+  IconCircleXFilled,
+  IconLoader,
 } from "@tabler/icons-react";
 import { toast } from "react-hot-toast";
 
-// Dummy Data for Selects
 const userOptions = [
   { id: "1", label: "Budi Santoso", sublabel: "IT Department" },
   { id: "2", label: "Siti Aminah", sublabel: "Finance" },
@@ -53,7 +55,7 @@ const initialReports = Array.from({ length: 25 }, (_, i) => ({
   reporter: i % 2 === 0 ? "Budi Santoso" : "Siti Aminah",
   author: "Admin System",
   status: i % 3 === 0 ? "Pending" : i % 3 === 1 ? "In progress" : "Resolved",
-  reportDate: "2026-03-20",
+  reportDate: new Date(2026, 2, (i % 28) + 1),
   token: `TOKEN-${1000 + i}X`,
   problem: "Layar berkedip saat digunakan lebih dari 2 jam. Kemungkinan overheat pada chipset grafis.",
   serviceType: i % 2 === 0 ? "Self service" : "By vendor",
@@ -63,6 +65,7 @@ const initialReports = Array.from({ length: 25 }, (_, i) => ({
     { user: "Admin", text: "Silahkan diproses segera.", date: "2026-03-20 11:30" },
   ],
   solutions: [{ id: "SOL-1", text: "Pembersihan debu pada fan dan penggantian thermal paste.", author: "Andi", date: "2026-03-20 14:00", isReference: i === 0 }],
+  createdAt: new Date(2026, 2, (i % 28) + 1),
 }));
 
 const formatDateTimeShort = (dateStr: string) => {
@@ -94,6 +97,8 @@ export default function ReportsPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [mounted, setMounted] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("Semua status");
 
   React.useEffect(() => {
     setMounted(true);
@@ -108,6 +113,26 @@ export default function ReportsPage() {
     serviceType: "Self service",
     assignee: "",
   });
+
+  const formatDate = (date: Date) => {
+    return new Date(date).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const filteredReports = React.useMemo(() => {
+    const query = searchQuery.toLowerCase().trim();
+
+    return reports.filter((report) => {
+      const matchSearch = report.id.toLowerCase().includes(query) || report.item.toLowerCase().includes(query) || report.reporter.toLowerCase().includes(query) || report.token.toLowerCase().includes(query);
+
+      const matchStatus = statusFilter === "Semua status" || report.status === statusFilter;
+
+      return matchSearch && matchStatus;
+    });
+  }, [reports, searchQuery, statusFilter]);
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
@@ -197,9 +222,10 @@ export default function ReportsPage() {
         token: `TOKEN-${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
         author: "Admin System",
         status: "Pending",
-        reportDate: new Date().toISOString().split("T")[0],
+        reportDate: new Date(),
         comments: [],
         solutions: [],
+        createdAt: new Date(),
       };
       setReports([newReport, ...reports]);
       toast.success("Laporan baru berhasil dibuat");
@@ -237,7 +263,6 @@ export default function ReportsPage() {
       }
       return sol;
     });
-
     const updatedReport = { ...selectedReport, solutions: updatedSolutions };
     setSelectedReport(updatedReport);
     setReports(reports.map((r) => (r.id === selectedReport.id ? updatedReport : r)));
@@ -246,7 +271,6 @@ export default function ReportsPage() {
 
   const handleMarkAsComplete = () => {
     if (!selectedReport) return;
-
     const updatedReport = {
       ...selectedReport,
       status: "Resolved", // Matching existing status logic for 'Complete'
@@ -260,38 +284,62 @@ export default function ReportsPage() {
   const columns = [
     {
       header: "ID Transaksi",
+      className: "w-[160px]",
       accessor: (item: any) => (
-        <div>
-          <p className="font-bold text-[#064E3B]">{item.id}</p>
-          <p className="text-[10px] text-gray-400 font-medium tracking-tight">{item.token}</p>
+        <div className="max-w-36">
+          <p className="font-bold truncate">{item.id}</p>
+          <p className="text-[12px] text-gray-400 font-medium tracking-tight truncate">{item.token}</p>
         </div>
       ),
     },
+
     { header: "Barang", accessor: "item" as const },
+
     {
       header: "Pelapor",
       accessor: (item: any) => (
         <div>
-          <p className="font-bold text-gray-900 leading-tight">{item.reporter}</p>
-          <p className="text-[10px] text-gray-400">Oleh: {item.author}</p>
+          <p className="text-sm text-gray-700 font-medium">{item.reporter}</p>
+          <p className="text-[12px] text-gray-400">Oleh: {item.author}</p>
         </div>
       ),
     },
+
     {
-      header: "Status",
-      accessor: (item: any) => (
-        <span
-          className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md ${
-            item.status === "Resolved" ? "bg-emerald-100 text-emerald-700" : item.status === "In progress" ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"
-          }`}
-        >
-          {item.status}
-        </span>
-      ),
+      header: "Service",
+      accessor: (item: any) => <span className="text-sm text-gray-700 font-medium">{item.serviceType}</span>,
     },
     {
+      header: "Status",
+      accessor: (item: any) => {
+        const isResolved = item.status === "Resolved";
+        const isProgress = item.status === "In progress";
+        const isPending = item.status === "Pending";
+
+        return (
+          <span
+            className={`
+        inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-full 
+        text-[11px] font-semibold border
+        ${isResolved ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : isProgress ? "bg-blue-500/10 text-blue-600 border-blue-500/20" : "bg-amber-500/10 text-amber-600 border-amber-500/20"}
+      `}
+          >
+            {isResolved && <IconCircleCheckFilled size={12} />}
+            {isProgress && <IconLoader size={12} />}
+            {isPending && <IconCircleXFilled size={12} />}
+            {item.status}
+          </span>
+        );
+      },
+    },
+    {
+      header: "Created at",
+      accessor: (item: any) => <span className="text-sm text-gray-700 font-medium">{formatDate(item.createdAt)}</span>,
+    },
+
+    {
       header: "Aksi",
-      className: "text-center",
+      className: "text-center w-[120px]",
       accessor: (item: any) => (
         <div className="flex items-center justify-center gap-1">
           <button
@@ -303,9 +351,11 @@ export default function ReportsPage() {
           >
             <IconEye size={16} />
           </button>
+
           <button onClick={() => handleEditClick(item)} className="p-1.5 text-gray-400 hover:text-emerald-600 rounded-lg hover:bg-emerald-50 transition-all">
             <IconEdit size={16} />
           </button>
+
           <button onClick={() => handleDeleteClick(item)} className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-all">
             <IconTrash size={16} />
           </button>
@@ -511,23 +561,29 @@ export default function ReportsPage() {
         <div className="flex flex-col md:flex-row gap-4 justify-between items-center py-2">
           <div className="relative w-full md:w-80 group">
             <IconSearch className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#10B981] transition-colors" size={18} />
-            <input type="text" placeholder="Cari ID, barang, pelapor..." className="w-full pl-7 pr-4 py-2 bg-transparent border-b border-gray-200 text-sm focus:outline-none focus:border-[#064E3B] transition-all" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari ID, barang, pelapor..."
+              className="w-full pl-7 pr-4 py-2 bg-transparent border-b border-gray-200 text-sm focus:outline-none focus:border-[#064E3B] transition-all"
+            />
           </div>
           <div className="flex items-center gap-3 w-full md:w-auto">
             <div className="flex items-center gap-2 text-sm font-medium text-gray-500">
               <IconFilter size={16} />
               <span>Status:</span>
             </div>
-            <select className="bg-transparent border-b border-gray-200 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:border-[#064E3B] transition-all">
-              <option>Semua status</option>
-              <option>Pending</option>
-              <option>In progress</option>
-              <option>Resolved</option>
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="bg-transparent border-b border-gray-200 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:border-[#064E3B] transition-all">
+              <option value="Semua status">Semua status</option>
+              <option value="Pending">Pending</option>
+              <option value="In progress">In progress</option>
+              <option value="Resolved">Resolved</option>
             </select>
           </div>
         </div>
 
-        <DataTable data={reports} columns={columns} pageSize={10} />
+        <DataTable data={filteredReports} columns={columns} pageSize={10} />
 
         <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Buat Laporan Baru">
           <form onSubmit={handleSubmit} className="space-y-4">
