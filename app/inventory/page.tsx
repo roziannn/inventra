@@ -6,6 +6,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
 import { IconPlus, IconSearch, IconFilter, IconEdit, IconPackage, IconHash, IconTags, IconDatabase, IconWeight, IconLayoutGrid, IconTrash, IconCircleCheck, IconCircleX } from "@tabler/icons-react";
+import { toast } from "react-hot-toast";
 
 const initialInventory = Array.from({ length: 25 }, (_, i) => ({
   id: `INV-${1000 + i}`,
@@ -60,14 +61,22 @@ export default function InventoryPage() {
   const handleAddCategory = () => {
     if (newCategoryName.trim() && !categories.some(c => c.name === newCategoryName.trim())) {
       setCategories([...categories, { name: newCategoryName.trim(), isActive: true }]);
+      toast.success(`Kategori "${newCategoryName.trim()}" berhasil ditambahkan`);
       setNewCategoryName("");
+    } else if (categories.some(c => c.name === newCategoryName.trim())) {
+      toast.error("Kategori sudah ada");
     }
   };
 
   const handleToggleCategory = (categoryName: string) => {
-    setCategories(categories.map(c => 
-      c.name === categoryName ? { ...c, isActive: !c.isActive } : c
-    ));
+    setCategories(categories.map(c => {
+      if (c.name === categoryName) {
+        const newState = !c.isActive;
+        toast.success(`Kategori "${categoryName}" ${newState ? "diaktifkan" : "dinonaktifkan"}`);
+        return { ...c, isActive: newState };
+      }
+      return c;
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -88,6 +97,7 @@ export default function InventoryPage() {
         return item;
       });
       setInventory(updatedInventory);
+      toast.success("Barang berhasil diperbarui");
     } else {
       // Logic Create
       const newItem = {
@@ -97,6 +107,7 @@ export default function InventoryPage() {
         status: Number(formData.stock) > 10 ? "In stock" : "Low stock",
       };
       setInventory([newItem, ...inventory]);
+      toast.success("Barang berhasil ditambahkan");
     }
     
     handleCloseModal();

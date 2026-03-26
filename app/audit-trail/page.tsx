@@ -15,6 +15,7 @@ import {
   IconFileExport,
   IconCalendar
 } from "@tabler/icons-react";
+import { toast } from "react-hot-toast";
 
 const dummyLogs = Array.from({ length: 30 }, (_, i) => ({
   id: `LOG-${5000 + i}`,
@@ -45,8 +46,20 @@ export default function AuditTrailPage() {
 
   const handleExport = (e: React.FormEvent) => {
     e.preventDefault();
-    // Logic export dummy
-    alert(`Mengekspor data dari ${startDate} hingga ${endDate}`);
+    
+    // Simulate export process
+    const exportPromise = new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(`Data dari ${startDate} hingga ${endDate} berhasil diekspor`);
+      }, 2000);
+    });
+
+    toast.promise(exportPromise, {
+      loading: "Menyiapkan data export...",
+      success: (message: any) => message,
+      error: "Gagal mengekspor data",
+    });
+
     handleCloseModal();
   };
 

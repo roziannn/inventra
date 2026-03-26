@@ -6,6 +6,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
 import { IconPlus, IconSearch, IconFilter, IconEdit, IconBoxSeam, IconHash, IconTags, IconUser, IconInfoCircle, IconLayoutGrid, IconTrash, IconCircleCheck, IconCircleX } from "@tabler/icons-react";
+import { toast } from "react-hot-toast";
 
 const initialAssets = Array.from({ length: 30 }, (_, i) => ({
   id: `AST-${2000 + i}`,
@@ -60,14 +61,22 @@ export default function AssetsPage() {
   const handleAddCategory = () => {
     if (newCategoryName.trim() && !categories.some(c => c.name === newCategoryName.trim())) {
       setCategories([...categories, { name: newCategoryName.trim(), isActive: true }]);
+      toast.success(`Kategori "${newCategoryName.trim()}" berhasil ditambahkan`);
       setNewCategoryName("");
+    } else if (categories.some(c => c.name === newCategoryName.trim())) {
+      toast.error("Kategori sudah ada");
     }
   };
 
   const handleToggleCategory = (categoryName: string) => {
-    setCategories(categories.map(c => 
-      c.name === categoryName ? { ...c, isActive: !c.isActive } : c
-    ));
+    setCategories(categories.map(c => {
+      if (c.name === categoryName) {
+        const newState = !c.isActive;
+        toast.success(`Kategori "${categoryName}" ${newState ? "diaktifkan" : "dinonaktifkan"}`);
+        return { ...c, isActive: newState };
+      }
+      return c;
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -85,6 +94,7 @@ export default function AssetsPage() {
         return asset;
       });
       setAssets(updatedAssets);
+      toast.success("Aset berhasil diperbarui");
     } else {
       // Logic Create
       const newAsset = {
@@ -92,6 +102,7 @@ export default function AssetsPage() {
         ...formData,
       };
       setAssets([newAsset, ...assets]);
+      toast.success("Aset berhasil ditambahkan");
     }
     
     handleCloseModal();

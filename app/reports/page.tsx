@@ -28,6 +28,7 @@ import {
   IconFileExport,
   IconCalendar,
 } from "@tabler/icons-react";
+import { toast } from "react-hot-toast";
 
 // Dummy Data for Selects
 const userOptions = [
@@ -115,7 +116,20 @@ export default function ReportsPage() {
 
   const handleExport = (e: React.FormEvent) => {
     e.preventDefault();
-    alert(`Mengekspor data laporan dari ${startDate} hingga ${endDate}`);
+    
+    // Simulate export process
+    const exportPromise = new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(`Data laporan dari ${startDate} hingga ${endDate} berhasil diekspor`);
+      }, 2000);
+    });
+
+    toast.promise(exportPromise, {
+      loading: "Menyiapkan data export...",
+      success: (message: any) => message,
+      error: "Gagal mengekspor data",
+    });
+
     handleCloseExportModal();
   };
 
@@ -128,6 +142,7 @@ export default function ReportsPage() {
     e.preventDefault();
     if (confirmEmail && confirmPassword) {
       setReports(reports.filter((r) => r.id !== reportToDelete.id));
+      toast.success(`Laporan ${reportToDelete.id} berhasil dihapus`);
       handleCloseDeleteModal();
     }
   };
@@ -159,6 +174,7 @@ export default function ReportsPage() {
         return r;
       });
       setReports(updatedReports);
+      toast.success("Laporan berhasil diperbarui");
     } else {
       // Logic Create
       const newReport = {
@@ -172,6 +188,7 @@ export default function ReportsPage() {
         solutions: [],
       };
       setReports([newReport, ...reports]);
+      toast.success("Laporan baru berhasil dibuat");
     }
 
     handleCloseModal();
@@ -194,17 +211,23 @@ export default function ReportsPage() {
     setSelectedReport(updatedReport);
     setReports(reports.map((r) => (r.id === selectedReport.id ? updatedReport : r)));
     setCommentInput("");
+    toast.success("Komentar ditambahkan");
   };
 
   const toggleReference = (solId: string) => {
-    const updatedSolutions = selectedReport.solutions.map((sol: any) => ({
-      ...sol,
-      isReference: sol.id === solId ? !sol.isReference : sol.isReference,
-    }));
+    let isNowReference = false;
+    const updatedSolutions = selectedReport.solutions.map((sol: any) => {
+      if (sol.id === solId) {
+        isNowReference = !sol.isReference;
+        return { ...sol, isReference: isNowReference };
+      }
+      return sol;
+    });
 
     const updatedReport = { ...selectedReport, solutions: updatedSolutions };
     setSelectedReport(updatedReport);
     setReports(reports.map((r) => (r.id === selectedReport.id ? updatedReport : r)));
+    toast.success(isNowReference ? "Solusi dijadikan referensi" : "Referensi dihapus");
   };
 
   const columns = [

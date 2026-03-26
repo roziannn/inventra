@@ -7,6 +7,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
 import { IconPlus, IconSearch, IconEdit, IconFilter, IconUser, IconMail, IconBriefcase, IconShield, IconTrash, IconCircleCheck, IconCircleX, IconShieldCheck } from "@tabler/icons-react";
+import { toast } from "react-hot-toast";
 
 const initialUsers = Array.from({ length: 25 }, (_, i) => ({
   id: `USR-${500 + i}`,
@@ -57,12 +58,22 @@ export default function UsersPage() {
   const handleAddRole = () => {
     if (newRoleName.trim() && !roles.some((r) => r.name === newRoleName.trim())) {
       setRoles([...roles, { name: newRoleName.trim(), isActive: true }]);
+      toast.success(`Role "${newRoleName.trim()}" berhasil ditambahkan`);
       setNewRoleName("");
+    } else if (roles.some((r) => r.name === newRoleName.trim())) {
+      toast.error("Role sudah ada");
     }
   };
 
   const handleToggleRole = (roleName: string) => {
-    setRoles(roles.map((r) => (r.name === roleName ? { ...r, isActive: !r.isActive } : r)));
+    setRoles(roles.map((r) => {
+      if (r.name === roleName) {
+        const newState = !r.isActive;
+        toast.success(`Role "${roleName}" ${newState ? "diaktifkan" : "dinonaktifkan"}`);
+        return { ...r, isActive: newState };
+      }
+      return r;
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -82,6 +93,7 @@ export default function UsersPage() {
         return u;
       });
       setUsers(updatedUsers);
+      toast.success("User berhasil diperbarui");
     } else {
       // Logic Create
       const newUser = {
@@ -93,6 +105,7 @@ export default function UsersPage() {
         lastActive: "Just now",
       };
       setUsers([newUser, ...users]);
+      toast.success("User berhasil ditambahkan");
     }
     
     handleCloseModal();
