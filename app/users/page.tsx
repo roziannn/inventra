@@ -36,12 +36,13 @@ export default function UsersPage() {
     name: "",
     emailPrefix: "",
     role: "Staff",
+    status: "Active",
   });
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingUser(null);
-    setFormData({ name: "", emailPrefix: "", role: "Staff" });
+    setFormData({ name: "", emailPrefix: "", role: "Staff", status: "Active" });
   };
 
   const handleEditClick = (user: any) => {
@@ -51,6 +52,7 @@ export default function UsersPage() {
       name: user.name,
       emailPrefix: emailPrefix,
       role: user.role,
+      status: user.status,
     });
     setIsModalOpen(true);
   };
@@ -88,6 +90,7 @@ export default function UsersPage() {
             name: formData.name,
             email: `${formData.emailPrefix}@inventra.co.id`,
             role: formData.role,
+            status: formData.status,
           };
         }
         return u;
@@ -207,7 +210,7 @@ export default function UsersPage() {
         {/* DataTable */}
         <DataTable data={users} columns={columns} pageSize={10} />
 
-        <Modal isOpen={isModalOpen} onClose={handleCloseModal} title="Tambah User Baru">
+        <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={editingUser ? "Edit User" : "Tambah User Baru"}>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
               <div className="space-y-2">
@@ -259,6 +262,31 @@ export default function UsersPage() {
                     ))}
                 </select>
               </div>
+
+              {editingUser && (
+                <div className="pt-2 flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.status === 'Active' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
+                      {formData.status === 'Active' ? <IconCircleCheck size={20} /> : <IconCircleX size={20} />}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-gray-900">Status User</p>
+                      <p className="text-xs font-medium text-gray-500">
+                        User saat ini <span className={formData.status === 'Active' ? 'text-emerald-600 font-bold' : 'text-red-600 font-bold'}>{formData.status}</span>
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({...formData, status: formData.status === 'Active' ? 'Inactive' : 'Active'})}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${formData.status === 'Active' ? 'bg-emerald-600' : 'bg-gray-300'}`}
+                  >
+                    <span
+                      className={`${formData.status === 'Active' ? 'translate-x-6' : 'translate-x-1'} inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                    />
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="pt-4 flex gap-4">

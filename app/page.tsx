@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   IconPackage,
   IconBoxSeam,
@@ -10,6 +10,7 @@ import {
   IconAlertTriangle,
   IconArrowsLeftRight,
   IconCircleCheck,
+  IconClock,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import {
@@ -35,6 +36,30 @@ const dataCondition = [
 ];
 
 export default function FullDashboard() {
+  const [time, setTime] = useState<string>("");
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      const formatted = now.toLocaleString('en-GB', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      }).replace(/,/g, '');
+      
+      // Remove space before AM/PM to match "7:49AM"
+      setTime(formatted.replace(/\s([AP]M)$/, '$1'));
+    };
+
+    updateTime();
+    const timer = setInterval(updateTime, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const stats = [
     { label: "Inventory", val: "4,120", sub: "Pcs", icon: IconPackage, color: "text-emerald-600", bg: "bg-emerald-50" },
     { label: "Assets", val: "284", sub: "Units", icon: IconBoxSeam, color: "text-blue-600", bg: "bg-blue-50" },
@@ -53,9 +78,14 @@ export default function FullDashboard() {
             <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Overview</h2>
             <p className="text-xs text-gray-500">Pantau pergerakan stok dan aset secara real-time.</p>
           </div>
-          <button className="bg-[#064E3B] hover:bg-[#043327] text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all active:scale-95">
-            <IconPlus size={16} stroke={3} /> Tambah data
-          </button>
+          <div className="bg-white border border-gray-100 px-4 py-2.5 rounded-xl shadow-sm flex items-center gap-3">
+            <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center text-[#064E3B]">
+              <IconClock size={18} stroke={2.5} className="animate-pulse" />
+            </div>
+            <span className="text-sm font-bold text-gray-700 tabular-nums">
+              {time || "Loading..."}
+            </span>
+          </div>
         </div>
 
         {/* Stat Cards Grid */}
@@ -146,18 +176,19 @@ export default function FullDashboard() {
               </h4>
               <div className="flex flex-col gap-3">
                 <Link
-                  href="/label-generator"
+                  href="/labeling/print"
                   className="w-full text-left px-4 py-3.5 rounded-xl border border-gray-100 text-sm font-bold text-gray-700 hover:border-emerald-200 hover:bg-emerald-50/40 transition-all flex justify-between items-center group shadow-sm"
                 >
-                  <span>Cetak label QR</span>
+                  <span>Print Label</span>
                   <IconDotsVertical size={16} className="text-gray-300 group-hover:text-emerald-600" />
                 </Link>
-                <button
+                <Link
+                  href="/vendors"
                   className="w-full text-left px-4 py-3.5 rounded-xl border border-gray-100 text-sm font-bold text-gray-700 hover:border-emerald-200 hover:bg-emerald-50/40 transition-all flex justify-between items-center group shadow-sm"
                 >
                   <span>Data vendor</span>
                   <IconDotsVertical size={16} className="text-gray-300 group-hover:text-emerald-600" />
-                </button>
+                </Link>
               </div>
             </div>
           </div>

@@ -26,6 +26,19 @@ const dummyLogs = Array.from({ length: 30 }, (_, i) => ({
   date: "2026-03-20 10:45:22",
 }));
 
+const formatDateTimeFull = (dateStr: string) => {
+  const d = new Date(dateStr);
+  return d.toLocaleString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  }).replace(/,/g, '');
+};
+
 export default function AuditTrailPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [startDate, setStartDate] = useState("");
@@ -92,7 +105,7 @@ export default function AuditTrailPage() {
     { 
       header: "Waktu", 
       accessor: (item: any) => (
-        <span className="text-gray-500 font-medium">{item.date}</span>
+        <span className="text-gray-500 font-medium">{formatDateTimeFull(item.date)}</span>
       )
     },
   ];

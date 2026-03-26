@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { IconMail, IconLock, IconEye, IconEyeOff, IconBoxSeam, IconBrandGoogle, IconArrowRight, IconHeadset, IconBrandWhatsapp, IconExternalLink } from "@tabler/icons-react";
 import toast from "react-hot-toast";
@@ -148,7 +147,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full mt-6 bg-[#064E3B] hover:bg-[#043327] text-white py-4 rounded-2xl font-semibold text-sm uppercase tracking-[0.1em] shadow-xl shadow-emerald-950/20 transition-all active:scale-95 disabled:opacity-70 flex items-center justify-center gap-2"
+              className="w-full mt-6 bg-[#064E3B] hover:bg-[#043327] text-white py-4 rounded-2xl font-semibold text-sm uppercase tracking-widest shadow-xl shadow-emerald-950/20 transition-all active:scale-95 disabled:opacity-70 flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>

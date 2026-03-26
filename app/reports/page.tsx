@@ -65,6 +65,20 @@ const initialReports = Array.from({ length: 25 }, (_, i) => ({
   solutions: [{ id: "SOL-1", text: "Pembersihan debu pada fan dan penggantian thermal paste.", author: "Andi", date: "2026-03-20 14:00", isReference: i === 0 }],
 }));
 
+const formatDateTimeShort = (dateStr: string) => {
+  const d = new Date(dateStr);
+  return d
+    .toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    })
+    .replace(/,/g, "");
+};
+
 export default function ReportsPage() {
   const [reports, setReports] = useState(initialReports);
   const [selectedReport, setSelectedReport] = useState<any>(null);
@@ -116,7 +130,7 @@ export default function ReportsPage() {
 
   const handleExport = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Simulate export process
     const exportPromise = new Promise((resolve) => {
       setTimeout(() => {
@@ -200,7 +214,7 @@ export default function ReportsPage() {
     const newComment = {
       user: "Admin",
       text: commentInput,
-      date: new Date().toLocaleString("id-ID", { hour12: false }).replace(/\//g, "-"),
+      date: formatDateTimeShort(new Date().toISOString()),
     };
 
     const updatedReport = {
@@ -228,6 +242,19 @@ export default function ReportsPage() {
     setSelectedReport(updatedReport);
     setReports(reports.map((r) => (r.id === selectedReport.id ? updatedReport : r)));
     toast.success(isNowReference ? "Solusi dijadikan referensi" : "Referensi dihapus");
+  };
+
+  const handleMarkAsComplete = () => {
+    if (!selectedReport) return;
+
+    const updatedReport = {
+      ...selectedReport,
+      status: "Resolved", // Matching existing status logic for 'Complete'
+    };
+
+    setSelectedReport(updatedReport);
+    setReports(reports.map((r) => (r.id === selectedReport.id ? updatedReport : r)));
+    toast.success(`Laporan ${selectedReport.id} ditandai sebagai Selesai`);
   };
 
   const columns = [
@@ -441,8 +468,12 @@ export default function ReportsPage() {
                 <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-[0.2em]">Quick Action</p>
                 <div className="space-y-3">
                   <button className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border border-white/10">Gunakan Referensi Solusi</button>
-                  <button className="w-full py-3 bg-[#10B981] hover:bg-[#059669] text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg active:translate-y-0.5">
-                    <IconCheck size={16} stroke={3} /> Mark as Done
+                  <button
+                    onClick={handleMarkAsComplete}
+                    disabled={selectedReport.status === "Resolved"}
+                    className="w-full py-3 bg-[#10B981] hover:bg-[#059669] disabled:bg-gray-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg active:translate-y-0.5"
+                  >
+                    <IconCheck size={16} stroke={3} /> {selectedReport.status === "Resolved" ? "Laporan Selesai" : "Mark as Complete"}
                   </button>
                 </div>
               </div>
