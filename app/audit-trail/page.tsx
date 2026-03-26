@@ -38,6 +38,15 @@ export default function AuditTrailPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [mounted, setMounted] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredLogs = React.useMemo(() => {
+    const query = searchQuery.toLowerCase().trim();
+
+    return dummyLogs.filter((log) => {
+      return log.action.toLowerCase().includes(query) || log.target.toLowerCase().includes(query) || log.description.toLowerCase().includes(query) || log.user.toLowerCase().includes(query) || log.id.toLowerCase().includes(query);
+    });
+  }, [searchQuery]);
 
   React.useEffect(() => {
     setMounted(true);
@@ -124,16 +133,19 @@ export default function AuditTrailPage() {
           </button>
         </div>
 
-        {/* Search */}
         <div className="flex py-2">
           <div className="relative w-full md:w-80 group">
             <IconSearch className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#10B981] transition-colors" size={18} />
-            <input type="text" placeholder="Cari aktivitas atau user..." className="w-full pl-7 pr-4 py-2 bg-transparent border-b border-gray-200 text-sm focus:outline-none focus:border-[#064E3B] transition-all" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari aktivitas, user, atau ID..."
+              className="w-full pl-7 pr-4 py-2 bg-transparent border-b border-gray-200 text-sm focus:outline-none focus:border-[#064E3B] transition-all"
+            />
           </div>
         </div>
-
-        <DataTable data={dummyLogs} columns={columns} pageSize={10} />
-
+        <DataTable data={filteredLogs} columns={columns} pageSize={10} />
         <Modal isOpen={isModalOpen} onClose={handleCloseModal} title="Export Audit Trail">
           <form onSubmit={handleExport} className="space-y-6">
             <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100">

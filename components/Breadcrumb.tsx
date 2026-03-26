@@ -28,7 +28,7 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
               {item.label}
             </Link>
           ) : (
-            <span className="text-gray-900 font-bold">{item.label}</span>
+            <span className="text-gray-700 font-semibold">{item.label}</span>
           )}
         </React.Fragment>
       ))}
