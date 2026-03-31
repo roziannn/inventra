@@ -49,12 +49,12 @@ export default function SearchableSelect({
 
   return (
     <div className="space-y-1 relative" ref={containerRef}>
-      {label && <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{label}</label>}
+      {label && <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">{label}</label>}
       
       <div 
         onClick={() => setIsOpen(!isOpen)}
         className={`w-full flex items-center justify-between px-4 py-2.5 bg-gray-50 border transition-all cursor-pointer rounded-xl ${
-          isOpen ? "ring-2 ring-[#064E3B]/5 border-[#064E3B]/20 bg-white" : "border-gray-100"
+          isOpen ? "ring-2 ring-violet-500/10 border-violet-300/40 bg-white" : "border-gray-100"
         }`}
       >
         <span className={`text-sm ${!value ? "text-gray-400" : "text-gray-900 font-medium"}`}>
@@ -89,13 +89,13 @@ export default function SearchableSelect({
                     setIsOpen(false);
                     setSearchTerm("");
                   }}
-                  className="px-4 py-3 hover:bg-emerald-50 cursor-pointer flex items-center justify-between group transition-colors"
+                  className="px-4 py-3 hover:bg-violet-50 cursor-pointer flex items-center justify-between group transition-colors"
                 >
                   <div>
-                    <p className="text-sm font-bold text-gray-800 group-hover:text-[#064E3B]">{opt.label}</p>
-                    {opt.sublabel && <p className="text-[10px] text-gray-400">{opt.sublabel}</p>}
+                    <p className="text-sm font-bold text-gray-800 group-hover:text-violet-500">{opt.label}</p>
+                    {opt.sublabel && <p className="text-xs text-gray-400">{opt.sublabel}</p>}
                   </div>
-                  {value === opt.label && <IconCheck size={16} className="text-[#10B981]" stroke={3} />}
+                  {value === opt.label && <IconCheck size={16} className="text-violet-500" stroke={3} />}
                 </div>
               ))
             ) : (

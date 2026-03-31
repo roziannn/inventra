@@ -2,7 +2,6 @@
 
 import React from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import Breadcrumb from "@/components/Breadcrumb";
 import Link from "next/link";
 import { 
   IconPrinter, 
@@ -25,16 +24,14 @@ export default function LabelingOverviewPage() {
       description: "Buat kode QR khusus yang dapat dipindai untuk akses data cepat melalui sistem.",
       href: "/labeling/qr",
       icon: IconQrcode,
-      color: "bg-emerald-50 text-emerald-600 border-emerald-100",
-      hover: "hover:bg-emerald-100/50 hover:border-emerald-200"
+      color: "bg-violet-50 text-violet-600 border-violet-100",
+      hover: "hover:bg-violet-100/50 hover:border-violet-200"
     }
   ];
 
   return (
     <DashboardLayout>
       <div className="flex flex-col gap-4">
-        <Breadcrumb items={[{ label: "Labeling" }]} />
-
         <div>
           <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Pilih Metode Labeling</h2>
           <p className="text-xs text-gray-500">Pilih salah satu metode di bawah ini untuk memulai proses labeling inventaris Anda.</p>
@@ -71,7 +68,7 @@ export default function LabelingOverviewPage() {
                 Kami menyediakan panduan lengkap tentang cara terbaik mencetak dan menempelkan label untuk durabilitas maksimal pada berbagai jenis permukaan.
               </p>
             </div>
-            <button className="px-6 py-3 bg-[#10B981] text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-[#059669] transition-all active:scale-95 shadow-lg shadow-emerald-500/20">
+            <button className="px-6 py-3 bg-violet-500 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-violet-600 transition-all active:scale-95 shadow-lg shadow-violet-500/20">
               Lihat Panduan
             </button>
           </div>

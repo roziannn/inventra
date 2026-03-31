@@ -3,7 +3,6 @@
 
 import React, { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import Breadcrumb from "@/components/Breadcrumb";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
 import { IconSearch, IconUser, IconSettings, IconPackage, IconTrash, IconFileExport, IconCalendar } from "@tabler/icons-react";
@@ -84,18 +83,18 @@ export default function AuditTrailPage() {
       accessor: (item: any) => {
         const Icon = item.action === "Create" ? IconPackage : item.action === "Delete" ? IconTrash : item.action === "Update" ? IconSettings : IconUser;
 
-        const color = item.action === "Create" ? "text-emerald-600 bg-emerald-50" : item.action === "Delete" ? "text-red-600 bg-red-50" : item.action === "Update" ? "text-blue-600 bg-blue-50" : "text-gray-600 bg-gray-50";
+        const color = item.action === "Create" ? "text-violet-600 bg-violet-50" : item.action === "Delete" ? "text-red-600 bg-red-50" : item.action === "Update" ? "text-blue-600 bg-blue-50" : "text-gray-600 bg-gray-50";
 
         return (
           <div className="flex items-center gap-3">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${color}`}>
               <Icon size={16} />
             </div>
-            <div>
-              <p className="text-sm text-gray-700 font-medium">
+            <div className="min-w-0 flex items-center gap-2">
+              <p className="text-sm text-gray-700 font-medium truncate">
                 {item.action} {item.target}
               </p>
-              <p className="text-[11px] text-gray-400 font-medium">{item.id}</p>
+              <span className="shrink-0 text-xs px-1.5 py-0.5 rounded-md bg-gray-50 border border-gray-100 text-gray-500 font-semibold">{item.id}</span>
             </div>
           </div>
         );
@@ -121,35 +120,33 @@ export default function AuditTrailPage() {
   return (
     <DashboardLayout>
       <div className="flex flex-col gap-4">
-        <Breadcrumb items={[{ label: "Audit trail" }]} />
-
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Audit trail</h2>
             <p className="text-xs text-gray-500">Log aktivitas sistem untuk pemantauan keamanan dan perubahan data.</p>
           </div>
-          <button onClick={() => setIsModalOpen(true)} className="bg-[#064E3B] hover:bg-[#043327] text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all active:scale-95">
+          <button onClick={() => setIsModalOpen(true)} className="bg-zinc-900 hover:bg-zinc-800 text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all active:scale-95">
             <IconFileExport size={16} stroke={3} /> Export Logs
           </button>
         </div>
 
         <div className="flex py-2">
           <div className="relative w-full md:w-80 group">
-            <IconSearch className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#10B981] transition-colors" size={18} />
+            <IconSearch className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-violet-500 transition-colors" size={18} />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari aktivitas, user, atau ID..."
-              className="w-full pl-7 pr-4 py-2 bg-transparent border-b border-gray-200 text-sm focus:outline-none focus:border-[#064E3B] transition-all"
+              className="w-full pl-7 pr-4 py-2 bg-transparent border-b border-gray-200 text-sm focus:outline-none focus:border-violet-400 transition-all"
             />
           </div>
         </div>
-        <DataTable data={filteredLogs} columns={columns} pageSize={10} />
+        <DataTable data={filteredLogs} columns={columns} pageSize={10} density="dense" />
         <Modal isOpen={isModalOpen} onClose={handleCloseModal} title="Export Audit Trail">
           <form onSubmit={handleExport} className="space-y-6">
-            <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
-              <p className="text-sm text-emerald-800 leading-relaxed font-medium">Pilih rentang tanggal untuk mengekspor log aktivitas. Pastikan tanggal &quot;Hingga&quot; tidak lebih kecil dari tanggal &quot;Dari&quot;.</p>
+            <div className="p-4 bg-violet-50 rounded-xl border border-violet-100">
+              <p className="text-sm text-violet-800 leading-relaxed font-medium">Pilih rentang tanggal untuk mengekspor log aktivitas. Pastikan tanggal &quot;Hingga&quot; tidak lebih kecil dari tanggal &quot;Dari&quot;.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -163,7 +160,7 @@ export default function AuditTrailPage() {
                   max={today}
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#064E3B]/5 transition-all"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all"
                 />
               </div>
 
@@ -178,7 +175,7 @@ export default function AuditTrailPage() {
                   max={today}
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#064E3B]/5 transition-all"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all"
                 />
               </div>
             </div>
@@ -190,7 +187,7 @@ export default function AuditTrailPage() {
               <button
                 type="submit"
                 disabled={!startDate || !endDate || endDate < startDate}
-                className="flex-1 px-4 py-3.5 bg-[#064E3B] disabled:bg-gray-200 text-white rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-[#043327] shadow-lg shadow-emerald-900/20 transition-all active:scale-95"
+                className="flex-1 px-4 py-3.5 bg-zinc-900 disabled:bg-gray-200 text-white rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-zinc-800 shadow-lg shadow-violet-900/20 transition-all active:scale-95"
               >
                 Mulai Export
               </button>

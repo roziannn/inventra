@@ -21,11 +21,19 @@ import {
   IconTags,
   IconUser,
   IconSettings,
+  IconSun,
+  IconMoon,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { Sulphur_Point } from "next/font/google";
 import { searchData } from "@/lib/search-data";
 import toast from "react-hot-toast";
+
+const sulphurPoint = Sulphur_Point({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+});
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -35,6 +43,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [filteredResults, setFilteredResults] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [openSubMenu, setOpenSubMenu] = useState<string | null>(null);
+  const [theme, setTheme] = useState<"light" | "dark">("light");
   const pathname = usePathname();
   const router = useRouter();
   const searchRef = useRef<HTMLDivElement>(null);
@@ -42,8 +51,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    const storedTheme = typeof window !== "undefined" ? localStorage.getItem("theme") : null;
+    const prefersDark = typeof window !== "undefined" ? window.matchMedia("(prefers-color-scheme: dark)").matches : false;
+    const initialTheme = storedTheme === "dark" || storedTheme === "light" ? storedTheme : prefersDark ? "dark" : "light";
+    setTheme(initialTheme);
+    if (typeof document !== "undefined") {
+      document.documentElement.classList.toggle("dark", initialTheme === "dark");
+    }
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    localStorage.setItem("theme", theme);
+  }, [theme, mounted]);
+
+  const toggleTheme = () => setTheme((prev) => (prev === "light" ? "dark" : "light"));
 
   const sidebarItems = [
     { name: "Dashboard", icon: IconLayoutDashboard, href: "/" },
@@ -160,23 +184,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   return (
-    <div className="flex h-screen bg-[#F9FAFB] font-sans text-gray-900 overflow-hidden relative">
+    <div className="flex h-screen bg-background text-foreground font-sans overflow-hidden relative transition-colors duration-300">
       {/* --- SIDEBAR --- */}
       <aside
-        className={`bg-[#064E3B] text-white flex flex-col shadow-xl transition-all duration-300 ease-in-out z-100 absolute lg:relative h-full ${isCollapsed ? "w-20" : "w-60"} ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
+        className={`bg-zinc-900 text-white flex flex-col shadow-xl transition-[width,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-[width,transform] z-100 absolute lg:relative h-full overflow-visible ${isCollapsed ? "w-20" : "w-60"} ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
-        <button onClick={() => setIsCollapsed(!isCollapsed)} className="hidden lg:flex absolute -right-3 top-10 bg-[#10B981] text-white rounded-full p-1.5 shadow-xl z-50 hover:scale-110 active:scale-95 transition-all duration-300">
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="hidden lg:flex absolute right-0 translate-x-1/2 top-10 bg-violet-500 text-white rounded-full p-1.5 shadow-xl z-[120] hover:scale-110 active:scale-95 transition-all duration-300"
+        >
           <IconChevronLeft size={14} stroke={3} className={`transition-transform duration-500 ${isCollapsed ? "rotate-180" : ""}`} />
         </button>
 
         <div className="h-16 flex items-center px-5 shrink-0">
-          <div className="min-w-8 h-8 bg-[#10B981] rounded flex items-center justify-center shadow-lg">
-            <IconBoxSeam size={18} stroke={2.5} className="text-white" />
+          <div className="w-8 h-8 bg-violet-500 rounded-2xl flex items-center justify-center shadow-2xl shadow-violet-950/50">
+            <IconBoxSeam size={17} stroke={2.4} className="text-white" />
           </div>
-          <span className={`ml-3 text-lg font-bold transition-all duration-500 ${isCollapsed ? "opacity-0 scale-0 w-0" : "opacity-100 scale-100 w-auto"}`}>Inventra</span>
+          <span
+            className={`${sulphurPoint.className} ml-3 text-2xl font-black tracking-[0.06em] text-violet-100 origin-left whitespace-nowrap transition-[opacity,transform,max-width] duration-300 ease-out ${isCollapsed ? "opacity-0 -translate-x-1 max-w-0" : "opacity-100 translate-x-0 max-w-[140px]"}`}
+          >
+            Inventra
+          </span>
         </div>
 
-        <nav className="flex-1 px-3 space-y-1 mt-4 overflow-y-auto scrollbar-hide">
+        <nav className="flex-1 px-3 space-y-1 mt-2 overflow-y-auto scrollbar-hide">
           {sidebarItems.map((item) => {
             const hasSubItems = !!item.subItems;
             const isSubMenuOpen = openSubMenu === item.name;
@@ -185,14 +216,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             if (hasSubItems) {
               return (
                 <div key={item.name} className="flex flex-col">
-                  <button onClick={() => toggleSubMenu(item.name)} className={`w-full flex items-center rounded-xl px-3 py-2.5 gap-3 ${isActive ? "bg-white/10 text-white" : "text-emerald-100/60 hover:bg-white/5 hover:text-white"}`}>
+                  <button onClick={() => toggleSubMenu(item.name)} className={`w-full flex items-center rounded-xl px-3 py-2.5 gap-3 ${isActive ? "bg-white/10 text-white" : "text-violet-100/60 hover:bg-white/5 hover:text-white"}`}>
                     <item.icon size={20} stroke={2} className="shrink-0" />
-                    {!isCollapsed && (
-                      <div className="flex-1 flex items-center justify-between">
-                        <span className="text-sm font-medium whitespace-nowrap">{item.name}</span>
-                        <IconChevronDown size={14} className={isSubMenuOpen ? "rotate-180" : ""} />
-                      </div>
-                    )}
+                    <div
+                      className={`flex-1 flex items-center justify-between overflow-hidden transition-[opacity,transform,max-width] duration-300 ease-out ${
+                        isCollapsed ? "opacity-0 -translate-x-1 max-w-0 pointer-events-none" : "opacity-100 translate-x-0 max-w-[180px]"
+                      }`}
+                    >
+                      <span className="text-sm font-medium whitespace-nowrap">{item.name}</span>
+                      <IconChevronDown size={14} className={isSubMenuOpen ? "rotate-180" : ""} />
+                    </div>
                   </button>
 
                   {!isCollapsed && isSubMenuOpen && (
@@ -203,7 +236,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                           <Link
                             key={subItem.name}
                             href={subItem.href}
-                            className={`flex items-center pl-12 pr-3 py-2 rounded-xl text-sm font-medium ${isSubActive ? "text-white bg-white/5" : "text-emerald-100/40 hover:text-white hover:bg-white/5"}`}
+                            className={`flex items-center pl-12 pr-3 py-2 rounded-xl text-sm font-medium ${isSubActive ? "text-white bg-white/5" : "text-violet-100/40 hover:text-white hover:bg-white/5"}`}
                           >
                             <span>{subItem.name}</span>
                           </Link>
@@ -216,18 +249,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             }
 
             return (
-              <Link key={item.name} href={item.href} className={`w-full flex items-center rounded-xl px-3 py-2.5 gap-3 ${isActive ? "bg-white/10 text-white shadow-sm" : "text-emerald-100/60 hover:bg-white/5 hover:text-white"}`}>
+              <Link key={item.name} href={item.href} className={`w-full flex items-center rounded-xl px-3 py-2.5 gap-3 ${isActive ? "bg-white/10 text-white shadow-sm" : "text-violet-100/60 hover:bg-white/5 hover:text-white"}`}>
                 <item.icon size={20} stroke={2} className="shrink-0" />
-                {!isCollapsed && <span className="text-sm font-medium whitespace-nowrap opacity-100">{item.name}</span>}
+                <span
+                  className={`text-sm font-medium whitespace-nowrap overflow-hidden transition-[opacity,transform,max-width] duration-300 ease-out ${
+                    isCollapsed ? "opacity-0 -translate-x-1 max-w-0 pointer-events-none" : "opacity-100 translate-x-0 max-w-[180px]"
+                  }`}
+                >
+                  {item.name}
+                </span>
               </Link>
             );
           })}
         </nav>
 
         <div className="h-14 border-t border-white/5 shrink-0 flex items-center px-3">
-          <button onClick={handleLogout} className={`flex items-center w-full text-emerald-100/50 hover:text-red-400 transition-all duration-300 group ${isCollapsed ? "justify-center" : "gap-3 px-3 py-2"}`}>
+          <button onClick={handleLogout} className={`flex items-center w-full text-violet-100/50 hover:text-red-400 transition-all duration-300 group ${isCollapsed ? "justify-center" : "gap-3 px-3 py-2"}`}>
             <IconLogout size={20} stroke={2} />
-            <span className={`text-sm font-medium transition-all duration-300 ${isCollapsed ? "opacity-0 w-0 hidden" : "opacity-100 w-auto"}`}>Logout</span>
+            <span
+              className={`text-sm font-medium whitespace-nowrap overflow-hidden transition-[opacity,transform,max-width] duration-300 ease-out ${
+                isCollapsed ? "opacity-0 -translate-x-1 max-w-0 pointer-events-none" : "opacity-100 translate-x-0 max-w-[120px]"
+              }`}
+            >
+              Logout
+            </span>
           </button>
         </div>
       </aside>
@@ -238,27 +283,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* --- MAIN CONTENT --- */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
         {/* Navbar */}
-        <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 lg:px-8 shrink-0 shadow-sm z-80">
+        <header className="h-16 bg-card flex items-center justify-between px-4 lg:px-8 shrink-0 z-80 transition-colors duration-300">
           <div className="flex items-center gap-3">
             <button onClick={() => setIsMobileMenuOpen(true)} className="lg:hidden p-2 hover:bg-gray-100 rounded-lg text-gray-600">
               <IconMenu2 size={24} />
             </button>
             <div className="relative w-48 md:w-64 lg:w-96 group" ref={searchRef}>
-              <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#10B981]" size={18} />
+              <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-violet-500" size={18} />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => searchQuery.trim().length > 1 && setShowSuggestions(true)}
                 placeholder="Cari assets, inventory, reports etc"
-                className="w-full pl-10 pr-4 py-2 bg-gray-50/50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#064E3B]/5 transition-all"
+                className="w-full pl-10 pr-4 py-2 bg-muted/60 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition-all"
               />
 
               {/* Suggestions Dropdown */}
               {showSuggestions && filteredResults.length > 0 && (
-                <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-200">
-                  <div className="p-2 border-b border-gray-50 bg-gray-50/50">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2">Hasil Pencarian</p>
+                <div className="absolute top-full left-0 w-full mt-2 bg-card rounded-xl shadow-2xl border border-border overflow-hidden z-200">
+                  <div className="p-2 border-b border-border/60 bg-muted/40">
+                    <p className="text-xs font-bold text-gray-400 dark:text-gray-200 uppercase tracking-widest px-2">Hasil Pencarian</p>
                   </div>
                   <div className="max-h-80 overflow-y-auto">
                     {filteredResults.map((result, idx) => (
@@ -269,20 +314,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                           setShowSuggestions(false);
                           setSearchQuery("");
                         }}
-                        className="w-full flex items-center justify-between p-3 hover:bg-emerald-50 transition-colors group text-left border-b border-gray-50 last:border-0"
+                        className="w-full flex items-center justify-between p-3 hover:bg-violet-50/50 dark:hover:bg-violet-950/40 transition-colors group text-left border-b border-border last:border-0"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-emerald-100 text-gray-500 group-hover:text-emerald-600 flex items-center justify-center transition-colors">
+                          <div className="w-8 h-8 rounded-lg bg-muted group-hover:bg-violet-100 text-gray-500 group-hover:text-violet-600 flex items-center justify-center transition-colors">
                             <result.icon size={16} />
                           </div>
                           <div>
-                            <p className="text-sm font-bold text-gray-900 group-hover:text-emerald-900 transition-colors">{result.title || result.name}</p>
-                            <p className="text-[10px] text-gray-400 font-medium tracking-tight">
+                            <p className="text-sm font-bold text-foreground group-hover:text-violet-900 dark:group-hover:text-violet-300 transition-colors">{result.title || result.name}</p>
+                            <p className="text-xs text-gray-400 dark:text-gray-300 font-medium tracking-tight">
                               {result.type} &bull; {result.id} {result.sku || result.serial || result.email ? `&bull; ${result.sku || result.serial || result.email}` : ""}
                             </p>
                           </div>
                         </div>
-                        <IconArrowRight size={14} className="text-gray-300 group-hover:text-emerald-500 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
+                        <IconArrowRight size={14} className="text-gray-300 group-hover:text-violet-500 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
                       </button>
                     ))}
                   </div>
@@ -290,26 +335,29 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               )}
 
               {showSuggestions && filteredResults.length === 0 && (
-                <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 p-6 z-200 text-center">
-                  <p className="text-sm text-gray-500 font-medium">Tidak ada hasil ditemukan untuk &quot;{searchQuery}&quot;</p>
+                <div className="absolute top-full left-0 w-full mt-2 bg-card rounded-xl shadow-2xl border border-border p-6 z-200 text-center">
+                  <p className="text-sm text-gray-500 dark:text-gray-300 font-medium">Tidak ada hasil ditemukan untuk &quot;{searchQuery}&quot;</p>
                 </div>
               )}
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/notifications" className="p-2 text-gray-400 hover:text-[#064E3B] transition-colors relative">
-              <IconBell size={20} />
+            <button onClick={toggleTheme} aria-label="Toggle theme" className="p-2 rounded-lg border border-border bg-muted/60 hover:bg-muted transition-colors text-gray-600 dark:text-gray-200">
+              {theme === "dark" ? <IconSun size={18} /> : <IconMoon size={18} />}
+            </button>
+            <Link href="/notifications" className="p-2 rounded-lg border border-border bg-muted/60 hover:bg-muted transition-colors text-gray-600 dark:text-gray-200 relative">
+              <IconBell size={18} />
               <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
             </Link>
 
             <div className="relative" ref={profileRef}>
               <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="flex items-center gap-3 pl-4 border-l border-gray-100 focus:outline-none group transition-all">
                 <div className="text-right hidden md:block">
-                  <p className="text-sm font-bold text-gray-900 leading-tight group-hover:text-[#064E3B] transition-colors">Admin User</p>
-                  <p className="text-[10px] text-[#10B981] font-semibold tracking-wide">Manager</p>
+                  <p className="text-sm font-bold text-gray-900 leading-tight group-hover:text-violet-500 transition-colors">Admin User</p>
+                  <p className="text-xs text-violet-500 font-semibold tracking-wide">Manager</p>
                 </div>
                 <div
-                  className={`w-9 h-9 bg-[#064E3B] rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md group-hover:ring-4 group-hover:ring-emerald-50 transition-all ${isProfileOpen ? "ring-4 ring-emerald-50" : ""}`}
+                  className={`w-9 h-9 bg-zinc-900 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md group-hover:ring-4 group-hover:ring-violet-50 transition-all ${isProfileOpen ? "ring-4 ring-violet-50" : ""}`}
                 >
                   AD
                 </div>
@@ -319,24 +367,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {isProfileOpen && (
                 <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-200 animate-in fade-in zoom-in duration-200 origin-top-right">
                   <div className="px-4 py-3 border-b border-gray-50 mb-1">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Informasi Akun</p>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Informasi Akun</p>
                     <div className="flex items-center gap-3 mt-2">
-                      <div className="w-10 h-10 bg-[#064E3B] rounded-full flex items-center justify-center text-white font-bold text-xs">AD</div>
+                      <div className="w-10 h-10 bg-zinc-900 rounded-full flex items-center justify-center text-white font-bold text-xs">AD</div>
                       <div>
                         <p className="text-sm font-bold text-gray-900">Admin User</p>
-                        <p className="text-[11px] text-gray-500 font-medium">admin@inventra.com</p>
+                        <p className="text-sm text-gray-500 font-medium">admin@inventra.com</p>
                       </div>
                     </div>
                   </div>
 
                   <div className="px-2 space-y-0.5">
-                    <Link href="/profile" className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 rounded-xl transition-colors group">
+                    <Link href="/profile" className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600 hover:bg-violet-50 hover:text-violet-700 rounded-xl transition-colors group">
                       <div className="w-8 h-8 rounded-lg bg-gray-50 group-hover:bg-white flex items-center justify-center transition-colors">
                         <IconUser size={18} stroke={2} />
                       </div>
                       <span className="font-medium">Profil Saya</span>
                     </Link>
-                    <Link href="/settings" className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 rounded-xl transition-colors group">
+                    <Link href="/settings" className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600 hover:bg-violet-50 hover:text-violet-700 rounded-xl transition-colors group">
                       <div className="w-8 h-8 rounded-lg bg-gray-50 group-hover:bg-white flex items-center justify-center transition-colors">
                         <IconSettings size={18} stroke={2} />
                       </div>
@@ -361,19 +409,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
 
         {/* Page Content */}
-        <section className="flex-1 overflow-y-auto p-4 lg:p-6 bg-[#F9FAFB]">{children}</section>
+        <section className="flex-1 overflow-y-auto p-4 lg:p-6 bg-background transition-colors duration-300">{children}</section>
 
         {/* Footer */}
-        <footer className="h-14 bg-white border-t border-gray-100 flex items-center justify-between px-4 lg:px-8 shrink-0 z-80">
-          <p className="text-[10px] text-gray-400 font-medium tracking-wider">
-            &copy; {mounted ? new Date().getFullYear() : ""} <span className="text-[#064E3B] font-bold">INVENTRA</span>. ASSET & INVENTORY.
+        <footer className="h-12 bg-card flex items-center justify-between px-4 lg:px-8 shrink-0 z-80 transition-colors duration-300">
+          <p className="text-xs text-gray-400 dark:text-gray-300 font-medium tracking-wider">
+            &copy; {mounted ? new Date().getFullYear() : ""} <span className="text-violet-500 dark:text-violet-400 font-bold">INVENTRA</span>. ASSET & INVENTORY.
           </p>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
-              <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest hidden sm:block">System Online</span>
+              <div className="w-1.5 h-1.5 bg-violet-500 rounded-full animate-pulse"></div>
+              <span className="text-xs text-gray-500 dark:text-gray-300 font-bold uppercase tracking-widest hidden sm:block">System Online</span>
             </div>
-            <span className="text-[10px] px-2 py-0.5 bg-gray-50 border border-gray-100 text-gray-400 rounded-md font-mono">v1.0.2</span>
+            <span className="text-xs px-2 py-0.5 bg-muted border border-border text-gray-400 dark:text-gray-200 rounded-md font-mono">v1.0.2</span>
           </div>
         </footer>
       </main>

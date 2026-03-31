@@ -1,38 +1,18 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import {
-  IconPackage,
-  IconBoxSeam,
-  IconPlus,
-  IconArrowUpRight,
-  IconDotsVertical,
-  IconAlertTriangle,
-  IconArrowsLeftRight,
-  IconCircleCheck,
-  IconClock,
-} from "@tabler/icons-react";
+import { IconPackage, IconBoxSeam, IconArrowUpRight, IconAlertTriangle, IconArrowsLeftRight, IconCircleCheck, IconClock, IconArrowRight, IconTags, IconBuildingSkyscraper } from "@tabler/icons-react";
 import Link from "next/link";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell
-} from "recharts";
-import Breadcrumb from "@/components/Breadcrumb";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import DashboardLayout from "@/components/DashboardLayout";
 
 const dataCondition = [
-  { name: "Good", value: 2450, color: "#10B981" },
+  { name: "Good", value: 2450, color: "#877FC1" },
   { name: "Maintenance", value: 420, color: "#F59E0B" },
   { name: "Damaged", value: 150, color: "#EF4444" },
   { name: "Lost", value: 45, color: "#6366F1" },
   { name: "Repairing", value: 280, color: "#8B5CF6" },
-  { name: "New", value: 775, color: "#064E3B" },
+  { name: "New", value: 775, color: "#222026" },
 ];
 
 export default function FullDashboard() {
@@ -41,18 +21,20 @@ export default function FullDashboard() {
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
-      const formatted = now.toLocaleString('en-GB', {
-        weekday: 'short',
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-      }).replace(/,/g, '');
-      
+      const formatted = now
+        .toLocaleString("en-GB", {
+          weekday: "short",
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        })
+        .replace(/,/g, "");
+
       // Remove space before AM/PM to match "7:49AM"
-      setTime(formatted.replace(/\s([AP]M)$/, '$1'));
+      setTime(formatted.replace(/\s([AP]M)$/, "$1"));
     };
 
     updateTime();
@@ -61,45 +43,54 @@ export default function FullDashboard() {
   }, []);
 
   const stats = [
-    { label: "Inventory", val: "4,120", sub: "Pcs", icon: IconPackage, color: "text-emerald-600", bg: "bg-emerald-50" },
+    { label: "Inventory", val: "4,120", sub: "Pcs", icon: IconPackage, color: "text-violet-600", bg: "bg-violet-50" },
     { label: "Assets", val: "284", sub: "Units", icon: IconBoxSeam, color: "text-blue-600", bg: "bg-blue-50" },
     { label: "Loans", val: "18", sub: "Active", icon: IconArrowsLeftRight, color: "text-purple-600", bg: "bg-purple-50" },
     { label: "Low stock", val: "5", sub: "Urgent", icon: IconAlertTriangle, color: "text-red-600", bg: "bg-red-50" },
   ];
 
+  const quickActions = [
+    {
+      href: "/labeling/print",
+      title: "Print Label",
+      description: "Cetak barcode atau label aset",
+      icon: IconTags,
+    },
+    {
+      href: "/vendors",
+      title: "Data Vendor",
+      description: "Kelola supplier dan kontak vendor",
+      icon: IconBuildingSkyscraper,
+    },
+  ];
+
   return (
     <DashboardLayout>
-      <div className="flex flex-col gap-4">
-        <Breadcrumb items={[{ label: "Dashboard" }]} />
-
+      <div className="h-full min-h-0 flex flex-col gap-3">
         {/* Page Title */}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 shrink-0">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Overview</h2>
-            <p className="text-xs text-gray-500">Pantau pergerakan stok dan aset secara real-time.</p>
+            <h2 className="page-header">Overview</h2>
+            <p className="page-subheader">Pantau pergerakan stok dan aset secara real-time.</p>
           </div>
-          <div className="bg-white border border-gray-100 px-4 py-2.5 rounded-xl shadow-sm flex items-center gap-3">
-            <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center text-[#064E3B]">
-              <IconClock size={18} stroke={2.5} className="animate-pulse" />
-            </div>
-            <span className="text-sm font-bold text-gray-700 tabular-nums">
-              {time || "Loading..."}
-            </span>
+          <div className="flex items-center gap-2 text-gray-500">
+            <IconClock size={16} stroke={2.2} className="text-violet-500" />
+            <span className="text-sm font-semibold tabular-nums">{time || "Loading..."}</span>
           </div>
         </div>
 
         {/* Stat Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 shrink-0">
           {stats.map((stat, i) => (
-            <div key={i} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4 hover:shadow-md transition-all group">
+            <div key={i} className="bg-card p-3.5 rounded-xl border border-border shadow-sm flex items-center gap-3.5 hover:shadow-md transition-all group">
               <div className={`${stat.bg} ${stat.color} w-10 h-10 rounded-lg flex-shrink-0 flex items-center justify-center transition-transform group-hover:scale-105`}>
                 <stat.icon size={20} stroke={2} />
               </div>
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1.5">{stat.label}</p>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest leading-none mb-1.5">{stat.label}</p>
                 <div className="flex items-baseline gap-1.5">
                   <h3 className="text-lg font-bold text-gray-900 leading-none">{stat.val}</h3>
-                  <span className="text-[10px] font-medium text-gray-400">{stat.sub}</span>
+                  <span className="text-xs font-medium text-gray-400">{stat.sub}</span>
                 </div>
               </div>
             </div>
@@ -107,31 +98,21 @@ export default function FullDashboard() {
         </div>
 
         {/* Bottom Content Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 flex-1 min-h-0">
           {/* Chart Card */}
-          <div className="xl:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col min-h-[350px]">
-            <div className="px-5 py-4 border-b border-gray-50 flex justify-between items-center bg-gray-50/20 shrink-0">
+          <div className="xl:col-span-2 bg-card rounded-2xl border border-border shadow-sm overflow-hidden flex flex-col min-h-0 transition-colors duration-300">
+            <div className="px-5 py-3.5 border-b border-border/60 flex justify-between items-center bg-muted/40 shrink-0">
               <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
-                <IconPackage size={18} className="text-[#064E3B]" /> Kondisi inventory
+                <IconPackage size={18} className="text-violet-500" /> Kondisi inventory
               </h3>
-              <button className="text-[10px] font-bold text-[#064E3B] hover:text-[#10B981] transition-colors">Detail laporan</button>
+              <button className="text-xs font-bold text-violet-500 hover:text-violet-500 transition-colors">Detail laporan</button>
             </div>
-            <div className="flex-1 p-5 min-h-[250px]">
+            <div className="flex-1 p-4 min-h-0">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={dataCondition} margin={{ left: -20, right: 10, top: 10, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis
-                    dataKey="name"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 700 }}
-                    dy={8}
-                  />
-                  <YAxis 
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 700 }}
-                  />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 700 }} dy={8} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 700 }} />
                   <Tooltip
                     cursor={{ fill: "#f8fafc" }}
                     contentStyle={{
@@ -141,7 +122,7 @@ export default function FullDashboard() {
                       padding: "10px",
                     }}
                     itemStyle={{ fontWeight: 800, fontSize: "12px" }}
-                    formatter={(value: number) => [`${value} Pcs`, "Total"]}
+                    formatter={(value: number | string | undefined) => [`${value} Pcs`, "Total"]}
                   />
                   <Bar dataKey="value" radius={[6, 6, 6, 6]} barSize={35}>
                     {dataCondition.map((entry, index) => (
@@ -154,41 +135,45 @@ export default function FullDashboard() {
           </div>
 
           {/* Sidebar Cards */}
-          <div className="flex flex-col gap-6">
-            <div className="bg-[#064E3B] rounded-2xl p-6 text-white relative overflow-hidden shadow-lg shrink-0">
+          <div className="flex flex-col gap-4 min-h-0">
+            <div className="bg-zinc-900 rounded-2xl p-5 text-white relative overflow-hidden shadow-lg shrink-0">
               <div className="relative z-10">
-                <p className="text-emerald-400 text-[10px] font-bold tracking-widest uppercase">Kondisi aset</p>
-                <div className="flex items-baseline mt-2">
-                  <h4 className="text-4xl font-black">94</h4>
-                  <span className="text-xl text-emerald-400 ml-1">%</span>
+                <p className="text-violet-400 text-xs font-bold tracking-widest uppercase">Kondisi aset</p>
+                <div className="flex items-baseline mt-1.5">
+                  <h4 className="text-3xl font-black">94</h4>
+                  <span className="text-lg text-violet-400 ml-1">%</span>
                 </div>
-                <p className="text-emerald-100/60 text-[11px] mt-1 font-medium">Seluruh aset dalam kondisi prima.</p>
-                <button className="mt-5 w-full bg-white text-[#064E3B] py-2.5 rounded-lg text-xs font-bold hover:bg-emerald-50 transition-all flex items-center justify-center gap-2 shadow-lg active:translate-y-0.5">
+                <p className="text-violet-100/60 text-sm mt-1 font-medium">Seluruh aset dalam kondisi prima.</p>
+                <button className="mt-4 w-full bg-white text-violet-500 py-2.5 rounded-lg text-xs font-bold hover:bg-violet-50 transition-all flex items-center justify-center gap-2 shadow-lg active:translate-y-0.5">
                   Export data <IconArrowUpRight size={14} stroke={3} />
                 </button>
               </div>
-              <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-emerald-400/10 rounded-full blur-[40px]"></div>
+              <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-violet-400/10 rounded-full blur-[40px]"></div>
             </div>
 
-            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex flex-col overflow-hidden">
-              <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2 text-xs tracking-wide shrink-0">
-                <IconCircleCheck size={16} className="text-emerald-500" /> Akses cepat
+            <div className="bg-card rounded-2xl p-4 border border-border shadow-sm flex flex-col overflow-hidden transition-colors duration-300 flex-1 min-h-0">
+              <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2 text-xs tracking-wide shrink-0">
+                <IconCircleCheck size={16} className="text-violet-500" /> Akses cepat
               </h4>
-              <div className="flex flex-col gap-3">
-                <Link
-                  href="/labeling/print"
-                  className="w-full text-left px-4 py-3.5 rounded-xl border border-gray-100 text-sm font-bold text-gray-700 hover:border-emerald-200 hover:bg-emerald-50/40 transition-all flex justify-between items-center group shadow-sm"
-                >
-                  <span>Print Label</span>
-                  <IconDotsVertical size={16} className="text-gray-300 group-hover:text-emerald-600" />
-                </Link>
-                <Link
-                  href="/vendors"
-                  className="w-full text-left px-4 py-3.5 rounded-xl border border-gray-100 text-sm font-bold text-gray-700 hover:border-emerald-200 hover:bg-emerald-50/40 transition-all flex justify-between items-center group shadow-sm"
-                >
-                  <span>Data vendor</span>
-                  <IconDotsVertical size={16} className="text-gray-300 group-hover:text-emerald-600" />
-                </Link>
+              <div className="flex flex-col gap-2.5 overflow-y-auto pr-1">
+                {quickActions.map((action) => (
+                  <Link
+                    key={action.href}
+                    href={action.href}
+                    className="w-full px-3.5 py-3 rounded-xl border border-gray-100 bg-muted/55 dark:bg-muted/80 text-sm hover:border-violet-200 dark:hover:border-violet-500/40 hover:bg-violet-50/40 dark:hover:bg-violet-500/10 transition-all shadow-sm group"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-violet-50 dark:bg-violet-500/15 text-violet-600 dark:text-violet-300 flex items-center justify-center shrink-0">
+                        <action.icon size={18} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold text-gray-800 dark:text-gray-100 group-hover:text-violet-700 dark:group-hover:text-violet-300 transition-colors">{action.title}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-300 mt-0.5">{action.description}</p>
+                      </div>
+                      <IconArrowRight size={15} className="text-gray-300 dark:text-gray-500 mt-1 group-hover:text-violet-500 dark:group-hover:text-violet-300 transition-colors shrink-0" />
+                    </div>
+                  </Link>
+                ))}
               </div>
             </div>
           </div>

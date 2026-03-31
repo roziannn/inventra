@@ -5,52 +5,50 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Dasar Putih Bersih */
-  --background: #ffffff;
-  --foreground: #111827; /* Gray 900 untuk teks tajam */
-
-  /* Tema Hijau Tua Inventra */
-  --primary: #064e3b; /* Emerald 900 */
-  --primary-foreground: #ffffff;
-
-  --secondary: #10b981; /* Emerald 500 untuk aksen */
-  --secondary-foreground: #ffffff;
-
-  /* Komponen & UI */
-  --card: #ffffff;
-  --card-foreground: #111827;
-  --popover: #ffffff;
-  --popover-foreground: #111827;
-
-  --muted: #f3f4f6;
-  --muted-foreground: #6b7280;
-
-  --accent: #ecfdf5; /* Hijau sangat muda untuk hover */
-  --accent-foreground: #064e3b;
+  --background: #f5f6fa;
+  --foreground: #222026;
+  --primary: #877fc1;
+  --primary-foreground: #f5f6fa;
+  --secondary: #dbd3f5;
+  --secondary-foreground: #222026;
+  --card: #f5f6fa;
+  --card-foreground: #222026;
+  --popover: #f5f6fa;
+  --popover-foreground: #222026;
+  --muted: #ebe8f6;
+  --muted-foreground: #6f6a7d;
+  --accent: #dbd3f5;
+  --accent-foreground: #222026;
 
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
 
-  --border: #e5e7eb;
-  --input: #e5e7eb;
-  --ring: #064e3b;
-
+  --border: #d8dbe6;
+  --input: #d8dbe6;
+  --ring: #877fc1;
   --radius: 0.75rem;
 }
 
-/* Dark Mode - Disederhanakan tetap dengan nuansa hijau gelap */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #020617;
-    --foreground: #f8fafc;
-    --primary: #10b981;
-    --primary-foreground: #020617;
-    --card: #020617;
-    --card-foreground: #f8fafc;
-    --border: #1e293b;
-    --accent: #064e3b;
-    --accent-foreground: #f8fafc;
-  }
+.dark {
+  --background: #222026;
+  --foreground: #f5f6fa;
+  --primary: #877fc1;
+  --primary-foreground: #f5f6fa;
+  --secondary: #dbd3f5;
+  --secondary-foreground: #222026;
+  --card: #2a2730;
+  --card-foreground: #f5f6fa;
+  --popover: #2a2730;
+  --popover-foreground: #f5f6fa;
+  --muted: #312d39;
+  --muted-foreground: #c5bfd6;
+  --accent: #877fc1;
+  --accent-foreground: #f5f6fa;
+  --destructive: #f87171;
+  --destructive-foreground: #222026;
+  --border: #3a3444;
+  --input: #3a3444;
+  --ring: #dbd3f5;
 }
 
 @theme inline {
@@ -80,10 +78,76 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground transition-colors duration-300;
     font-feature-settings:
       "rlig" 1,
       "calt" 1;
+  }
+
+  /* Global dark-mode overrides for common Tailwind utilities (quick coverage across pages) */
+  .dark .bg-white,
+  .dark .bg-gray-50,
+  .dark .bg-gray-100 {
+    background-color: var(--card) !important;
+  }
+
+  .dark .border-gray-100,
+  .dark .border-gray-200,
+  .dark .border-gray-50 {
+    border-color: var(--border) !important;
+  }
+
+  .dark .text-gray-900,
+  .dark .text-gray-800,
+  .dark .text-gray-700,
+  .dark .text-gray-600 {
+    color: var(--foreground) !important;
+  }
+
+  .dark .text-gray-500,
+  .dark .text-gray-400 {
+    color: #cbd5e1 !important;
+  }
+
+  /* Table default styling */
+  table {
+    width: 100%;
+    background: var(--card);
+    color: var(--foreground);
+    border-collapse: collapse;
+  }
+  th,
+  td {
+    border: 0;
+    padding: 0.75rem;
+  }
+  thead th {
+    background: color-mix(in srgb, var(--muted) 70%, transparent);
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--muted-foreground);
+  }
+  tbody tr:hover {
+    background: color-mix(in srgb, var(--accent) 28%, transparent);
+  }
+}
+
+@layer components {
+  .page-header {
+    @apply text-2xl font-bold tracking-tight text-gray-900 dark:text-foreground;
+  }
+
+  .page-subheader {
+    @apply text-sm font-medium text-gray-500 dark:text-gray-300;
+  }
+
+  .section-header {
+    @apply text-lg font-bold text-gray-900 dark:text-foreground;
+  }
+
+  .section-subheader {
+    @apply text-sm text-gray-500 dark:text-gray-300;
   }
 }
 
@@ -96,5 +160,6 @@
   @apply bg-transparent;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-200 rounded-full hover:bg-gray-300 transition-colors;
+  background: color-mix(in srgb, var(--border) 60%, transparent);
+  border-radius: 999px;
 }

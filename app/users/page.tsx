@@ -3,7 +3,6 @@
 
 import React, { useState, useMemo } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import Breadcrumb from "@/components/Breadcrumb";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
 import { IconPlus, IconSearch, IconEdit, IconFilter, IconUser, IconMail, IconBriefcase, IconShield, IconCircleCheck, IconCircleX, IconShieldCheck, IconCircleCheckFilled, IconCircleXFilled } from "@tabler/icons-react";
@@ -175,17 +174,9 @@ export default function UsersPage() {
     {
       header: "User",
       accessor: (item: any) => (
-        <div className="flex items-center gap-3 py-1">
-          <div className="w-9 h-9 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-xs shrink-0 border border-emerald-100 uppercase tabular-nums">
-            {item.name
-              .split(" ")
-              .map((n: string) => n[0])
-              .join("")}
-          </div>
-          <div className="min-w-0">
-            <p className="font-bold text-gray-900 truncate leading-tight">{item.name}</p>
-            <p className="text-[10px] text-gray-400 truncate tracking-wide">{item.email}</p>
-          </div>
+        <div className="min-w-0 py-1">
+          <p className="font-bold text-gray-900 truncate leading-tight">{item.name}</p>
+          <p className="text-xs text-gray-400 truncate tracking-wide">{item.email}</p>
         </div>
       ),
     },
@@ -199,7 +190,7 @@ export default function UsersPage() {
         const isActive = item.status === "Active";
         return (
           <span
-            className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-full text-[11px] font-semibold border ${isActive ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20" : "bg-rose-500/10 text-rose-600 border border-rose-500/20"}`}
+            className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs font-semibold border ${isActive ? "bg-violet-500/10 text-violet-600 border border-violet-500/20" : "bg-rose-500/10 text-rose-600 border border-rose-500/20"}`}
           >
             {isActive ? <IconCircleCheckFilled size={12} /> : <IconCircleXFilled size={12} />}
             {item.status}
@@ -222,7 +213,7 @@ export default function UsersPage() {
     {
       header: "Aksi",
       accessor: (item: any) => (
-        <button onClick={() => handleEditClick(item)} className="p-1.5 text-gray-400 hover:text-emerald-600 rounded-lg hover:bg-emerald-50 transition-all active:scale-90">
+        <button onClick={() => handleEditClick(item)} className="p-1.5 text-gray-400 hover:text-violet-600 rounded-lg hover:bg-violet-50 transition-all active:scale-90">
           <IconEdit size={18} />
         </button>
       ),
@@ -232,8 +223,6 @@ export default function UsersPage() {
   return (
     <DashboardLayout>
       <div className="flex flex-col gap-4">
-        <Breadcrumb items={[{ label: "Users" }]} />
-
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Users</h2>
@@ -246,7 +235,7 @@ export default function UsersPage() {
             >
               <IconShieldCheck size={16} /> Role Group
             </button>
-            <button onClick={() => setIsModalOpen(true)} className="bg-[#064E3B] hover:bg-[#043327] text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all active:scale-95">
+            <button onClick={() => setIsModalOpen(true)} className="bg-zinc-900 hover:bg-zinc-800 text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all active:scale-95">
               <IconPlus size={16} stroke={3} /> Tambah user
             </button>
           </div>
@@ -254,13 +243,13 @@ export default function UsersPage() {
 
         <div className="flex flex-col md:flex-row gap-4 justify-between items-center py-2">
           <div className="relative w-full md:w-80 group">
-            <IconSearch className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#10B981] transition-colors" size={18} />
+            <IconSearch className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-violet-500 transition-colors" size={18} />
             <input
               type="text"
               placeholder="Cari nama atau email..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-7 pr-4 py-2 bg-transparent border-b border-gray-200 text-sm focus:outline-none focus:border-[#064E3B] transition-all"
+              className="w-full pl-7 pr-4 py-2 bg-transparent border-b border-gray-200 text-sm focus:outline-none focus:border-violet-400 transition-all"
             />
           </div>
           <div className="flex items-center gap-3 w-full md:w-auto">
@@ -271,7 +260,7 @@ export default function UsersPage() {
             <select
               value={selectedRole}
               onChange={(e) => setSelectedRole(e.target.value)}
-              className="bg-transparent border-b border-gray-200 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:border-[#064E3B] transition-all cursor-pointer"
+              className="bg-transparent border-b border-gray-200 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:border-violet-400 transition-all cursor-pointer"
             >
               <option value="Semua role">Semua role</option>
               {roles
@@ -286,7 +275,7 @@ export default function UsersPage() {
         </div>
 
         <div className="min-h-100">
-          <DataTable data={filteredUsers} columns={columns} pageSize={10} />
+          <DataTable data={filteredUsers} columns={columns} pageSize={10} density="dense" />
         </div>
 
         <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={editingUser ? "Edit User" : "Tambah User Baru"}>
@@ -302,14 +291,14 @@ export default function UsersPage() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="Masukkan nama lengkap..."
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#064E3B]/5 transition-all"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all"
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
                   <IconMail size={16} /> Email Perusahaan
                 </label>
-                <div className="flex items-center bg-gray-50 border border-gray-100 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#064E3B]/5 transition-all">
+                <div className="flex items-center bg-gray-50 border border-gray-100 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-violet-500/10 transition-all">
                   <input
                     required
                     type="text"
@@ -318,7 +307,7 @@ export default function UsersPage() {
                     placeholder="nama.user"
                     className="flex-1 px-4 py-3 bg-transparent text-sm focus:outline-none"
                   />
-                  <span className="px-4 py-3 bg-gray-100 text-gray-400 text-[10px] font-black border-l border-gray-100 tracking-tighter">@inventra.co.id</span>
+                  <span className="px-4 py-3 bg-gray-100 text-gray-400 text-xs font-black border-l border-gray-100 tracking-tighter">@inventra.co.id</span>
                 </div>
               </div>
               <div className="space-y-2">
@@ -328,7 +317,7 @@ export default function UsersPage() {
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#064E3B]/5 transition-all appearance-none cursor-pointer"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all appearance-none cursor-pointer"
                 >
                   {roles
                     .filter((r) => r.isActive)
@@ -342,18 +331,18 @@ export default function UsersPage() {
               {editingUser && (
                 <div className="pt-2 flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 shadow-inner">
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.status === "Active" ? "bg-emerald-100 text-emerald-600" : "bg-red-100 text-red-600"}`}>
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.status === "Active" ? "bg-violet-100 text-violet-600" : "bg-red-100 text-red-600"}`}>
                       {formData.status === "Active" ? <IconCircleCheckFilled size={20} /> : <IconCircleXFilled size={20} />}
                     </div>
                     <div>
                       <p className="text-sm font-bold text-gray-900 leading-none mb-1">Status User</p>
-                      <p className="text-[10px] font-medium text-gray-500 italic uppercase tracking-tighter">Status: {formData.status}</p>
+                      <p className="text-xs font-medium text-gray-500 italic uppercase tracking-tighter">Status: {formData.status}</p>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, status: formData.status === "Active" ? "Inactive" : "Active" })}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${formData.status === "Active" ? "bg-emerald-600" : "bg-gray-300"}`}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${formData.status === "Active" ? "bg-violet-600" : "bg-gray-300"}`}
                   >
                     <span className={`${formData.status === "Active" ? "translate-x-6" : "translate-x-1"} inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm`} />
                   </button>
@@ -364,7 +353,7 @@ export default function UsersPage() {
               <button type="button" onClick={handleCloseModal} className="flex-1 px-4 py-3.5 border border-gray-100 text-gray-500 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-gray-50 transition-all">
                 Batal
               </button>
-              <button type="submit" className="flex-1 px-4 py-3.5 bg-[#064E3B] text-white rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-[#043327] shadow-lg shadow-emerald-900/20 transition-all active:scale-95">
+              <button type="submit" className="flex-1 px-4 py-3.5 bg-zinc-900 text-white rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-zinc-800 shadow-lg shadow-violet-900/20 transition-all active:scale-95">
                 Simpan User
               </button>
             </div>
@@ -373,8 +362,8 @@ export default function UsersPage() {
 
         <Modal isOpen={isRoleModalOpen} onClose={() => setIsRoleModalOpen(false)} title="Manajemen Role Group">
           <div className="space-y-6">
-            <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
-              <p className="text-xs text-emerald-800 leading-relaxed font-bold uppercase tracking-tighter">Daftar role yang tersedia. Nonaktifkan role untuk menyembunyikannya dari pilihan pendaftaran user.</p>
+            <div className="p-4 bg-violet-50 rounded-xl border border-violet-100">
+              <p className="text-xs text-violet-800 leading-relaxed font-bold uppercase tracking-tighter">Daftar role yang tersedia. Nonaktifkan role untuk menyembunyikannya dari pilihan pendaftaran user.</p>
             </div>
             <div className="space-y-3">
               <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Tambah Role Baru</label>
@@ -384,12 +373,12 @@ export default function UsersPage() {
                   value={newRoleName}
                   onChange={(e) => setNewRoleName(e.target.value)}
                   placeholder="Contoh: Supervisor IT"
-                  className="flex-1 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#064E3B]/5 transition-all"
+                  className="flex-1 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all"
                 />
                 <button
                   onClick={handleAddRole}
                   disabled={!newRoleName.trim()}
-                  className="px-4 bg-[#064E3B] disabled:bg-gray-200 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-[#043327] transition-all active:scale-95"
+                  className="px-4 bg-zinc-900 disabled:bg-gray-200 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-zinc-800 transition-all active:scale-95"
                 >
                   Tambah
                 </button>
@@ -401,17 +390,17 @@ export default function UsersPage() {
                 {roles.map((role) => (
                   <div key={role.name} className={`flex items-center justify-between p-3.5 border rounded-xl transition-all ${role.isActive ? "bg-white border-gray-100" : "bg-gray-50/50 border-gray-200 opacity-60"}`}>
                     <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${role.isActive ? "bg-emerald-100 text-emerald-700" : "bg-gray-200 text-gray-500"}`}>
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${role.isActive ? "bg-violet-100 text-violet-700" : "bg-gray-200 text-gray-500"}`}>
                         <IconShield size={16} />
                       </div>
                       <div className="flex flex-col">
                         <span className={`text-sm font-bold ${role.isActive ? "text-gray-700" : "text-gray-400"}`}>{role.name}</span>
-                        <span className={`text-[10px] font-bold uppercase tracking-tight ${role.isActive ? "text-emerald-500" : "text-gray-400"}`}>{role.isActive ? "Active" : "Inactive"}</span>
+                        <span className={`text-xs font-bold uppercase tracking-tight ${role.isActive ? "text-violet-500" : "text-gray-400"}`}>{role.isActive ? "Active" : "Inactive"}</span>
                       </div>
                     </div>
                     <button
                       onClick={() => handleToggleRole(role.name)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${role.isActive ? "bg-amber-50 text-amber-600 hover:bg-amber-100" : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"}`}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${role.isActive ? "bg-amber-50 text-amber-600 hover:bg-amber-100" : "bg-violet-50 text-violet-600 hover:bg-violet-100"}`}
                     >
                       {role.isActive ? <IconCircleX size={14} /> : <IconCircleCheck size={14} />}
                       {role.isActive ? "Deactivate" : "Activate"}

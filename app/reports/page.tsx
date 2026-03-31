@@ -3,7 +3,6 @@
 
 import React, { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import Breadcrumb from "@/components/Breadcrumb";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
 import SearchableSelect from "@/components/SearchableSelect";
@@ -283,12 +282,12 @@ export default function ReportsPage() {
 
   const columns = [
     {
-      header: "ID Transaksi",
-      className: "w-[160px]",
+      header: "ID / Token",
+      className: "w-[220px]",
       accessor: (item: any) => (
-        <div className="max-w-36">
+        <div className="max-w-52 flex items-center gap-2 py-1">
           <p className="font-bold truncate">{item.id}</p>
-          <p className="text-[12px] text-gray-400 font-medium tracking-tight truncate">{item.token}</p>
+          <span className="shrink-0 text-xs px-1.5 py-0.5 rounded-md bg-gray-50 border border-gray-100 text-gray-500 font-semibold">{item.token}</span>
         </div>
       ),
     },
@@ -300,7 +299,7 @@ export default function ReportsPage() {
       accessor: (item: any) => (
         <div>
           <p className="text-sm text-gray-700 font-medium">{item.reporter}</p>
-          <p className="text-[12px] text-gray-400">Oleh: {item.author}</p>
+          <p className="text-sm text-gray-400">Oleh: {item.author}</p>
         </div>
       ),
     },
@@ -319,9 +318,9 @@ export default function ReportsPage() {
         return (
           <span
             className={`
-        inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-full 
-        text-[11px] font-semibold border
-        ${isResolved ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : isProgress ? "bg-blue-500/10 text-blue-600 border-blue-500/20" : "bg-amber-500/10 text-amber-600 border-amber-500/20"}
+        inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full 
+        text-xs font-semibold border
+        ${isResolved ? "bg-violet-500/10 text-violet-600 border-violet-500/20" : isProgress ? "bg-blue-500/10 text-blue-600 border-blue-500/20" : "bg-amber-500/10 text-amber-600 border-amber-500/20"}
       `}
           >
             {isResolved && <IconCircleCheckFilled size={12} />}
@@ -352,7 +351,7 @@ export default function ReportsPage() {
             <IconEye size={16} />
           </button>
 
-          <button onClick={() => handleEditClick(item)} className="p-1.5 text-gray-400 hover:text-emerald-600 rounded-lg hover:bg-emerald-50 transition-all">
+          <button onClick={() => handleEditClick(item)} className="p-1.5 text-gray-400 hover:text-violet-600 rounded-lg hover:bg-violet-50 transition-all">
             <IconEdit size={16} />
           </button>
 
@@ -371,9 +370,7 @@ export default function ReportsPage() {
           <div className="flex items-center gap-4">
             <button onClick={() => setView("list")} className="p-2 hover:bg-gray-100 rounded-lg text-gray-500">
               <IconChevronLeft size={20} stroke={3} />
-            </button>
-            <Breadcrumb items={[{ label: "Reports", href: "/reports" }, { label: selectedReport.id }]} />
-          </div>
+            </button>          </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             <div className="xl:col-span-2 space-y-6">
@@ -383,29 +380,29 @@ export default function ReportsPage() {
                     <h2 className="text-2xl font-bold text-gray-900">{selectedReport.item}</h2>
                     <p className="text-sm text-gray-500 font-medium">Token ID: {selectedReport.token}</p>
                   </div>
-                  <span className={`text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-full ${selectedReport.status === "Resolved" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+                  <span className={`text-xs font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${selectedReport.status === "Resolved" ? "bg-violet-100 text-violet-700" : "bg-amber-100 text-amber-700"}`}>
                     {selectedReport.status}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-6 py-6 border-y border-gray-50">
                   <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Reporter</p>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Reporter</p>
                     <div className="flex items-center gap-2">
                       <IconUser size={16} className="text-gray-400" />
                       <span className="text-sm font-bold text-gray-800">{selectedReport.reporter}</span>
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Service Type</p>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Service Type</p>
                     <div className="flex items-center gap-2">
                       {selectedReport.serviceType === "Self service" ? <IconTool size={16} className="text-blue-500" /> : <IconTruck size={16} className="text-purple-500" />}
                       <span className="text-sm font-bold text-gray-800">{selectedReport.serviceType}</span>
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Assign To</p>
-                    <span className="text-sm font-bold text-[#064E3B]">{selectedReport.assignee}</span>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Assign To</p>
+                    <span className="text-sm font-bold text-violet-500">{selectedReport.assignee}</span>
                   </div>
                 </div>
 
@@ -420,11 +417,11 @@ export default function ReportsPage() {
                   <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
                     <IconBookmark size={18} className="text-blue-500" /> Solusi & Penanganan
                   </h3>
-                  <button className="text-[10px] font-bold text-[#064E3B] uppercase tracking-widest hover:text-[#10B981] transition-colors">Tambah Solusi</button>
+                  <button className="text-xs font-bold text-violet-500 uppercase tracking-widest hover:text-violet-500 transition-colors">Tambah Solusi</button>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
-                    <thead className="bg-gray-50/50 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                    <thead className="bg-gray-50/50 text-xs font-bold text-gray-400 uppercase tracking-widest">
                       <tr>
                         <th className="px-6 py-3">Deskripsi Solusi</th>
                         <th className="px-6 py-3">Posted By</th>
@@ -440,7 +437,7 @@ export default function ReportsPage() {
                               <div className="flex items-center gap-2">
                                 {sol.text}
                                 {sol.isReference && (
-                                  <span className="inline-flex items-center gap-1 text-[9px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-black uppercase">
+                                  <span className="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-black uppercase">
                                     <IconCheck size={10} stroke={4} /> Verified Ref
                                   </span>
                                 )}
@@ -452,7 +449,7 @@ export default function ReportsPage() {
                               <div className="flex justify-center">
                                 <button
                                   onClick={() => toggleReference(sol.id)}
-                                  className={`p-2 rounded-lg transition-all flex items-center gap-2 text-[10px] font-bold uppercase tracking-tighter ${
+                                  className={`p-2 rounded-lg transition-all flex items-center gap-2 text-xs font-bold uppercase tracking-tighter ${
                                     sol.isReference ? "text-blue-600 bg-blue-50 ring-1 ring-blue-200" : "text-gray-300 hover:text-blue-600 hover:bg-blue-50"
                                   }`}
                                 >
@@ -485,7 +482,7 @@ export default function ReportsPage() {
                   {selectedReport.comments.length > 0 ? (
                     selectedReport.comments.map((c: any, i: number) => (
                       <div key={i} className="bg-gray-50 p-3 rounded-xl space-y-1 group">
-                        <div className="flex justify-between text-[10px]">
+                        <div className="flex justify-between text-xs">
                           <span className="font-bold text-gray-900">{c.user}</span>
                           <span className="text-gray-400">{formatDateTimeShort(c.date)}</span>
                         </div>
@@ -503,25 +500,25 @@ export default function ReportsPage() {
                     onChange={(e) => setCommentInput(e.target.value)}
                     onKeyPress={(e) => e.key === "Enter" && handleAddComment()}
                     placeholder="Tulis balasan..."
-                    className="w-full pl-4 pr-12 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#064E3B]/5 transition-all"
+                    className="w-full pl-4 pr-12 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all"
                   />
                   <button
                     onClick={handleAddComment}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-[#064E3B] text-white rounded-lg flex items-center justify-center hover:bg-[#043327] transition-all shadow-md active:scale-95"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-zinc-900 text-white rounded-lg flex items-center justify-center hover:bg-zinc-800 transition-all shadow-md active:scale-95"
                   >
                     <IconSend size={14} stroke={2.5} />
                   </button>
                 </div>
               </div>
 
-              <div className="bg-[#064E3B] rounded-2xl p-6 text-white space-y-4 shadow-xl">
-                <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-[0.2em]">Quick Action</p>
+              <div className="bg-zinc-900 rounded-2xl p-6 text-white space-y-4 shadow-xl">
+                <p className="text-xs font-bold text-violet-400 uppercase tracking-[0.2em]">Quick Action</p>
                 <div className="space-y-3">
                   <button className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border border-white/10">Gunakan Referensi Solusi</button>
                   <button
                     onClick={handleMarkAsComplete}
                     disabled={selectedReport.status === "Resolved"}
-                    className="w-full py-3 bg-[#10B981] hover:bg-[#059669] disabled:bg-gray-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg active:translate-y-0.5"
+                    className="w-full py-3 bg-violet-500 hover:bg-violet-600 disabled:bg-gray-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg active:translate-y-0.5"
                   >
                     <IconCheck size={16} stroke={3} /> {selectedReport.status === "Resolved" ? "Laporan Selesai" : "Mark as Complete"}
                   </button>
@@ -537,8 +534,6 @@ export default function ReportsPage() {
   return (
     <DashboardLayout>
       <div className="flex flex-col gap-4">
-        <Breadcrumb items={[{ label: "Reports" }]} />
-
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Reports</h2>
@@ -551,7 +546,7 @@ export default function ReportsPage() {
             >
               <IconFileExport size={16} stroke={3} /> Export Data
             </button>
-            <button onClick={() => setIsModalOpen(true)} className="bg-[#064E3B] hover:bg-[#043327] text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all active:scale-95">
+            <button onClick={() => setIsModalOpen(true)} className="bg-zinc-900 hover:bg-zinc-800 text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all active:scale-95">
               <IconPlus size={16} stroke={3} /> Buat laporan baru
             </button>
           </div>
@@ -560,13 +555,13 @@ export default function ReportsPage() {
         {/* Search & Filter */}
         <div className="flex flex-col md:flex-row gap-4 justify-between items-center py-2">
           <div className="relative w-full md:w-80 group">
-            <IconSearch className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#10B981] transition-colors" size={18} />
+            <IconSearch className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-violet-500 transition-colors" size={18} />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari ID, barang, pelapor..."
-              className="w-full pl-7 pr-4 py-2 bg-transparent border-b border-gray-200 text-sm focus:outline-none focus:border-[#064E3B] transition-all"
+              className="w-full pl-7 pr-4 py-2 bg-transparent border-b border-gray-200 text-sm focus:outline-none focus:border-violet-400 transition-all"
             />
           </div>
           <div className="flex items-center gap-3 w-full md:w-auto">
@@ -574,7 +569,7 @@ export default function ReportsPage() {
               <IconFilter size={16} />
               <span>Status:</span>
             </div>
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="bg-transparent border-b border-gray-200 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:border-[#064E3B] transition-all">
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="bg-transparent border-b border-gray-200 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:border-violet-400 transition-all">
               <option value="Semua status">Semua status</option>
               <option value="Pending">Pending</option>
               <option value="In progress">In progress</option>
@@ -583,19 +578,19 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        <DataTable data={filteredReports} columns={columns} pageSize={10} />
+        <DataTable data={filteredReports} columns={columns} pageSize={10} density="dense" />
 
         <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Buat Laporan Baru">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Nama Barang</label>
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Nama Barang</label>
               <input
                 required
                 type="text"
                 value={formData.item}
                 onChange={(e) => setFormData({ ...formData, item: e.target.value })}
                 placeholder="Contoh: MacBook Pro M1"
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#064E3B]/5 transition-all"
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all"
               />
             </div>
 
@@ -603,11 +598,11 @@ export default function ReportsPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Tipe Layanan</label>
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Tipe Layanan</label>
                 <select
                   value={formData.serviceType}
                   onChange={(e) => setFormData({ ...formData, serviceType: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#064E3B]/5 transition-all"
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all"
                 >
                   <option value="Self service">Self service</option>
                   <option value="By vendor">By vendor</option>
@@ -617,14 +612,14 @@ export default function ReportsPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Deskripsi Masalah</label>
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Deskripsi Masalah</label>
               <textarea
                 required
                 value={formData.problem}
                 onChange={(e) => setFormData({ ...formData, problem: e.target.value })}
                 rows={3}
                 placeholder="Jelaskan detail kerusakan..."
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#064E3B]/5 transition-all resize-none"
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all resize-none"
               />
             </div>
 
@@ -632,7 +627,7 @@ export default function ReportsPage() {
               <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 px-4 py-3 border border-gray-100 text-gray-500 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-gray-50 transition-all">
                 Batal
               </button>
-              <button type="submit" className="flex-1 px-4 py-3 bg-[#064E3B] text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-[#043327] shadow-lg shadow-emerald-900/20 transition-all">
+              <button type="submit" className="flex-1 px-4 py-3 bg-zinc-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-zinc-800 shadow-lg shadow-violet-900/20 transition-all">
                 Simpan Laporan
               </button>
             </div>
@@ -699,8 +694,8 @@ export default function ReportsPage() {
         {/* Export Reports Modal */}
         <Modal isOpen={isExportModalOpen} onClose={handleCloseExportModal} title="Export Data Laporan">
           <form onSubmit={handleExport} className="space-y-6">
-            <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100">
-              <p className="text-sm text-emerald-800 leading-relaxed font-medium">Pilih rentang tanggal untuk mengekspor data laporan kerusakan dan perbaikan.</p>
+            <div className="p-4 bg-violet-50 rounded-xl border border-violet-100">
+              <p className="text-sm text-violet-800 leading-relaxed font-medium">Pilih rentang tanggal untuk mengekspor data laporan kerusakan dan perbaikan.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -714,7 +709,7 @@ export default function ReportsPage() {
                   max={today}
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#064E3B]/5 transition-all"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all"
                 />
               </div>
 
@@ -729,7 +724,7 @@ export default function ReportsPage() {
                   max={today}
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#064E3B]/5 transition-all"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all"
                 />
               </div>
             </div>
@@ -741,7 +736,7 @@ export default function ReportsPage() {
               <button
                 type="submit"
                 disabled={!startDate || !endDate || endDate < startDate}
-                className="flex-1 px-4 py-3.5 bg-[#064E3B] disabled:bg-gray-200 text-white rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-[#043327] shadow-lg shadow-emerald-900/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-3.5 bg-zinc-900 disabled:bg-gray-200 text-white rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-zinc-800 shadow-lg shadow-violet-900/20 transition-all active:scale-95 flex items-center justify-center gap-2"
               >
                 <IconFileExport size={16} /> Mulai Export
               </button>

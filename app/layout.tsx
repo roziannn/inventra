@@ -24,8 +24,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+    <html lang="en" suppressHydrationWarning>
+      <body suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground transition-colors duration-300`}>
         <Toaster
           position="top-center"
           toastOptions={{
@@ -44,7 +44,7 @@ export default function RootLayout({
             },
             success: {
               iconTheme: {
-                primary: "#10B981",
+                primary: "#877FC1",
                 secondary: "#fff",
               },
             },

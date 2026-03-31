@@ -3,7 +3,6 @@
 
 import React, { useState, useEffect } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import Breadcrumb from "@/components/Breadcrumb";
 import QRCode from "qrcode";
 import { IconQrcode, IconDownload, IconRefresh, IconCopy, IconCheck } from "@tabler/icons-react";
 
@@ -18,7 +17,7 @@ export default function QRCodePage() {
 
   const colors = [
     { name: "Black", hex: "#000000" },
-    { name: "Emerald", hex: "#064E3B" },
+    { name: "Violet", hex: "#877FC1" },
     { name: "Blue", hex: "#2563EB" },
     { name: "Red", hex: "#DC2626" },
   ];
@@ -76,8 +75,6 @@ export default function QRCodePage() {
   return (
     <DashboardLayout>
       <div className="flex flex-col gap-4">
-        <Breadcrumb items={[{ label: "Labeling" }, { label: "QR Code" }]} />
-
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 tracking-tight">QR Code Generator</h2>
@@ -90,28 +87,28 @@ export default function QRCodePage() {
           <div className="lg:col-span-1 space-y-6">
             <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
               <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
-                <IconRefresh size={18} className="text-emerald-500" /> Konfigurasi QR
+                <IconRefresh size={18} className="text-violet-500" /> Konfigurasi QR
               </h3>
               <form onSubmit={handleGenerate} className="space-y-5">
                 <div className="space-y-2 group">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2 group-focus-within:text-[#064E3B] transition-colors">Data / ID Asset</label>
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2 group-focus-within:text-violet-500 transition-colors">Data / ID Asset</label>
                   <div className="relative">
                     <input
                       type="text"
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
                       placeholder="Masukkan ID atau URL..."
-                      className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-4 focus:ring-[#064E3B]/5 focus:border-[#064E3B] transition-all"
+                      className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-400 transition-all"
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">Ukuran (px)</label>
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">Ukuran (px)</label>
                   <div className="relative">
                     <select
                       value={qrSize}
                       onChange={(e) => setQrSize(Number(e.target.value))}
-                      className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-4 focus:ring-[#064E3B]/5 focus:border-[#064E3B] transition-all appearance-none cursor-pointer"
+                      className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-400 transition-all appearance-none cursor-pointer"
                     >
                       <option value={250}>250 x 250</option>
                       <option value={500}>500 x 500</option>
@@ -123,14 +120,14 @@ export default function QRCodePage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Warna QR</label>
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Warna QR</label>
                   <div className="flex gap-3">
                     {colors.map((color) => (
                       <button
                         key={color.hex}
                         type="button"
                         onClick={() => setQrColor(color.hex)}
-                        className={`w-10 h-10 rounded-full transition-all flex items-center justify-center border-2 ${qrColor === color.hex ? "border-[#064E3B] scale-110 shadow-md" : "border-transparent hover:scale-105"}`}
+                        className={`w-10 h-10 rounded-full transition-all flex items-center justify-center border-2 ${qrColor === color.hex ? "border-violet-500 scale-110 shadow-md" : "border-transparent hover:scale-105"}`}
                         style={{ backgroundColor: color.hex }}
                       >
                         {qrColor === color.hex && <div className="w-2 h-2 bg-white rounded-full"></div>}
@@ -141,7 +138,7 @@ export default function QRCodePage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3.5 bg-[#064E3B] text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-[#043327] shadow-lg shadow-emerald-950/20 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-70"
+                  className="w-full py-3.5 bg-zinc-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-zinc-800 shadow-lg shadow-violet-950/20 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-70"
                 >
                   {isLoading ? (
                     <IconRefresh size={18} className="animate-spin" />
@@ -168,7 +165,7 @@ export default function QRCodePage() {
                   </div>
                   {isLoading && (
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                      <div className="w-12 h-12 border-4 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
                     </div>
                   )}
                 </div>
@@ -177,21 +174,21 @@ export default function QRCodePage() {
                 <div className="flex flex-col gap-6 w-full max-w-50">
                   <div className="space-y-1 text-center md:text-left">
                     <p className="text-xl font-bold text-gray-900 tracking-tight truncate">{qrValue || "N/A"}</p>
-                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em]">Preview Label QR</p>
+                    <p className="text-xs text-gray-400 font-bold uppercase tracking-[0.2em]">Preview Label QR</p>
                   </div>
 
                   <div className="flex flex-col gap-3">
                     <button
                       onClick={handleDownload}
-                      className="w-full flex items-center justify-center gap-3 px-6 py-3.5 bg-gray-900 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all shadow-lg active:scale-95"
+                      className="w-full flex items-center justify-center gap-3 px-6 py-3.5 bg-gray-900 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-black transition-all shadow-lg active:scale-95"
                     >
                       <IconDownload size={18} /> Download
                     </button>
                     <button
                       onClick={handleCopy}
-                      className="w-full flex items-center justify-center gap-3 px-6 py-3.5 bg-white border border-gray-200 text-gray-700 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-all active:scale-95"
+                      className="w-full flex items-center justify-center gap-3 px-6 py-3.5 bg-white border border-gray-200 text-gray-700 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-gray-50 transition-all active:scale-95"
                     >
-                      {isCopied ? <IconCheck size={18} className="text-emerald-500" /> : <IconCopy size={18} />}
+                      {isCopied ? <IconCheck size={18} className="text-violet-500" /> : <IconCopy size={18} />}
                       {isCopied ? "Copied" : "Copy ID"}
                     </button>
                   </div>

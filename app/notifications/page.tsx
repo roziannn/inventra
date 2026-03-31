@@ -2,7 +2,6 @@
 
 import React from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import Breadcrumb from "@/components/Breadcrumb";
 import { 
   IconBell, 
   IconAlertCircle, 
@@ -26,8 +25,6 @@ export default function NotificationsPage() {
   return (
     <DashboardLayout>
       <div className="flex flex-col gap-4">
-        <Breadcrumb items={[{ label: "Notifications" }]} />
-
         <div className="flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Notifikasi</h2>
@@ -35,7 +32,7 @@ export default function NotificationsPage() {
           </div>
           <button 
             onClick={handleMarkAllRead}
-            className="text-[#064E3B] hover:text-[#043327] text-xs font-bold flex items-center gap-1 transition-colors"
+            className="text-violet-500 hover:text-violet-600 text-xs font-bold flex items-center gap-1 transition-colors"
           >
             <IconCheck size={16} /> Tandai semua dibaca
           </button>
@@ -61,7 +58,7 @@ export default function NotificationsPage() {
                 time: "1 jam yang lalu",
                 type: "inventory",
                 icon: IconPackage,
-                color: "bg-emerald-50 text-emerald-600",
+                color: "bg-violet-50 text-violet-600",
                 isRead: false,
               },
               {
@@ -97,7 +94,7 @@ export default function NotificationsPage() {
             ].map((notification) => (
               <div 
                 key={notification.id} 
-                className={`p-4 lg:p-6 flex gap-4 transition-colors hover:bg-gray-50 cursor-pointer ${notification.isRead ? "" : "bg-emerald-50/10"}`}
+                className={`p-4 lg:p-6 flex gap-4 transition-colors hover:bg-gray-50 cursor-pointer ${notification.isRead ? "" : "bg-violet-50/10"}`}
               >
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${notification.color}`}>
                   <notification.icon size={20} stroke={2} />
@@ -108,9 +105,9 @@ export default function NotificationsPage() {
                       {notification.title}
                     </h3>
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-[10px] text-gray-400 whitespace-nowrap font-medium">{notification.time}</span>
+                      <span className="text-xs text-gray-400 whitespace-nowrap font-medium">{notification.time}</span>
                       {!notification.isRead && (
-                        <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+                        <div className="w-1.5 h-1.5 bg-violet-500 rounded-full"></div>
                       )}
                     </div>
                   </div>
@@ -126,4 +123,3 @@ export default function NotificationsPage() {
     </DashboardLayout>
   );
 }
-

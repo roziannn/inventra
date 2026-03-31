@@ -3,7 +3,6 @@
 
 import React, { useState, useMemo } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import Breadcrumb from "@/components/Breadcrumb";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
 import { IconPrinter, IconSearch, IconFilter, IconSquare, IconSquareCheckFilled, IconCopy, IconMaximize, IconFileText, IconPackage, IconBarcode } from "@tabler/icons-react";
@@ -79,7 +78,7 @@ export default function PrintLabelPage() {
       case "S":
         return "w-24 h-14 text-[8px]";
       case "M":
-        return "w-32 h-20 text-[10px]";
+        return "w-32 h-20 text-xs";
       case "L":
         return "w-44 h-28 text-xs";
       case "XL":
@@ -92,14 +91,14 @@ export default function PrintLabelPage() {
       header: (
         <div className="flex justify-center">
           <button onClick={toggleSelectAll} className="p-1 rounded hover:bg-gray-100">
-            {selectedItems.length === filteredItems.length ? <IconSquareCheckFilled size={18} className="text-[#064E3B]" /> : <IconSquare size={18} className="text-gray-400" />}
+            {selectedItems.length === filteredItems.length ? <IconSquareCheckFilled size={18} className="text-violet-500" /> : <IconSquare size={18} className="text-gray-400" />}
           </button>
         </div>
       ),
       accessor: (item: any) => (
         <div className="flex justify-center">
-          <button onClick={() => toggleSelect(item.id)} className="p-1 rounded hover:bg-emerald-50">
-            {selectedItems.includes(item.id) ? <IconSquareCheckFilled size={18} className="text-[#064E3B]" /> : <IconSquare size={18} className="text-gray-300" />}
+          <button onClick={() => toggleSelect(item.id)} className="p-1 rounded hover:bg-violet-50">
+            {selectedItems.includes(item.id) ? <IconSquareCheckFilled size={18} className="text-violet-500" /> : <IconSquare size={18} className="text-gray-300" />}
           </button>
         </div>
       ),
@@ -108,14 +107,9 @@ export default function PrintLabelPage() {
     {
       header: "Nama Item",
       accessor: (item: any) => (
-        <div className="flex items-center gap-3 py-1">
-          <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
-            <IconPackage size={16} />
-          </div>
-          <div className="min-w-0">
-            <p className="font-bold text-gray-900 truncate leading-tight">{item.name}</p>
-            <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">{item.id}</p>
-          </div>
+        <div className="min-w-0 py-1 flex items-center gap-2">
+          <p className="font-bold text-gray-900 truncate leading-tight">{item.name}</p>
+          <span className="shrink-0 text-xs px-1.5 py-0.5 rounded-md bg-gray-50 border border-gray-100 text-gray-500 font-semibold uppercase">{item.id}</span>
         </div>
       ),
     },
@@ -130,13 +124,13 @@ export default function PrintLabelPage() {
     },
     {
       header: "Kategori",
-      accessor: (item: any) => <span className="text-[10px] px-2.5 py-1 bg-gray-50 text-gray-500 border border-gray-100 rounded-full font-bold uppercase tracking-widest">{item.category}</span>,
+      accessor: (item: any) => <span className="text-xs px-2 py-0.5 bg-gray-50 text-gray-500 border border-gray-100 rounded-full font-bold uppercase tracking-widest">{item.category}</span>,
     },
     {
       header: "Stok",
       accessor: (item: any) => (
         <span className={`text-sm font-bold tabular-nums ${item.stock < 10 ? "text-rose-600" : "text-gray-700"}`}>
-          {item.stock} <span className="text-[10px] font-medium text-gray-400 uppercase ml-0.5">Unit</span>
+          {item.stock} <span className="text-xs font-medium text-gray-400 uppercase ml-0.5">Unit</span>
         </span>
       ),
     },
@@ -145,17 +139,15 @@ export default function PrintLabelPage() {
   return (
     <DashboardLayout>
       <div className="flex flex-col gap-4">
-        <Breadcrumb items={[{ label: "Labeling" }, { label: "Print Label" }]} />
-
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Print Label</h2>
-            <p className="text-xs text-gray-500 font-medium italic">Pilih item di bawah untuk mencetak stiker barcode inventaris.</p>
+            <p className="text-xs text-gray-500 font-medium">Pilih item di bawah untuk mencetak stiker barcode inventaris.</p>
           </div>
           <button
             onClick={handleOpenPrintModal}
             disabled={selectedItems.length === 0}
-            className="bg-[#064E3B] disabled:bg-gray-200 disabled:shadow-none hover:bg-[#043327] text-white px-6 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/20 transition-all active:scale-95"
+            className="bg-zinc-900 disabled:bg-gray-200 disabled:shadow-none hover:bg-zinc-800 text-white px-6 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-violet-900/20 transition-all active:scale-95"
           >
             <IconPrinter size={18} stroke={2.5} />
             Cetak {selectedItems.length > 0 && `(${selectedItems.length} Label)`}
@@ -165,24 +157,24 @@ export default function PrintLabelPage() {
         {/* Search & Filter Bar */}
         <div className="flex flex-col md:flex-row gap-4 justify-between items-center py-2">
           <div className="relative w-full md:w-80 group">
-            <IconSearch className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+            <IconSearch className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-violet-500 transition-colors" size={18} />
             <input
               type="text"
               placeholder="Cari item atau SKU..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-7 pr-4 py-2 bg-transparent border-b border-gray-200 text-sm focus:outline-none focus:border-emerald-700 transition-all text-gray-900 font-medium"
+              className="w-full pl-7 pr-4 py-2 bg-transparent border-b border-gray-200 text-sm focus:outline-none focus:border-violet-700 transition-all text-gray-900 font-medium"
             />
           </div>
           <div className="flex items-center gap-3 w-full md:w-auto">
-            <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+            <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest">
               <IconFilter size={16} />
               <span>Filter:</span>
             </div>
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="bg-transparent border-b border-gray-200 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:border-emerald-700 transition-all cursor-pointer"
+              className="bg-transparent border-b border-gray-200 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:border-violet-700 transition-all cursor-pointer"
             >
               <option value="Semua kategori">Semua kategori</option>
               <option value="Electronic">Electronic</option>
@@ -193,7 +185,7 @@ export default function PrintLabelPage() {
         </div>
 
         <div className="min-h-100">
-          <DataTable data={filteredItems} columns={columns} pageSize={10} />
+          <DataTable data={filteredItems} columns={columns} pageSize={10} density="dense" />
         </div>
 
         {/* Print Configuration Modal */}
@@ -202,7 +194,7 @@ export default function PrintLabelPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-6">
                 <div className="space-y-3">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
                     <IconCopy size={16} /> Salinan per Item
                   </label>
                   <div className="flex items-center gap-3">
@@ -231,7 +223,7 @@ export default function PrintLabelPage() {
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
                     <IconFileText size={16} /> Ukuran Kertas
                   </label>
                   <select
@@ -246,7 +238,7 @@ export default function PrintLabelPage() {
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
                     <IconMaximize size={16} /> Dimensi Label
                   </label>
                   <div className="grid grid-cols-2 gap-2">
@@ -255,12 +247,12 @@ export default function PrintLabelPage() {
                         key={s.id}
                         type="button"
                         onClick={() => setLabelSize(s.id as any)}
-                        className={`p-3 rounded-xl border text-left transition-all ${labelSize === s.id ? "bg-emerald-50 border-emerald-500 shadow-sm shadow-emerald-200" : "bg-white border-gray-100 hover:border-emerald-200"}`}
+                        className={`p-3 rounded-xl border text-left transition-all ${labelSize === s.id ? "bg-violet-50 border-violet-500 shadow-sm shadow-violet-200" : "bg-white border-gray-100 hover:border-violet-200"}`}
                       >
-                        <p className={`text-xs font-bold ${labelSize === s.id ? "text-emerald-700" : "text-gray-700"}`}>
+                        <p className={`text-xs font-bold ${labelSize === s.id ? "text-violet-700" : "text-gray-700"}`}>
                           {s.name} ({s.id})
                         </p>
-                        <p className="text-[9px] text-gray-400 font-medium uppercase">{s.desc}</p>
+                        <p className="text-xs text-gray-400 font-medium uppercase">{s.desc}</p>
                       </button>
                     ))}
                   </div>
@@ -268,7 +260,7 @@ export default function PrintLabelPage() {
               </div>
 
               <div className="flex flex-col items-center justify-center bg-gray-50 rounded-2xl p-6 border border-dashed border-gray-200 relative overflow-hidden">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-6">Pratinjau Label</p>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">Pratinjau Label</p>
                 <div className={`bg-white border-2 border-gray-900 rounded-md shadow-2xl flex flex-col p-2 transition-all duration-300 overflow-hidden ${getPreviewSize()}`}>
                   <div className="flex justify-between items-start border-b border-gray-100 pb-1 mb-1">
                     <div className="font-black leading-tight text-gray-900">INVENTRA</div>
@@ -283,7 +275,7 @@ export default function PrintLabelPage() {
                     <span className="text-[0.5em] text-gray-300 font-bold uppercase">v1.2</span>
                   </div>
                 </div>
-                <p className="mt-6 text-[10px] text-gray-400 font-medium text-center leading-relaxed">
+                <p className="mt-6 text-xs text-gray-400 font-medium text-center leading-relaxed">
                   Pratinjau ini hanya simulasi tata letak.
                   <br />
                   Hasil akhir menyesuaikan pengaturan printer.
@@ -297,7 +289,7 @@ export default function PrintLabelPage() {
               </button>
               <button
                 type="submit"
-                className="flex-1 px-4 py-3.5 bg-[#064E3B] text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-[#043327] shadow-lg shadow-emerald-950/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-3.5 bg-zinc-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-zinc-800 shadow-lg shadow-violet-950/20 transition-all active:scale-95 flex items-center justify-center gap-2"
               >
                 <IconPrinter size={18} /> Konfirmasi Cetak
               </button>
