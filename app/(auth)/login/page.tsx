@@ -62,15 +62,15 @@ export default function LoginPage() {
 
         {/* Branding Footer (Adjusted to match App Footer style) */}
         <div className="absolute bottom-10 left-12 right-12 flex items-center justify-between">
-          <p className="text-xs text-violet-100/30 font-medium tracking-wider">
+          <p className="text-xs text-violet-100/50 font-medium tracking-wider">
             &copy; {mounted ? new Date().getFullYear() : ""} <span className="text-violet-400 font-bold">INVENTRA</span>. ASSET & INVENTORY.
           </p>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-pulse"></div>
-              <span className="text-xs text-violet-100/30 font-semibold uppercase tracking-widest">System Online</span>
+              <span className="text-xs text-violet-100/50 font-semibold uppercase ">System Online</span>
             </div>
-            <span className="text-xs px-2 py-0.5 bg-white/5 border border-white/10 text-violet-100/20 rounded-md font-mono">v1.0.2</span>
+            <span className="text-xs px-2 py-0.5 bg-white/5 border border-white/10 text-violet-100/50 rounded-md font-mono">v1.0.2</span>
           </div>
         </div>
       </div>
@@ -93,7 +93,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleLogin} className="mt-10 space-y-5">
             <div className="space-y-2 group">
-              <label className="text-sm font-semibold text-gray-400 uppercase tracking-widest flex items-center gap-2 group-focus-within:text-violet-500 transition-colors">
+              <label className="text-sm font-semibold text-gray-400 flex items-center gap-2 group-focus-within:text-violet-500 transition-colors">
                 <IconMail size={14} /> Alamat Email
               </label>
               <div className="relative">
@@ -110,7 +110,7 @@ export default function LoginPage() {
 
             <div className="space-y-2 group">
               <div className="flex justify-between items-center">
-                <label className="text-sm font-semibold text-gray-400 uppercase tracking-widest flex items-center gap-2 group-focus-within:text-violet-500 transition-colors">
+                <label className="text-sm font-semibold text-gray-400 flex items-center gap-2 group-focus-within:text-violet-500 transition-colors">
                   <IconLock size={14} /> Kata Sandi
                 </label>
                 <button type="button" onClick={() => setIsModalOpen(true)} className="text-sm font-semibold text-violet-500  hover:text-violet-500 transition-colors cursor-pointer">
@@ -132,17 +132,10 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 pt-1">
-              <input type="checkbox" id="remember" className="w-4 h-4 rounded border-gray-300 text-violet-500 focus:ring-violet-500/30 transition-all cursor-pointer" />
-              <label htmlFor="remember" className="text-xs font-semibold text-gray-600 cursor-pointer select-none">
-                Tetap masuk selama 30 hari
-              </label>
-            </div>
-
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full mt-6 bg-zinc-900 hover:bg-zinc-800 text-white py-4 rounded-2xl font-semibold text-sm uppercase tracking-widest shadow-xl shadow-violet-950/20 transition-all active:scale-95 disabled:opacity-70 flex items-center justify-center gap-2"
+              className="w-full mt-6 bg-zinc-900 hover:bg-zinc-800 text-white py-4 rounded-2xl font-semibold text-sm shadow-xl shadow-violet-950/20 transition-all active:scale-95 disabled:opacity-70 flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -154,23 +147,10 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="relative py-4">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-100"></div>
-            </div>
-            <div className="relative flex justify-center text-xs uppercase font-semibold tracking-widest">
-              <span className="bg-slate-100 lg:bg-white px-4 text-gray-400">Atau masuk dengan</span>
-            </div>
-          </div>
-
-          <button className="w-full flex items-center justify-center gap-3 py-3.5 border border-gray-200 rounded-2xl bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all active:scale-95">
-            <IconBrandGoogle size={20} className="text-red-500" /> Google SSO
-          </button>
-
           <p className="text-center text-xs font-medium text-gray-500 pt-6">
             Tidak bisa masuk?{" "}
             <button onClick={() => setIsModalOpen(true)} className="text-violet-500 font-bold hover:underline underline-offset-4">
-              Hubungi Admin IT
+              Hubungi Administrator
             </button>
           </p>
         </div>
@@ -217,7 +197,7 @@ export default function LoginPage() {
           </div>
 
           <div className="pt-2">
-            <button onClick={() => setIsModalOpen(false)} className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl text-xs font-bold uppercase tracking-widest transition-all">
+            <button onClick={() => setIsModalOpen(false)} className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl text-xs font-bold uppercase  transition-all">
               Tutup
             </button>
           </div>

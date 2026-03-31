@@ -287,7 +287,7 @@ export default function ReportsPage() {
       accessor: (item: any) => (
         <div className="max-w-52 flex items-center gap-2 py-1">
           <p className="font-bold truncate">{item.id}</p>
-          <span className="shrink-0 text-xs px-1.5 py-0.5 rounded-md bg-gray-50 border border-gray-100 text-gray-500 font-semibold">{item.token}</span>
+          <span className="shrink-0 text-xs px-1.5 py-0.5 rounded-md bg-gray-50 border border-gray-100 lowercase text-gray-500 font-semibold">{item.token}</span>
         </div>
       ),
     },
@@ -299,7 +299,7 @@ export default function ReportsPage() {
       accessor: (item: any) => (
         <div>
           <p className="text-sm text-gray-700 font-medium">{item.reporter}</p>
-          <p className="text-sm text-gray-400">Oleh: {item.author}</p>
+          <p className="text-xs text-gray-400">Oleh: {item.author}</p>
         </div>
       ),
     },
@@ -370,7 +370,8 @@ export default function ReportsPage() {
           <div className="flex items-center gap-4">
             <button onClick={() => setView("list")} className="p-2 hover:bg-gray-100 rounded-lg text-gray-500">
               <IconChevronLeft size={20} stroke={3} />
-            </button>          </div>
+            </button>{" "}
+          </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             <div className="xl:col-span-2 space-y-6">

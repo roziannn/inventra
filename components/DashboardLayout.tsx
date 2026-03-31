@@ -341,7 +341,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               )}
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             <button onClick={toggleTheme} aria-label="Toggle theme" className="p-2 rounded-lg border border-border bg-muted/60 hover:bg-muted transition-colors text-gray-600 dark:text-gray-200">
               {theme === "dark" ? <IconSun size={18} /> : <IconMoon size={18} />}
             </button>
