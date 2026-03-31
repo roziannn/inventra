@@ -191,7 +191,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       >
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="hidden lg:flex absolute right-0 translate-x-1/2 top-10 bg-violet-500 text-white rounded-full p-1.5 shadow-xl z-[120] hover:scale-110 active:scale-95 transition-all duration-300"
+          className="hidden lg:flex absolute right-0 translate-x-1/2 top-10 bg-violet-500 text-white rounded-full p-1.5 shadow-xl z-120 hover:scale-110 active:scale-95 transition-all duration-300"
         >
           <IconChevronLeft size={14} stroke={3} className={`transition-transform duration-500 ${isCollapsed ? "rotate-180" : ""}`} />
         </button>
@@ -201,7 +201,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <IconBoxSeam size={17} stroke={2.4} className="text-white" />
           </div>
           <span
-            className={`${sulphurPoint.className} ml-3 text-2xl font-black tracking-[0.06em] text-violet-100 origin-left whitespace-nowrap transition-[opacity,transform,max-width] duration-300 ease-out ${isCollapsed ? "opacity-0 -translate-x-1 max-w-0" : "opacity-100 translate-x-0 max-w-[140px]"}`}
+            className={`${sulphurPoint.className} ml-3 text-2xl font-black tracking-[0.06em] text-violet-100 origin-left whitespace-nowrap transition-[opacity,transform,max-width] duration-300 ease-out ${isCollapsed ? "opacity-0 -translate-x-1 max-w-0" : "opacity-100 translate-x-0 max-w-35"}`}
           >
             Inventra
           </span>
@@ -220,7 +220,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <item.icon size={20} stroke={2} className="shrink-0" />
                     <div
                       className={`flex-1 flex items-center justify-between overflow-hidden transition-[opacity,transform,max-width] duration-300 ease-out ${
-                        isCollapsed ? "opacity-0 -translate-x-1 max-w-0 pointer-events-none" : "opacity-100 translate-x-0 max-w-[180px]"
+                        isCollapsed ? "opacity-0 -translate-x-1 max-w-0 pointer-events-none" : "opacity-100 translate-x-0 max-w-45"
                       }`}
                     >
                       <span className="text-sm font-medium whitespace-nowrap">{item.name}</span>
@@ -253,7 +253,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <item.icon size={20} stroke={2} className="shrink-0" />
                 <span
                   className={`text-sm font-medium whitespace-nowrap overflow-hidden transition-[opacity,transform,max-width] duration-300 ease-out ${
-                    isCollapsed ? "opacity-0 -translate-x-1 max-w-0 pointer-events-none" : "opacity-100 translate-x-0 max-w-[180px]"
+                    isCollapsed ? "opacity-0 -translate-x-1 max-w-0 pointer-events-none" : "opacity-100 translate-x-0 max-w-45"
                   }`}
                 >
                   {item.name}
@@ -268,7 +268,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <IconLogout size={20} stroke={2} />
             <span
               className={`text-sm font-medium whitespace-nowrap overflow-hidden transition-[opacity,transform,max-width] duration-300 ease-out ${
-                isCollapsed ? "opacity-0 -translate-x-1 max-w-0 pointer-events-none" : "opacity-100 translate-x-0 max-w-[120px]"
+                isCollapsed ? "opacity-0 -translate-x-1 max-w-0 pointer-events-none" : "opacity-100 translate-x-0 max-w-30"
               }`}
             >
               Logout

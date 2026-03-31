@@ -122,7 +122,7 @@ export default function FullDashboard() {
                       padding: "10px",
                     }}
                     itemStyle={{ fontWeight: 800, fontSize: "12px" }}
-                    formatter={(value: number | string | undefined) => [`${value} Pcs`, "Total"]}
+                    formatter={(value) => [`${value ?? 0} Pcs`, "Total"]}
                   />
                   <Bar dataKey="value" radius={[6, 6, 6, 6]} barSize={35}>
                     {dataCondition.map((entry, index) => (
