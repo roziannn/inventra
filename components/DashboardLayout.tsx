@@ -36,15 +36,22 @@ const sulphurPoint = Sulphur_Point({
 });
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const getActiveSubMenu = React.useCallback(
+    (currentPath: string) => {
+      if (currentPath.startsWith("/labeling")) return "Labeling";
+      return null;
+    },
+    [],
+  );
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredResults, setFilteredResults] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [openSubMenu, setOpenSubMenu] = useState<string | null>(null);
+  const [openSubMenu, setOpenSubMenu] = useState<string | null>(() => getActiveSubMenu(pathname));
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  const pathname = usePathname();
   const router = useRouter();
   const searchRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -88,16 +95,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: "Audit Trail", icon: IconHistory, href: "/audit-trail" },
   ];
 
-  // Auto-open sub-menu if current path is a sub-item
+  // Keep the active submenu open immediately when navigating between child routes.
   useEffect(() => {
-    sidebarItems.forEach((item) => {
-      if (item.subItems) {
-        if (pathname.startsWith(item.href)) {
-          setOpenSubMenu(item.name);
-        }
-      }
-    });
-  }, [pathname]);
+    const activeSubMenu = getActiveSubMenu(pathname);
+    if (activeSubMenu && openSubMenu !== activeSubMenu) {
+      setOpenSubMenu(activeSubMenu);
+    }
+  }, [getActiveSubMenu, openSubMenu, pathname]);
 
   const toggleSubMenu = (name: string) => {
     if (openSubMenu === name) {
@@ -216,7 +220,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             if (hasSubItems) {
               return (
                 <div key={item.name} className="flex flex-col">
-                  <button onClick={() => toggleSubMenu(item.name)} className={`w-full flex items-center rounded-xl px-3 py-2.5 gap-3 ${isActive ? "bg-white/10 text-white" : "text-violet-100/60 hover:bg-white/5 hover:text-white"}`}>
+                  <button
+                    onClick={() => toggleSubMenu(item.name)}
+                    className={`w-full flex items-center rounded-xl px-3 py-2.5 gap-3 transition-colors duration-200 ${isActive ? "bg-white/10 text-white" : "text-violet-100/60 hover:bg-white/5 hover:text-white"}`}
+                  >
                     <item.icon size={20} stroke={2} className="shrink-0" />
                     <div
                       className={`flex-1 flex items-center justify-between overflow-hidden transition-[opacity,transform,max-width] duration-300 ease-out ${
@@ -224,24 +231,34 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       }`}
                     >
                       <span className="text-sm font-medium whitespace-nowrap">{item.name}</span>
-                      <IconChevronDown size={14} className={isSubMenuOpen ? "rotate-180" : ""} />
+                      <IconChevronDown size={14} className={`transition-transform duration-300 ease-out ${isSubMenuOpen ? "rotate-180" : ""}`} />
                     </div>
                   </button>
 
-                  {!isCollapsed && isSubMenuOpen && (
-                    <div className="flex flex-col space-y-0.5 mt-0.5">
+                  {!isCollapsed && (
+                    <div
+                      className={`grid overflow-hidden transition-[grid-template-rows,opacity,margin] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                        isSubMenuOpen ? "grid-rows-[1fr] opacity-100 mt-1" : "grid-rows-[0fr] opacity-0 mt-0"
+                      }`}
+                    >
+                      <div className="min-h-0">
+                        <div className="flex flex-col space-y-0.5 pb-0.5">
                       {item.subItems?.map((subItem) => {
                         const isSubActive = pathname === subItem.href;
                         return (
                           <Link
                             key={subItem.name}
                             href={subItem.href}
-                            className={`flex items-center pl-12 pr-3 py-2 rounded-xl text-sm font-medium ${isSubActive ? "text-white bg-white/5" : "text-violet-100/40 hover:text-white hover:bg-white/5"}`}
+                            className={`flex items-center pl-12 pr-3 py-2 rounded-xl text-sm font-medium transition-[background-color,color,transform] duration-200 ${
+                              isSubActive ? "text-white bg-white/6" : "text-violet-100/40 hover:text-white hover:bg-white/5"
+                            }`}
                           >
                             <span>{subItem.name}</span>
                           </Link>
                         );
                       })}
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -249,7 +266,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             }
 
             return (
-              <Link key={item.name} href={item.href} className={`w-full flex items-center rounded-xl px-3 py-2.5 gap-3 ${isActive ? "bg-white/10 text-white shadow-sm" : "text-violet-100/60 hover:bg-white/5 hover:text-white"}`}>
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`w-full flex items-center rounded-xl px-3 py-2.5 gap-3 transition-colors duration-200 ${isActive ? "bg-white/10 text-white" : "text-violet-100/60 hover:bg-white/5 hover:text-white"}`}
+              >
                 <item.icon size={20} stroke={2} className="shrink-0" />
                 <span
                   className={`text-sm font-medium whitespace-nowrap overflow-hidden transition-[opacity,transform,max-width] duration-300 ease-out ${

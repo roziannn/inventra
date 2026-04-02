@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
+import Button from "@/components/Button";
 import SearchableSelect from "@/components/SearchableSelect";
 import {
   IconSearch,
@@ -341,21 +342,21 @@ export default function ReportsPage() {
       className: "text-center w-[120px]",
       accessor: (item: any) => (
         <div className="flex items-center justify-center gap-1">
-          <button
-            onClick={() => {
-              setSelectedReport(item);
-              setView("detail");
-            }}
-            className="p-1.5 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-all"
-          >
-            <IconEye size={16} />
-          </button>
+            <button
+              onClick={() => {
+                setSelectedReport(item);
+                setView("detail");
+              }}
+              className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-300 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/12 transition-all"
+            >
+              <IconEye size={16} />
+            </button>
 
-          <button onClick={() => handleEditClick(item)} className="p-1.5 text-gray-400 hover:text-violet-600 rounded-lg hover:bg-violet-50 transition-all">
+          <button onClick={() => handleEditClick(item)} className="p-1.5 text-gray-400 hover:text-violet-600 dark:hover:text-violet-300 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/12 transition-all">
             <IconEdit size={16} />
           </button>
 
-          <button onClick={() => handleDeleteClick(item)} className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-all">
+          <button onClick={() => handleDeleteClick(item)} className="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-300 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/12 transition-all">
             <IconTrash size={16} />
           </button>
         </div>
@@ -541,15 +542,12 @@ export default function ReportsPage() {
             <p className="text-xs text-gray-500">Laporan kerusakan dan perbaikan inventaris.</p>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsExportModalOpen(true)}
-              className="bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 shadow-sm hover:bg-gray-50 transition-all active:scale-95"
-            >
+            <Button variant="page-secondary" onClick={() => setIsExportModalOpen(true)}>
               <IconFileExport size={16} stroke={3} /> Export Data
-            </button>
-            <button onClick={() => setIsModalOpen(true)} className="bg-zinc-900 hover:bg-zinc-800 text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all active:scale-95">
+            </Button>
+            <Button variant="page-primary" onClick={() => setIsModalOpen(true)}>
               <IconPlus size={16} stroke={3} /> Buat laporan baru
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -625,12 +623,12 @@ export default function ReportsPage() {
             </div>
 
             <div className="pt-4 flex gap-3">
-              <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 px-4 py-3 border border-gray-100 text-gray-500 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-gray-50 transition-all">
+              <Button variant="modal-secondary" type="button" onClick={() => setIsModalOpen(false)} className="flex-1">
                 Batal
-              </button>
-              <button type="submit" className="flex-1 px-4 py-3 bg-zinc-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-zinc-800 shadow-lg shadow-violet-900/20 transition-all">
+              </Button>
+              <Button variant="modal-primary" type="submit" className="flex-1">
                 Simpan Laporan
-              </button>
+              </Button>
             </div>
           </form>
         </Modal>
@@ -679,15 +677,16 @@ export default function ReportsPage() {
             </div>
 
             <div className="pt-2 flex gap-3">
-              <button type="button" onClick={handleCloseDeleteModal} className="flex-1 px-4 py-3.5 border border-gray-100 text-gray-500 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-gray-50 transition-all">
+              <Button variant="modal-secondary" type="button" onClick={handleCloseDeleteModal} className="flex-1">
                 Batal
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="modal-danger"
                 type="submit"
-                className="flex-1 px-4 py-3.5 bg-red-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-700 shadow-lg shadow-red-900/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                className="flex-1"
               >
                 <IconTrash size={16} stroke={3} /> Hapus Permanen
-              </button>
+              </Button>
             </div>
           </form>
         </Modal>
@@ -731,16 +730,17 @@ export default function ReportsPage() {
             </div>
 
             <div className="pt-4 flex gap-4">
-              <button type="button" onClick={handleCloseExportModal} className="flex-1 px-4 py-3.5 border border-gray-100 text-gray-500 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-gray-50 transition-all">
+              <Button variant="modal-secondary" type="button" onClick={handleCloseExportModal} className="flex-1">
                 Batal
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="modal-primary"
                 type="submit"
                 disabled={!startDate || !endDate || endDate < startDate}
-                className="flex-1 px-4 py-3.5 bg-zinc-900 disabled:bg-gray-200 text-white rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-zinc-800 shadow-lg shadow-violet-900/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                className="flex-1"
               >
                 <IconFileExport size={16} /> Mulai Export
-              </button>
+              </Button>
             </div>
           </form>
         </Modal>

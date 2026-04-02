@@ -50,7 +50,7 @@ export default function DataTable<T extends { id?: string | number }>({ data, co
       <div className="overflow-x-auto rounded-sm">
         <table className="w-full text-left table-auto border-collapse border-0 [&_tr]:border-0 [&_th]:border-0 [&_td]:border-0">
           <thead className="border-0">
-            <tr className="bg-gray-50/60 text-xs font-bold text-gray-400 uppercase tracking-wide border-0">
+            <tr className="bg-gray-50/60 dark:bg-white/6 text-xs font-bold text-gray-400 uppercase tracking-wide border-0">
               {columns.map((col, i) => (
                 <th key={`head-${i}`} className={`${headCellClass} ${col.className || ""} border-0`}>
                   {col.header}
@@ -62,7 +62,7 @@ export default function DataTable<T extends { id?: string | number }>({ data, co
           <tbody className="text-sm border-0 divide-y-0">
             {currentData.length > 0 ? (
               currentData.map((item, rowIndex) => (
-                <tr key={item.id || `row-${rowIndex}`} className="hover:bg-gray-50/60 transition-colors border-0">
+                <tr key={item.id || `row-${rowIndex}`} className="hover:bg-violet-50/60 dark:hover:bg-white/6 transition-colors border-0">
                   {columns.map((col, colIndex) => (
                     <td key={`cell-${colIndex}`} className={`${bodyCellClass} align-middle ${col.className || ""} border-0`}>
                       {typeof col.accessor === "function" ? col.accessor(item) : (item[col.accessor] as React.ReactNode)}
@@ -94,7 +94,7 @@ export default function DataTable<T extends { id?: string | number }>({ data, co
             <button
               onClick={() => goToPage(currentPage - 1)}
               disabled={currentPage === 1}
-              className="px-2.5 py-1.5 rounded-lg border border-gray-100 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              className="px-2.5 py-1.5 rounded-lg border border-gray-100 text-gray-500 hover:bg-gray-50 dark:hover:bg-white/6 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
               aria-label="Previous page"
             >
               <IconChevronLeft size={16} />
@@ -109,7 +109,7 @@ export default function DataTable<T extends { id?: string | number }>({ data, co
                 <button
                   key={`page-${page}`}
                   onClick={() => goToPage(page)}
-                  className={`min-w-8 h-8 px-2 rounded-lg text-xs font-semibold transition-all ${currentPage === page ? "bg-violet-500 text-white shadow-sm" : "text-gray-600 hover:bg-gray-50"}`}
+                  className={`min-w-8 h-8 px-2 rounded-lg text-xs font-semibold transition-all ${currentPage === page ? "bg-violet-500 text-white shadow-sm" : "text-gray-600 hover:bg-gray-50 dark:hover:bg-white/6"}`}
                   aria-current={currentPage === page ? "page" : undefined}
                 >
                   {page}
@@ -120,7 +120,7 @@ export default function DataTable<T extends { id?: string | number }>({ data, co
             <button
               onClick={() => goToPage(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="px-2.5 py-1.5 rounded-lg border border-gray-100 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              className="px-2.5 py-1.5 rounded-lg border border-gray-100 text-gray-500 hover:bg-gray-50 dark:hover:bg-white/6 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
               aria-label="Next page"
             >
               <IconChevronRight size={16} />

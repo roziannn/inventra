@@ -91,6 +91,24 @@
     background-color: var(--card) !important;
   }
 
+  .dark .hover\:bg-white:hover,
+  .dark .hover\:bg-gray-50:hover,
+  .dark .hover\:bg-gray-100:hover {
+    background-color: color-mix(in srgb, var(--accent) 12%, transparent) !important;
+  }
+
+  .dark .hover\:bg-violet-50:hover {
+    background-color: color-mix(in srgb, #8b5cf6 16%, transparent) !important;
+  }
+
+  .dark .hover\:bg-blue-50:hover {
+    background-color: color-mix(in srgb, #3b82f6 16%, transparent) !important;
+  }
+
+  .dark .hover\:bg-red-50:hover {
+    background-color: color-mix(in srgb, #ef4444 16%, transparent) !important;
+  }
+
   .dark .border-gray-100,
   .dark .border-gray-200,
   .dark .border-gray-50 {
@@ -129,7 +147,10 @@
     color: var(--muted-foreground);
   }
   tbody tr:hover {
-    background: color-mix(in srgb, var(--accent) 28%, transparent);
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+  }
+  .dark tbody tr:hover {
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
   }
 }
 

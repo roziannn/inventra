@@ -5,6 +5,7 @@ import React, { useState, useMemo } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
+import Button from "@/components/Button";
 import { IconPlus, IconSearch, IconEdit, IconFilter, IconUser, IconMail, IconBriefcase, IconShield, IconCircleCheck, IconCircleX, IconShieldCheck, IconCircleCheckFilled, IconCircleXFilled } from "@tabler/icons-react";
 import { toast } from "react-hot-toast";
 
@@ -213,7 +214,7 @@ export default function UsersPage() {
     {
       header: "Aksi",
       accessor: (item: any) => (
-        <button onClick={() => handleEditClick(item)} className="p-1.5 text-gray-400 hover:text-violet-600 rounded-lg hover:bg-violet-50 transition-all active:scale-90">
+        <button onClick={() => handleEditClick(item)} className="p-1.5 text-gray-400 hover:text-violet-600 dark:hover:text-violet-300 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/12 transition-all active:scale-90">
           <IconEdit size={18} />
         </button>
       ),
@@ -229,15 +230,12 @@ export default function UsersPage() {
             <p className="text-xs text-gray-500 font-medium">Kelola anggota tim dan hak akses mereka.</p>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsRoleModalOpen(true)}
-              className="bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 shadow-sm hover:bg-gray-50 transition-all active:scale-95"
-            >
+            <Button variant="page-secondary" onClick={() => setIsRoleModalOpen(true)}>
               <IconShieldCheck size={16} /> Role Group
-            </button>
-            <button onClick={() => setIsModalOpen(true)} className="bg-zinc-900 hover:bg-zinc-800 text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all active:scale-95">
+            </Button>
+            <Button variant="page-primary" onClick={() => setIsModalOpen(true)}>
               <IconPlus size={16} stroke={3} /> Tambah user
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -329,14 +327,14 @@ export default function UsersPage() {
                 </select>
               </div>
               {editingUser && (
-                <div className="pt-2 flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 shadow-inner">
+                <div className="pt-2 flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.status === "Active" ? "bg-violet-100 text-violet-600" : "bg-red-100 text-red-600"}`}>
                       {formData.status === "Active" ? <IconCircleCheckFilled size={20} /> : <IconCircleXFilled size={20} />}
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-gray-900 leading-none mb-1">Status User</p>
-                      <p className="text-xs font-medium text-gray-500 italic uppercase tracking-tighter">Status: {formData.status}</p>
+                      <p className="text-sm text-gray-900">Status User</p>
+                      <p className="text-xs text-gray-500">Klik toggle untuk mengubah ke {formData.status === "Active" ? "Inactive" : "Active"}</p>
                     </div>
                   </div>
                   <button
@@ -350,12 +348,12 @@ export default function UsersPage() {
               )}
             </div>
             <div className="pt-4 flex gap-4">
-              <button type="button" onClick={handleCloseModal} className="flex-1 px-4 py-3.5 border border-gray-100 text-gray-500 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-gray-50 transition-all">
+              <Button variant="modal-secondary" type="button" onClick={handleCloseModal} className="flex-1">
                 Batal
-              </button>
-              <button type="submit" className="flex-1 px-4 py-3.5 bg-zinc-900 text-white rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-zinc-800 shadow-lg shadow-violet-900/20 transition-all active:scale-95">
+              </Button>
+              <Button variant="modal-primary" type="submit" className="flex-1">
                 Simpan User
-              </button>
+              </Button>
             </div>
           </form>
         </Modal>
@@ -375,13 +373,9 @@ export default function UsersPage() {
                   placeholder="Contoh: Supervisor IT"
                   className="flex-1 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all"
                 />
-                <button
-                  onClick={handleAddRole}
-                  disabled={!newRoleName.trim()}
-                  className="px-4 bg-zinc-900 disabled:bg-gray-200 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-zinc-800 transition-all active:scale-95"
-                >
+                <Button variant="modal-primary" onClick={handleAddRole} disabled={!newRoleName.trim()}>
                   Tambah
-                </button>
+                </Button>
               </div>
             </div>
             <div className="space-y-3">
@@ -394,25 +388,25 @@ export default function UsersPage() {
                         <IconShield size={16} />
                       </div>
                       <div className="flex flex-col">
-                        <span className={`text-sm font-bold ${role.isActive ? "text-gray-700" : "text-gray-400"}`}>{role.name}</span>
-                        <span className={`text-xs font-bold uppercase tracking-tight ${role.isActive ? "text-violet-500" : "text-gray-400"}`}>{role.isActive ? "Active" : "Inactive"}</span>
+                        <span className={`text-sm ${role.isActive ? "text-gray-700" : "text-gray-500"}`}>{role.name}</span>
+                        <span className={`text-xs ${role.isActive ? "text-gray-500" : "text-gray-400"}`}>{role.isActive ? "Active" : "Inactive"}</span>
                       </div>
                     </div>
                     <button
                       onClick={() => handleToggleRole(role.name)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${role.isActive ? "bg-amber-50 text-amber-600 hover:bg-amber-100" : "bg-violet-50 text-violet-600 hover:bg-violet-100"}`}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${role.isActive ? "bg-gray-100 text-gray-600 hover:bg-gray-200" : "bg-violet-50 text-violet-600 hover:bg-violet-100"}`}
                     >
                       {role.isActive ? <IconCircleX size={14} /> : <IconCircleCheck size={14} />}
-                      {role.isActive ? "Deactivate" : "Activate"}
+                      {role.isActive ? "Set inactive" : "Set active"}
                     </button>
                   </div>
                 ))}
               </div>
             </div>
             <div className="pt-4">
-              <button onClick={() => setIsRoleModalOpen(false)} className="w-full px-4 py-3.5 bg-gray-900 text-white rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-black transition-all active:scale-95">
+              <Button variant="modal-secondary" onClick={() => setIsRoleModalOpen(false)} className="w-full">
                 Tutup
-              </button>
+              </Button>
             </div>
           </div>
         </Modal>

@@ -6,6 +6,7 @@ import { IconMail, IconLock, IconEye, IconEyeOff, IconBoxSeam, IconBrandGoogle, 
 import { Sulphur_Point } from "next/font/google";
 import toast from "react-hot-toast";
 import Modal from "@/components/Modal";
+import Button from "@/components/Button";
 
 const sulphurPoint = Sulphur_Point({
   subsets: ["latin"],
@@ -28,11 +29,32 @@ export default function LoginPage() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate login
-    setTimeout(() => {
-      toast.success("Selamat Datang Kembali, Admin!");
-      router.push("/");
-    }, 1500);
+    void (async () => {
+      try {
+        const response = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const payload = (await response.json()) as { message?: string; user?: { name: string } };
+
+        if (!response.ok) {
+          toast.error(payload.message ?? "Login gagal.");
+          return;
+        }
+
+        toast.success(`Selamat datang kembali, ${payload.user?.name ?? "Admin"}!`);
+        router.push("/");
+      } catch (error) {
+        console.error(error);
+        toast.error("Tidak dapat terhubung ke server.");
+      } finally {
+        setIsLoading(false);
+      }
+    })();
   };
 
   return (
@@ -197,9 +219,9 @@ export default function LoginPage() {
           </div>
 
           <div className="pt-2">
-            <button onClick={() => setIsModalOpen(false)} className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl text-xs font-bold uppercase  transition-all">
+            <Button variant="modal-secondary" onClick={() => setIsModalOpen(false)} className="w-full">
               Tutup
-            </button>
+            </Button>
           </div>
         </div>
       </Modal>

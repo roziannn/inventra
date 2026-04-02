@@ -1,19 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import {
-  IconPackage,
-  IconBoxSeam,
-  IconArrowUpRight,
-  IconAlertTriangle,
-  IconCircleCheck,
-  IconClock,
-  IconArrowRight,
-  IconTags,
-  IconBuildingSkyscraper,
-  IconChartDonut3,
-  IconChartBar,
-} from "@tabler/icons-react";
+import { IconPackage, IconBoxSeam, IconArrowUpRight, IconAlertTriangle, IconCircleCheck, IconClock, IconArrowRight, IconTags, IconBuildingSkyscraper, IconChartDonut3, IconChartBar } from "@tabler/icons-react";
 import Link from "next/link";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from "recharts";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -52,6 +40,7 @@ const reportStatusData = [
   { status: "Pending", total: 18, color: "#F59E0B" },
   { status: "In progress", total: 33, color: "#877FC1" },
   { status: "Resolved", total: 19, color: "#4ADE80" },
+  { status: "Completed", total: 14, color: "#22C55E" },
 ];
 
 export default function FullDashboard() {
@@ -74,7 +63,6 @@ export default function FullDashboard() {
         })
         .replace(/,/g, "");
 
-      // Remove space before AM/PM to match "7:49AM"
       setTime(formatted.replace(/\s([AP]M)$/, "$1"));
     };
 
@@ -110,7 +98,6 @@ export default function FullDashboard() {
   return (
     <DashboardLayout>
       <div className="flex flex-col gap-3">
-        {/* Page Title */}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 shrink-0">
           <div>
             <h2 className="page-header">Overview</h2>
@@ -122,7 +109,6 @@ export default function FullDashboard() {
           </div>
         </div>
 
-        {/* Stat Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 shrink-0">
           {stats.map((stat, i) => (
             <div key={i} className="bg-card p-3.5 rounded-lg border border-border shadow-sm flex items-center gap-3.5 hover:shadow-md hover:-translate-y-0.5 transition-all group relative overflow-hidden">
@@ -144,9 +130,7 @@ export default function FullDashboard() {
           ))}
         </div>
 
-        {/* Bottom Content Grid */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-          {/* Chart Card */}
           <div className="xl:col-span-2 bg-card rounded-lg border border-border shadow-sm overflow-hidden flex flex-col min-h-[320px] transition-colors duration-300">
             <div className="px-5 py-3.5 border-b border-border/60 flex justify-between items-center bg-muted/40 shrink-0">
               <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
@@ -185,7 +169,6 @@ export default function FullDashboard() {
             </div>
           </div>
 
-          {/* Sidebar Cards */}
           <div className="flex flex-col gap-4">
             <div className="bg-zinc-900 rounded-lg p-5 text-white relative overflow-hidden shadow-lg shrink-0">
               <div className="relative z-10">
@@ -205,7 +188,7 @@ export default function FullDashboard() {
             <div className="bg-card rounded-lg p-4 border border-border shadow-sm flex flex-col overflow-hidden transition-colors duration-300 flex-1 min-h-0">
               <div className="mb-3 shrink-0">
                 <h4 className="font-bold text-gray-900 flex items-center gap-2 text-xs tracking-wide">
-                <IconCircleCheck size={16} className="text-violet-500" /> Akses cepat
+                  <IconCircleCheck size={16} className="text-violet-500" /> Akses cepat
                 </h4>
                 <p className="text-xs text-gray-500 mt-1">Aksi paling sering dipakai tim operasional</p>
               </div>
@@ -265,6 +248,52 @@ export default function FullDashboard() {
           </div>
 
           <div className="bg-card rounded-lg border border-border shadow-sm p-4 h-[300px] flex flex-col">
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <div>
+                <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                  <IconChartDonut3 size={16} className="text-violet-500" /> Service Kerusakan
+                </h4>
+                <p className="text-xs text-gray-500">Self service vs by vendor</p>
+              </div>
+              <span className="text-xs font-semibold rounded-md px-2 py-1 bg-violet-500/10 text-violet-600">Selisih {serviceGap}</span>
+            </div>
+
+            <div className="h-44 relative">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={serviceBreakdown} dataKey="total" nameKey="name" innerRadius={48} outerRadius={68} paddingAngle={4} stroke="none">
+                    {serviceBreakdown.map((entry) => (
+                      <Cell key={entry.name} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    cursor={false}
+                    contentStyle={{ borderRadius: "8px", border: "1px solid rgba(135,127,193,0.25)", background: "#222026" }}
+                    labelStyle={{ color: "#DBD3F5", fontWeight: 700 }}
+                    itemStyle={{ color: "#F5F6FA", fontWeight: 700, fontSize: "12px" }}
+                    formatter={(value) => [`${value ?? 0} Reports`, "Total"]}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <p className="text-xs text-gray-500">Total reports</p>
+                <p className="text-lg font-bold text-gray-900">{totalServiceReports}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 mt-auto">
+              {serviceBreakdown.map((item) => (
+                <div key={item.name} className="rounded-md border border-border/70 bg-muted/45 px-3 py-2">
+                  <p className="text-xs text-gray-500">{item.name}</p>
+                  <p className="text-sm font-bold text-gray-900">{item.total} reports</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <div className="bg-card rounded-lg border border-border shadow-sm p-4 h-[300px] flex flex-col">
             <div className="mb-3">
               <h4 className="text-sm font-bold text-gray-900">Low Stock Alert</h4>
               <p className="text-xs text-gray-500">Daftar item yang butuh restock segera</p>
@@ -296,61 +325,15 @@ export default function FullDashboard() {
               </table>
             </div>
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-          <div className="bg-card rounded-lg border border-border shadow-sm p-4">
-            <div className="flex items-start justify-between gap-3 mb-3">
-              <div>
-                <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                  <IconChartDonut3 size={16} className="text-violet-500" /> Service Kerusakan
-                </h4>
-                <p className="text-xs text-gray-500">Self service vs by vendor</p>
-              </div>
-              <span className="text-xs font-semibold rounded-md px-2 py-1 bg-violet-500/10 text-violet-600">Selisih {serviceGap}</span>
-            </div>
-
-            <div className="h-56 relative">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={serviceBreakdown} dataKey="total" nameKey="name" innerRadius={62} outerRadius={85} paddingAngle={4} stroke="none">
-                    {serviceBreakdown.map((entry) => (
-                      <Cell key={entry.name} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    cursor={false}
-                    contentStyle={{ borderRadius: "8px", border: "1px solid rgba(135,127,193,0.25)", background: "#222026" }}
-                    labelStyle={{ color: "#DBD3F5", fontWeight: 700 }}
-                    itemStyle={{ color: "#F5F6FA", fontWeight: 700, fontSize: "12px" }}
-                    formatter={(value) => [`${value ?? 0} Reports`, "Total"]}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <p className="text-xs text-gray-500">Total reports</p>
-                <p className="text-xl font-bold text-gray-900">{totalServiceReports}</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              {serviceBreakdown.map((item) => (
-                <div key={item.name} className="rounded-md border border-border/70 bg-muted/45 px-3 py-2">
-                  <p className="text-xs text-gray-500">{item.name}</p>
-                  <p className="text-sm font-bold text-gray-900">{item.total} reports</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="bg-card rounded-lg border border-border shadow-sm p-4">
+          <div className="bg-card rounded-lg border border-border shadow-sm p-4 h-[300px] flex flex-col">
             <div className="mb-3">
               <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
                 <IconChartBar size={16} className="text-violet-500" /> Status Report
               </h4>
-              <p className="text-xs text-gray-500">Pending, in progress, dan resolved</p>
+              <p className="text-xs text-gray-500">Pending, in progress, resolved, dan completed</p>
             </div>
-            <div className="h-[300px]">
+            <div className="flex-1 min-h-0">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={reportStatusData} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />

@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
+import Button from "@/components/Button";
 import { IconSearch, IconUser, IconSettings, IconPackage, IconTrash, IconFileExport, IconCalendar } from "@tabler/icons-react";
 import { toast } from "react-hot-toast";
 
@@ -125,9 +126,9 @@ export default function AuditTrailPage() {
             <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Audit trail</h2>
             <p className="text-xs text-gray-500">Log aktivitas sistem untuk pemantauan keamanan dan perubahan data.</p>
           </div>
-          <button onClick={() => setIsModalOpen(true)} className="bg-zinc-900 hover:bg-zinc-800 text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all active:scale-95">
+          <Button variant="page-primary" onClick={() => setIsModalOpen(true)}>
             <IconFileExport size={16} stroke={3} /> Export Logs
-          </button>
+          </Button>
         </div>
 
         <div className="flex py-2">
@@ -181,16 +182,17 @@ export default function AuditTrailPage() {
             </div>
 
             <div className="pt-4 flex gap-4">
-              <button type="button" onClick={handleCloseModal} className="flex-1 px-4 py-3.5 border border-gray-100 text-gray-500 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-gray-50 transition-all">
+              <Button variant="modal-secondary" type="button" onClick={handleCloseModal} className="flex-1">
                 Batal
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="modal-primary"
                 type="submit"
                 disabled={!startDate || !endDate || endDate < startDate}
-                className="flex-1 px-4 py-3.5 bg-zinc-900 disabled:bg-gray-200 text-white rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-zinc-800 shadow-lg shadow-violet-900/20 transition-all active:scale-95"
+                className="flex-1"
               >
                 Mulai Export
-              </button>
+              </Button>
             </div>
           </form>
         </Modal>

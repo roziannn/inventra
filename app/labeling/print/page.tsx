@@ -5,6 +5,7 @@ import React, { useState, useMemo } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
+import Button from "@/components/Button";
 import { IconPrinter, IconSearch, IconFilter, IconSquare, IconSquareCheckFilled, IconCopy, IconMaximize, IconFileText, IconPackage, IconBarcode } from "@tabler/icons-react";
 
 const dummyItems = Array.from({ length: 20 }, (_, i) => ({
@@ -144,14 +145,11 @@ export default function PrintLabelPage() {
             <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Print Label</h2>
             <p className="text-xs text-gray-500 font-medium">Pilih item di bawah untuk mencetak stiker barcode inventaris.</p>
           </div>
-          <button
-            onClick={handleOpenPrintModal}
-            disabled={selectedItems.length === 0}
-            className="bg-zinc-900 disabled:bg-gray-200 disabled:shadow-none hover:bg-zinc-800 text-white px-6 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-violet-900/20 transition-all active:scale-95"
-          >
+
+          <Button variant="page-primary" onClick={handleOpenPrintModal}>
             <IconPrinter size={18} stroke={2.5} />
             Cetak {selectedItems.length > 0 && `(${selectedItems.length} Label)`}
-          </button>
+          </Button>
         </div>
 
         {/* Search & Filter Bar */}
@@ -284,15 +282,12 @@ export default function PrintLabelPage() {
             </div>
 
             <div className="pt-4 flex gap-4">
-              <button type="button" onClick={() => setIsPrintModalOpen(false)} className="flex-1 px-4 py-3.5 border border-gray-100 text-gray-500 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-gray-50 transition-all">
+              <Button variant="modal-secondary" type="button" onClick={() => setIsPrintModalOpen(false)} className="flex-1">
                 Batal
-              </button>
-              <button
-                type="submit"
-                className="flex-1 px-4 py-3.5 bg-zinc-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-zinc-800 shadow-lg shadow-violet-950/20 transition-all active:scale-95 flex items-center justify-center gap-2"
-              >
+              </Button>
+              <Button variant="modal-primary" type="submit" className="flex-1">
                 <IconPrinter size={18} /> Konfirmasi Cetak
-              </button>
+              </Button>
             </div>
           </form>
         </Modal>

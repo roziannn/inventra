@@ -5,6 +5,7 @@ import React, { useState, useMemo } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
+import Button from "@/components/Button";
 import { IconPlus, IconSearch, IconFilter, IconEdit, IconBuildingSkyscraper, IconCircleCheckFilled, IconCircleXFilled, IconUser, IconMail, IconPhone, IconTags, IconLayoutGrid, IconMapPin } from "@tabler/icons-react";
 import { toast } from "react-hot-toast";
 
@@ -149,7 +150,7 @@ export default function VendorsPage() {
     {
       header: "Aksi",
       accessor: (item: any) => (
-        <button onClick={() => handleEditClick(item)} className="p-2 text-gray-400 hover:text-violet-600 rounded-lg hover:bg-violet-50 transition-all">
+        <button onClick={() => handleEditClick(item)} className="p-2 text-gray-400 hover:text-violet-600 dark:hover:text-violet-300 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/12 transition-all">
           <IconEdit size={18} />
         </button>
       ),
@@ -165,15 +166,12 @@ export default function VendorsPage() {
             <p className="text-xs text-gray-500 font-medium">Kelola data supplier dan rekanan bisnis Anda.</p>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsCategoryModalOpen(true)}
-              className="bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 shadow-sm hover:bg-gray-50 transition-all"
-            >
+            <Button variant="page-secondary" onClick={() => setIsCategoryModalOpen(true)}>
               <IconLayoutGrid size={16} /> Vendor Group
-            </button>
-            <button onClick={() => setIsModalOpen(true)} className="bg-zinc-900 hover:bg-zinc-800 text-white px-4 py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all active:scale-95">
+            </Button>
+            <Button variant="page-primary" onClick={() => setIsModalOpen(true)}>
               <IconPlus size={16} stroke={3} /> Tambah Vendor
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -317,9 +315,9 @@ export default function VendorsPage() {
                       {formData.status === "Active" ? <IconCircleCheckFilled size={20} /> : <IconCircleXFilled size={20} />}
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-gray-900">Status Vendor</p>
-                      <p className="text-xs font-medium text-gray-500 italic">
-                        Klik toggle untuk mengubah ke <span className="font-bold">{formData.status === "Active" ? "Inactive" : "Active"}</span>
+                      <p className="text-sm text-gray-900">Status Vendor</p>
+                      <p className="text-xs text-gray-500">
+                        Klik toggle untuk mengubah ke {formData.status === "Active" ? "Inactive" : "Active"}
                       </p>
                     </div>
                   </div>
@@ -335,12 +333,12 @@ export default function VendorsPage() {
             </div>
 
             <div className="pt-4 flex gap-4">
-              <button type="button" onClick={handleCloseModal} className="flex-1 px-4 py-3.5 border border-gray-100 text-gray-500 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-gray-50 transition-all">
+              <Button variant="modal-secondary" type="button" onClick={handleCloseModal} className="flex-1">
                 Batal
-              </button>
-              <button type="submit" className="flex-1 px-4 py-3.5 bg-zinc-900 text-white rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-zinc-800 shadow-lg transition-all active:scale-95">
+              </Button>
+              <Button variant="modal-primary" type="submit" className="flex-1">
                 Simpan Vendor
-              </button>
+              </Button>
             </div>
           </form>
         </Modal>
@@ -356,9 +354,9 @@ export default function VendorsPage() {
                 placeholder="Kategori baru..."
                 className="flex-1 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-violet-500/10"
               />
-              <button onClick={handleAddCategory} disabled={!newCategoryName.trim()} className="px-4 bg-zinc-900 disabled:bg-gray-200 text-white rounded-xl font-bold text-xs">
+              <Button variant="modal-primary" onClick={handleAddCategory} disabled={!newCategoryName.trim()}>
                 Tambah
-              </button>
+              </Button>
             </div>
             <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
               {categories.map((cat) => (
@@ -370,9 +368,9 @@ export default function VendorsPage() {
                 </div>
               ))}
             </div>
-            <button onClick={() => setIsCategoryModalOpen(false)} className="w-full px-4 py-3 bg-gray-900 text-white rounded-xl font-bold text-xs uppercase">
+            <Button variant="modal-secondary" onClick={() => setIsCategoryModalOpen(false)} className="w-full">
               Tutup
-            </button>
+            </Button>
           </div>
         </Modal>
       </div>
