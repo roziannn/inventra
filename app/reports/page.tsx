@@ -298,10 +298,7 @@ export default function ReportsPage() {
     {
       header: "Pelapor",
       accessor: (item: any) => (
-        <div>
-          <p className="text-sm text-gray-700 font-medium">{item.reporter}</p>
-          <p className="text-xs text-gray-400">Oleh: {item.author}</p>
-        </div>
+        <span className="text-sm text-gray-700 font-medium">{item.reporter}</span>
       ),
     },
 
@@ -331,6 +328,10 @@ export default function ReportsPage() {
           </span>
         );
       },
+    },
+    {
+      header: "Created by",
+      accessor: (item: any) => <span className="text-sm text-gray-700 font-medium">{item.author}</span>,
     },
     {
       header: "Created at",

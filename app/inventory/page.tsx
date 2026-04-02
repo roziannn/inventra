@@ -6,7 +6,8 @@ import DashboardLayout from "@/components/DashboardLayout";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
 import Button from "@/components/Button";
-import { IconPlus, IconSearch, IconFilter, IconEdit, IconPackage, IconHash, IconTags, IconDatabase, IconWeight, IconLayoutGrid, IconCircleCheckFilled, IconCircleXFilled } from "@tabler/icons-react";
+import FormLabel from "@/components/FormLabel";
+import { IconPlus, IconSearch, IconFilter, IconEdit, IconPackage, IconHash, IconTags, IconDatabase, IconWeight, IconLayoutGrid, IconCircleCheckFilled, IconCircleXFilled, IconCircleCheck, IconCircleX } from "@tabler/icons-react";
 import { toast } from "react-hot-toast";
 
 const initialInventory = [
@@ -123,7 +124,7 @@ export default function InventoryPage() {
     { header: "SKU", accessor: "sku" as const },
     {
       header: "Kategori",
-      accessor: (item: any) => <span className="text-xs px-2 py-0.5 bg-gray-50 text-gray-500 border border-gray-100 rounded-full font-bold uppercase tracking-widest">{item.category}</span>,
+      accessor: (item: any) => <span className="text-sm text-gray-700">{item.category}</span>,
     },
     {
       header: "Stok",
@@ -312,33 +313,59 @@ export default function InventoryPage() {
         {/* Category Modal (Tetap Sama) */}
         <Modal isOpen={isCategoryModalOpen} onClose={() => setIsCategoryModalOpen(false)} title="Manajemen Kategori">
           <div className="space-y-6">
-            {/* Content ... */}
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={newCategoryName}
-                onChange={(e) => setNewCategoryName(e.target.value)}
-                placeholder="Tambah kategori..."
-                className="flex-1 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all"
-              />
-              <Button variant="modal-primary" onClick={handleAddCategory} disabled={!newCategoryName.trim()}>
-                Tambah
+            <div className="p-4 bg-violet-50 rounded-xl border border-violet-100">
+              <p className="text-sm text-violet-800 leading-relaxed font-medium">Kelola kategori inventory untuk pengelompokan yang lebih baik di platform Inventra.</p>
+            </div>
+
+            <div className="space-y-3">
+              <FormLabel>Tambah Kategori Baru</FormLabel>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  placeholder="Contoh: Perangkat Jaringan"
+                  className="flex-1 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all"
+                />
+                <Button variant="modal-primary" onClick={handleAddCategory} disabled={!newCategoryName.trim()}>
+                  Tambah
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <FormLabel>List Kategori Terdaftar</FormLabel>
+              <div className="grid grid-cols-1 gap-2 max-h-62.5 overflow-y-auto pr-2 scrollbar-hide">
+                {categories.map((cat) => (
+                  <div key={cat.name} className={`flex items-center justify-between p-3.5 border rounded-xl transition-all ${cat.isActive ? "bg-white border-gray-100" : "bg-gray-50/50 border-gray-200 opacity-60"}`}>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${cat.isActive ? "bg-violet-100 text-violet-700" : "bg-gray-200 text-gray-500"}`}>
+                        <IconTags size={16} />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className={`text-sm ${cat.isActive ? "text-gray-700" : "text-gray-500"}`}>{cat.name}</span>
+                        <span className={`text-xs ${cat.isActive ? "text-gray-500" : "text-gray-400"}`}>{cat.isActive ? "Active" : "Inactive"}</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleToggleCategory(cat.name)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                        cat.isActive ? "bg-gray-100 text-gray-600 hover:bg-gray-200" : "bg-violet-50 text-violet-600 hover:bg-violet-100"
+                      }`}
+                    >
+                      {cat.isActive ? <IconCircleX size={14} /> : <IconCircleCheck size={14} />}
+                      {cat.isActive ? "Set inactive" : "Set active"}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-4">
+              <Button variant="modal-secondary" onClick={() => setIsCategoryModalOpen(false)} className="w-full">
+                Tutup
               </Button>
             </div>
-            {/* List Kategori */}
-            <div className="space-y-2 max-h-60 overflow-y-auto">
-              {categories.map((cat) => (
-                <div key={cat.name} className="flex items-center justify-between p-3 border border-gray-100 rounded-xl">
-                  <span className={`text-sm font-bold ${cat.isActive ? "text-gray-700" : "text-gray-300"}`}>{cat.name}</span>
-                  <button onClick={() => handleToggleCategory(cat.name)} className="text-xs font-bold uppercase text-violet-600">
-                    {cat.isActive ? "Nonaktifkan" : "Aktifkan"}
-                  </button>
-                </div>
-              ))}
-            </div>
-            <Button variant="modal-secondary" onClick={() => setIsCategoryModalOpen(false)} className="w-full">
-              Tutup
-            </Button>
           </div>
         </Modal>
       </div>

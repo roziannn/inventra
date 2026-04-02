@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { IconPackage, IconBoxSeam, IconArrowUpRight, IconAlertTriangle, IconCircleCheck, IconClock, IconArrowRight, IconTags, IconBuildingSkyscraper, IconChartDonut3, IconChartBar } from "@tabler/icons-react";
+import { IconPackage, IconBoxSeam, IconArrowUpRight, IconCircleCheck, IconClock, IconArrowRight, IconTags, IconBuildingSkyscraper, IconChartDonut3, IconChartBar, IconSpeakerphone, IconAlertTriangle } from "@tabler/icons-react";
 import Link from "next/link";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from "recharts";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -98,6 +98,21 @@ export default function FullDashboard() {
   return (
     <DashboardLayout>
       <div className="flex flex-col gap-3">
+        <div className="rounded-xl border border-amber-200/80 bg-amber-50/80 px-4 py-3 shadow-sm">
+          <div className="relative flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+            <div className="inline-flex self-start rounded-full bg-amber-500/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-amber-700 md:order-2 md:self-start">What&apos;s New</div>
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-full bg-amber-500/12 text-amber-700">
+                <IconSpeakerphone size={18} stroke={2.1} className="animate-[pulse_2.6s_ease-in-out_infinite]" />
+              </div>
+              <div>
+                <p className="mt-2 text-sm font-semibold text-amber-950">Audit Trail dan Reports sekarang sudah mendukung export data.</p>
+                <p className="text-sm text-amber-900/70">Gunakan tombol export di masing-masing halaman untuk mengunduh log aktivitas atau laporan dengan cepat.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 shrink-0">
           <div>
             <h2 className="page-header">Overview</h2>

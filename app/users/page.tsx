@@ -6,6 +6,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
 import Button from "@/components/Button";
+import FormLabel from "@/components/FormLabel";
 import { IconPlus, IconSearch, IconEdit, IconFilter, IconUser, IconMail, IconBriefcase, IconShield, IconCircleCheck, IconCircleX, IconShieldCheck, IconCircleCheckFilled, IconCircleXFilled } from "@tabler/icons-react";
 import { toast } from "react-hot-toast";
 
@@ -185,6 +186,11 @@ export default function UsersPage() {
       header: "Role",
       accessor: (item: any) => <span className="text-sm text-gray-700 font-medium">{item.role}</span>,
     },
+
+    {
+      header: "Last active",
+      accessor: (item: any) => <span className="text-sm text-gray-700 font-medium">{item.lastActive}</span>,
+    },
     {
       header: "Status",
       accessor: (item: any) => {
@@ -198,10 +204,6 @@ export default function UsersPage() {
           </span>
         );
       },
-    },
-    {
-      header: "Last active",
-      accessor: (item: any) => <span className="text-sm text-gray-700 font-medium">{item.lastActive}</span>,
     },
     {
       header: "Created by",
@@ -361,10 +363,10 @@ export default function UsersPage() {
         <Modal isOpen={isRoleModalOpen} onClose={() => setIsRoleModalOpen(false)} title="Manajemen Role Group">
           <div className="space-y-6">
             <div className="p-4 bg-violet-50 rounded-xl border border-violet-100">
-              <p className="text-xs text-violet-800 leading-relaxed font-bold uppercase tracking-tighter">Daftar role yang tersedia. Nonaktifkan role untuk menyembunyikannya dari pilihan pendaftaran user.</p>
+              <p className="text-sm text-violet-800 leading-relaxed font-medium">Kelola role pengguna untuk pengelompokan yang lebih baik di platform Inventra.</p>
             </div>
             <div className="space-y-3">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Tambah Role Baru</label>
+              <FormLabel>Tambah Role Baru</FormLabel>
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -379,7 +381,7 @@ export default function UsersPage() {
               </div>
             </div>
             <div className="space-y-3">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">List Role Terdaftar</label>
+              <FormLabel>List Role Terdaftar</FormLabel>
               <div className="grid grid-cols-1 gap-2 max-h-62.5 overflow-y-auto pr-2 scrollbar-hide">
                 {roles.map((role) => (
                   <div key={role.name} className={`flex items-center justify-between p-3.5 border rounded-xl transition-all ${role.isActive ? "bg-white border-gray-100" : "bg-gray-50/50 border-gray-200 opacity-60"}`}>

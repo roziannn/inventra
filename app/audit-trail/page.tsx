@@ -6,32 +6,12 @@ import DashboardLayout from "@/components/DashboardLayout";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
 import Button from "@/components/Button";
-import { IconSearch, IconUser, IconSettings, IconPackage, IconTrash, IconFileExport, IconCalendar } from "@tabler/icons-react";
+import FormLabel from "@/components/FormLabel";
+import { IconSearch, IconFileExport, IconCalendar } from "@tabler/icons-react";
 import { toast } from "react-hot-toast";
-
-const dummyLogs = Array.from({ length: 30 }, (_, i) => ({
-  id: `LOG-${5000 + i}`,
-  action: i % 4 === 0 ? "Create" : i % 4 === 1 ? "Update" : i % 4 === 2 ? "Delete" : "Login",
-  target: i % 3 === 0 ? "Inventory" : i % 3 === 1 ? "Asset" : "User",
-  description: i % 4 === 0 ? `Created new item ${i + 1}` : i % 4 === 1 ? `Updated item details ${i + 1}` : i % 4 === 2 ? `Removed item ${i + 1}` : "User logged into system",
-  user: i % 2 === 0 ? "Admin User" : "Manager User",
-  date: "2026-03-20 10:45:22",
-}));
-
-const formatDateTimeFull = (dateStr: string) => {
-  const d = new Date(dateStr);
-  return d
-    .toLocaleString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-    })
-    .replace(/,/g, "");
-};
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { auditLogs, filterAuditLogsByRange, formatAuditDateRange, formatAuditDateTime } from "@/lib/audit-trail";
 
 export default function AuditTrailPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -43,7 +23,7 @@ export default function AuditTrailPage() {
   const filteredLogs = React.useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
 
-    return dummyLogs.filter((log) => {
+    return auditLogs.filter((log) => {
       return log.action.toLowerCase().includes(query) || log.target.toLowerCase().includes(query) || log.description.toLowerCase().includes(query) || log.user.toLowerCase().includes(query) || log.id.toLowerCase().includes(query);
     });
   }, [searchQuery]);
@@ -62,19 +42,106 @@ export default function AuditTrailPage() {
 
   const handleExport = (e: React.FormEvent) => {
     e.preventDefault();
-
-    const exportPromise = new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(`Data dari ${startDate} hingga ${endDate} berhasil diekspor`);
-      }, 2000);
+    const exportLogs = filterAuditLogsByRange(auditLogs, startDate, endDate);
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
     });
 
-    toast.promise(exportPromise, {
-      loading: "Menyiapkan data export...",
-      success: (message: any) => message,
-      error: "Gagal mengekspor data",
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const marginX = 14;
+    const headerTop = 12;
+    const headerHeight = 22;
+    const footerHeight = 10;
+    const contentTop = headerTop + headerHeight;
+    const footerTop = pageHeight - 18;
+    const exportedAt = new Date().toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
     });
 
+    autoTable(doc, {
+      startY: contentTop,
+      margin: { top: contentTop, left: marginX, right: marginX, bottom: 20 },
+      tableWidth: pageWidth - marginX * 2,
+      head: [["Aktivitas", "Deskripsi", "Oleh", "Waktu"]],
+      body: exportLogs.length
+        ? exportLogs.map((log) => [`${log.action} ${log.target}`, log.description, log.user, formatAuditDateTime(log.date)])
+        : [["-", "Tidak ada log pada rentang tanggal yang dipilih.", "-", "-"]],
+      styles: {
+        font: "helvetica",
+        fontSize: 8.5,
+        textColor: 0,
+        lineColor: 0,
+        lineWidth: 0.2,
+        cellPadding: 2,
+        valign: "middle",
+      },
+      headStyles: {
+        fillColor: false,
+        textColor: 0,
+        lineColor: 0,
+        lineWidth: 0.25,
+        fontStyle: "bold",
+        fontSize: 8.5,
+      },
+      bodyStyles: {
+        fillColor: false,
+      },
+      alternateRowStyles: {
+        fillColor: false,
+      },
+      columnStyles: {
+        0: { cellWidth: 34 },
+        1: { cellWidth: 66, fontSize: 8 },
+        2: { cellWidth: 27 },
+        3: { cellWidth: 55, fontSize: 8.25, cellPadding: { top: 2, right: 2, bottom: 2, left: 2 } },
+      },
+    });
+
+    const totalPages = doc.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i += 1) {
+      doc.setPage(i);
+      doc.setDrawColor(0);
+      doc.setLineWidth(0.3);
+      doc.rect(marginX, headerTop, pageWidth - marginX * 2, headerHeight);
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.text("INVENTRA", marginX + 4, headerTop + 5);
+      doc.setFontSize(16);
+      doc.text("Audit Trail", marginX + 4, headerTop + 11);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.text(`Periode ${formatAuditDateRange(startDate, endDate)}`, marginX + 4, headerTop + 16);
+
+      const exportedBoxWidth = 58;
+      const exportedBoxX = pageWidth - marginX - exportedBoxWidth;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.text("Exported at", exportedBoxX + exportedBoxWidth - 3, headerTop + 5, { align: "right" });
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.text(exportedAt, exportedBoxX + exportedBoxWidth - 3, headerTop + 10, { align: "right" });
+      doc.text(`Total log: ${exportLogs.length}`, exportedBoxX + exportedBoxWidth - 3, headerTop + 15, { align: "right" });
+
+      doc.rect(marginX, footerTop, pageWidth - marginX * 2, footerHeight);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.text("INVENTRA - Audit Trail Export | Dicetak oleh Administrator", marginX + 3, footerTop + 6.2);
+      doc.text(`Halaman ${i} dari ${totalPages}`, pageWidth - marginX - 3, footerTop + 6.2, { align: "right" });
+    }
+
+    doc.save(`audit-trail-${startDate}-to-${endDate}.pdf`);
+    toast.success(`Audit Trail ${startDate} sampai ${endDate} berhasil diunduh.`);
     handleCloseModal();
   };
 
@@ -82,20 +149,12 @@ export default function AuditTrailPage() {
     {
       header: "Aktivitas",
       accessor: (item: any) => {
-        const Icon = item.action === "Create" ? IconPackage : item.action === "Delete" ? IconTrash : item.action === "Update" ? IconSettings : IconUser;
-
-        const color = item.action === "Create" ? "text-violet-600 bg-violet-50" : item.action === "Delete" ? "text-red-600 bg-red-50" : item.action === "Update" ? "text-blue-600 bg-blue-50" : "text-gray-600 bg-gray-50";
-
         return (
-          <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${color}`}>
-              <Icon size={16} />
-            </div>
+          <div className="flex items-center gap-4">
             <div className="min-w-0 flex items-center gap-2">
               <p className="text-sm text-gray-700 font-medium truncate">
                 {item.action} {item.target}
               </p>
-              <span className="shrink-0 text-xs px-1.5 py-0.5 rounded-md bg-gray-50 border border-gray-100 text-gray-500 font-semibold">{item.id}</span>
             </div>
           </div>
         );
@@ -114,7 +173,7 @@ export default function AuditTrailPage() {
 
     {
       header: "Waktu",
-      accessor: (item: any) => <span className="text-sm text-gray-700 font-medium whitespace-nowrap">{formatDateTimeFull(item.date)}</span>,
+      accessor: (item: any) => <span className="text-sm text-gray-700 font-medium whitespace-nowrap">{formatAuditDateTime(item.date)}</span>,
     },
   ];
 
@@ -152,9 +211,7 @@ export default function AuditTrailPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                  <IconCalendar size={16} /> Dari Tanggal
-                </label>
+                <FormLabel icon={<IconCalendar size={16} />}>Dari Tanggal</FormLabel>
                 <input
                   required
                   type="date"
@@ -166,9 +223,7 @@ export default function AuditTrailPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                  <IconCalendar size={16} /> Hingga Tanggal
-                </label>
+                <FormLabel icon={<IconCalendar size={16} />}>Hingga Tanggal</FormLabel>
                 <input
                   required
                   type="date"
@@ -185,12 +240,7 @@ export default function AuditTrailPage() {
               <Button variant="modal-secondary" type="button" onClick={handleCloseModal} className="flex-1">
                 Batal
               </Button>
-              <Button
-                variant="modal-primary"
-                type="submit"
-                disabled={!startDate || !endDate || endDate < startDate}
-                className="flex-1"
-              >
+              <Button variant="modal-primary" type="submit" disabled={!startDate || !endDate || endDate < startDate} className="flex-1">
                 Mulai Export
               </Button>
             </div>

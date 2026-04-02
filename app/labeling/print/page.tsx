@@ -6,7 +6,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
 import Button from "@/components/Button";
-import { IconPrinter, IconSearch, IconFilter, IconSquare, IconSquareCheckFilled, IconCopy, IconMaximize, IconFileText, IconPackage, IconBarcode } from "@tabler/icons-react";
+import { IconPrinter, IconSearch, IconFilter, IconSquare, IconSquareCheckFilled, IconCopy, IconMaximize, IconFileText, IconBarcode } from "@tabler/icons-react";
 
 const dummyItems = Array.from({ length: 20 }, (_, i) => ({
   id: `INV-${1000 + i}`,
@@ -125,7 +125,7 @@ export default function PrintLabelPage() {
     },
     {
       header: "Kategori",
-      accessor: (item: any) => <span className="text-xs px-2 py-0.5 bg-gray-50 text-gray-500 border border-gray-100 rounded-full font-bold uppercase tracking-widest">{item.category}</span>,
+      accessor: (item: any) => <span className="text-sm text-gray-700">{item.category}</span>,
     },
     {
       header: "Stok",

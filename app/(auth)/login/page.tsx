@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { IconMail, IconLock, IconEye, IconEyeOff, IconBoxSeam, IconBrandGoogle, IconArrowRight, IconHeadset, IconBrandWhatsapp, IconExternalLink } from "@tabler/icons-react";
+import { IconMail, IconLock, IconEye, IconEyeOff, IconBoxSeam, IconArrowRight, IconHeadset, IconBrandWhatsapp, IconExternalLink } from "@tabler/icons-react";
 import { Sulphur_Point } from "next/font/google";
 import toast from "react-hot-toast";
 import Modal from "@/components/Modal";
@@ -29,32 +29,17 @@ export default function LoginPage() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    void (async () => {
-      try {
-        const response = await fetch("/api/auth/login", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email, password }),
-        });
-
-        const payload = (await response.json()) as { message?: string; user?: { name: string } };
-
-        if (!response.ok) {
-          toast.error(payload.message ?? "Login gagal.");
-          return;
-        }
-
-        toast.success(`Selamat datang kembali, ${payload.user?.name ?? "Admin"}!`);
-        router.push("/");
-      } catch (error) {
-        console.error(error);
-        toast.error("Tidak dapat terhubung ke server.");
-      } finally {
+    setTimeout(() => {
+      if (!email.trim() || !password.trim()) {
+        toast.error("Email dan kata sandi wajib diisi.");
         setIsLoading(false);
+        return;
       }
-    })();
+
+      toast.success("Selamat datang kembali, Admin!");
+      router.push("/");
+      setIsLoading(false);
+    }, 800);
   };
 
   return (

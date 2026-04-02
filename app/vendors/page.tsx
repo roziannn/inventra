@@ -6,16 +6,17 @@ import DashboardLayout from "@/components/DashboardLayout";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
 import Button from "@/components/Button";
-import { IconPlus, IconSearch, IconFilter, IconEdit, IconBuildingSkyscraper, IconCircleCheckFilled, IconCircleXFilled, IconUser, IconMail, IconPhone, IconTags, IconLayoutGrid, IconMapPin } from "@tabler/icons-react";
+import FormLabel from "@/components/FormLabel";
+import { IconPlus, IconSearch, IconFilter, IconEdit, IconBuildingSkyscraper, IconCircleCheckFilled, IconCircleXFilled, IconUser, IconMail, IconPhone, IconTags, IconLayoutGrid, IconMapPin, IconCircleCheck, IconCircleX } from "@tabler/icons-react";
 import { toast } from "react-hot-toast";
 
 // 1. Data Vendor Riil (5 Data)
 const initialVendors = [
-  { id: "VND-101", name: "PT. Telekomunikasi Indonesia", contactPerson: "Budi Santoso", email: "corp@telkom.co.id", phone: "021-5243500", category: "IT Hardware", status: "Active", address: "Jl. Gatot Subroto No.52, Jakarta" },
-  { id: "VND-102", name: "PT. Astra Graphia Tbk", contactPerson: "Siti Aminah", email: "info@astragraphia.co.id", phone: "021-3909191", category: "Office Supplies", status: "Active", address: "Jl. Kramat Raya No.43, Jakarta" },
-  { id: "VND-103", name: "PT. Sumber Alfaria Trijaya", contactPerson: "Andi Wijaya", email: "supply@alfamart.co.id", phone: "021-5575596", category: "Logistics", status: "Inactive", address: "Jl. Jalur Sutera Barat No.9, Tangerang" },
-  { id: "VND-104", name: "PT. United Tractors Tbk", contactPerson: "Hendra Kurniawan", email: "procurement@unitedtractors.com", phone: "021-2457999", category: "Maintenance", status: "Active", address: "Jl. Raya Bekasi Km.22, Jakarta" },
-  { id: "VND-105", name: "PT. Indofood Sukses Makmur", contactPerson: "Rina Permata", email: "vendor@indofood.com", phone: "021-5795882", category: "Logistics", status: "Active", address: "Sudirman Plaza, Indofood Tower, Jakarta" },
+  { id: "VND-101", name: "PT. Telekomunikasi Indonesia", contactPerson: "Budi Santoso", email: "corp@telkom.co.id", phone: "021-5243500", category: "IT Hardware", status: "Active", address: "Jl. Gatot Subroto No.52, Jakarta", createdBy: "Administrator", createdAt: new Date(2026, 2, 3) },
+  { id: "VND-102", name: "PT. Astra Graphia Tbk", contactPerson: "Siti Aminah", email: "info@astragraphia.co.id", phone: "021-3909191", category: "Office Supplies", status: "Active", address: "Jl. Kramat Raya No.43, Jakarta", createdBy: "Administrator", createdAt: new Date(2026, 2, 5) },
+  { id: "VND-103", name: "PT. Sumber Alfaria Trijaya", contactPerson: "Andi Wijaya", email: "supply@alfamart.co.id", phone: "021-5575596", category: "Logistics", status: "Inactive", address: "Jl. Jalur Sutera Barat No.9, Tangerang", createdBy: "Administrator", createdAt: new Date(2026, 2, 8) },
+  { id: "VND-104", name: "PT. United Tractors Tbk", contactPerson: "Hendra Kurniawan", email: "procurement@unitedtractors.com", phone: "021-2457999", category: "Maintenance", status: "Active", address: "Jl. Raya Bekasi Km.22, Jakarta", createdBy: "Administrator", createdAt: new Date(2026, 2, 10) },
+  { id: "VND-105", name: "PT. Indofood Sukses Makmur", contactPerson: "Rina Permata", email: "vendor@indofood.com", phone: "021-5795882", category: "Logistics", status: "Active", address: "Sudirman Plaza, Indofood Tower, Jakarta", createdBy: "Administrator", createdAt: new Date(2026, 2, 12) },
 ];
 
 const initialCategories = [
@@ -47,6 +48,14 @@ export default function VendorsPage() {
     address: "",
     status: "Active",
   });
+
+  const formatDate = (date: Date) => {
+    return new Date(date).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
 
   // 2. Logika Search & Filter (Real-time)
   const filteredVendors = useMemo(() => {
@@ -99,7 +108,7 @@ export default function VendorsPage() {
       setVendors(vendors.map((item) => (item.id === editingItem.id ? { ...item, ...formData } : item)));
       toast.success("Vendor diperbarui");
     } else {
-      const newItem = { id: `VND-${100 + vendors.length + 1}`, ...formData };
+      const newItem = { id: `VND-${100 + vendors.length + 1}`, ...formData, createdBy: "Admin", createdAt: new Date() };
       setVendors([newItem, ...vendors]);
       toast.success("Vendor ditambahkan");
     }
@@ -127,9 +136,17 @@ export default function VendorsPage() {
     },
     {
       header: "Kategori",
-      accessor: (item: any) => <span className="text-xs px-2 py-0.5 bg-gray-50 text-gray-500 border border-gray-100 rounded-full font-bold uppercase tracking-widest">{item.category}</span>,
+      accessor: (item: any) => <span className="text-sm text-gray-700">{item.category}</span>,
     },
     { header: "Telepon", accessor: "phone" as const },
+    {
+      header: "Created by",
+      accessor: (item: any) => <span className="text-sm text-gray-700 font-medium">{item.createdBy}</span>,
+    },
+    {
+      header: "Created at",
+      accessor: (item: any) => <span className="text-sm text-gray-700 font-medium tabular-nums">{formatDate(item.createdAt)}</span>,
+    },
     {
       header: "Status",
       accessor: (item: any) => {
@@ -346,31 +363,59 @@ export default function VendorsPage() {
         {/* Modal Category Group */}
         <Modal isOpen={isCategoryModalOpen} onClose={() => setIsCategoryModalOpen(false)} title="Manajemen Grup Vendor">
           <div className="space-y-6">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={newCategoryName}
-                onChange={(e) => setNewCategoryName(e.target.value)}
-                placeholder="Kategori baru..."
-                className="flex-1 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-violet-500/10"
-              />
-              <Button variant="modal-primary" onClick={handleAddCategory} disabled={!newCategoryName.trim()}>
-                Tambah
+            <div className="p-4 bg-violet-50 rounded-xl border border-violet-100">
+              <p className="text-sm text-violet-800 leading-relaxed font-medium">Kelola grup vendor untuk pengelompokan yang lebih baik di platform Inventra.</p>
+            </div>
+
+            <div className="space-y-3">
+              <FormLabel>Tambah Kategori Baru</FormLabel>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  placeholder="Contoh: Distributor Regional"
+                  className="flex-1 px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all"
+                />
+                <Button variant="modal-primary" onClick={handleAddCategory} disabled={!newCategoryName.trim()}>
+                  Tambah
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <FormLabel>List Kategori Terdaftar</FormLabel>
+              <div className="grid grid-cols-1 gap-2 max-h-62.5 overflow-y-auto pr-2 scrollbar-hide">
+                {categories.map((cat) => (
+                  <div key={cat.name} className={`flex items-center justify-between p-3.5 border rounded-xl transition-all ${cat.isActive ? "bg-white border-gray-100" : "bg-gray-50/50 border-gray-200 opacity-60"}`}>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${cat.isActive ? "bg-violet-100 text-violet-700" : "bg-gray-200 text-gray-500"}`}>
+                        <IconTags size={16} />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className={`text-sm ${cat.isActive ? "text-gray-700" : "text-gray-500"}`}>{cat.name}</span>
+                        <span className={`text-xs ${cat.isActive ? "text-gray-500" : "text-gray-400"}`}>{cat.isActive ? "Active" : "Inactive"}</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleToggleCategory(cat.name)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                        cat.isActive ? "bg-gray-100 text-gray-600 hover:bg-gray-200" : "bg-violet-50 text-violet-600 hover:bg-violet-100"
+                      }`}
+                    >
+                      {cat.isActive ? <IconCircleX size={14} /> : <IconCircleCheck size={14} />}
+                      {cat.isActive ? "Set inactive" : "Set active"}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-4">
+              <Button variant="modal-secondary" onClick={() => setIsCategoryModalOpen(false)} className="w-full">
+                Tutup
               </Button>
             </div>
-            <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-              {categories.map((cat) => (
-                <div key={cat.name} className={`flex items-center justify-between p-3 border rounded-xl ${cat.isActive ? "bg-white border-gray-100" : "bg-gray-50 opacity-50"}`}>
-                  <span className="text-sm font-bold text-gray-700">{cat.name}</span>
-                  <button onClick={() => handleToggleCategory(cat.name)} className="text-xs font-bold text-violet-600 uppercase tracking-widest">
-                    {cat.isActive ? "Deactivate" : "Activate"}
-                  </button>
-                </div>
-              ))}
-            </div>
-            <Button variant="modal-secondary" onClick={() => setIsCategoryModalOpen(false)} className="w-full">
-              Tutup
-            </Button>
           </div>
         </Modal>
       </div>

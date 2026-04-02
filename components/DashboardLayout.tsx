@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -37,13 +36,10 @@ const sulphurPoint = Sulphur_Point({
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const getActiveSubMenu = React.useCallback(
-    (currentPath: string) => {
-      if (currentPath.startsWith("/labeling")) return "Labeling";
-      return null;
-    },
-    [],
-  );
+  const getActiveSubMenu = React.useCallback((currentPath: string) => {
+    if (currentPath.startsWith("/labeling")) return "Labeling";
+    return null;
+  }, []);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -61,6 +57,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const storedTheme = typeof window !== "undefined" ? localStorage.getItem("theme") : null;
     const prefersDark = typeof window !== "undefined" ? window.matchMedia("(prefers-color-scheme: dark)").matches : false;
     const initialTheme = storedTheme === "dark" || storedTheme === "light" ? storedTheme : prefersDark ? "dark" : "light";
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTheme(initialTheme);
     if (typeof document !== "undefined") {
       document.documentElement.classList.toggle("dark", initialTheme === "dark");
@@ -99,6 +96,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     const activeSubMenu = getActiveSubMenu(pathname);
     if (activeSubMenu && openSubMenu !== activeSubMenu) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOpenSubMenu(activeSubMenu);
     }
   }, [getActiveSubMenu, openSubMenu, pathname]);
@@ -152,6 +150,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }
       });
 
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFilteredResults(results.slice(0, 6)); // Limit to 6 results
       setShowSuggestions(true);
     } else {
@@ -176,6 +175,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   // Close mobile menu on route change
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMobileMenuOpen(false);
     setSearchQuery("");
     setShowSuggestions(false);
@@ -184,7 +184,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const handleLogout = () => {
     toast.error("Anda telah keluar dari sistem.");
-    // Logika logout bisa ditambahkan di sini
+    setTimeout(() => {
+      router.push("/login");
+    }, 300);
   };
 
   return (
@@ -237,26 +239,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
                   {!isCollapsed && (
                     <div
-                      className={`grid overflow-hidden transition-[grid-template-rows,opacity,margin] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-                        isSubMenuOpen ? "grid-rows-[1fr] opacity-100 mt-1" : "grid-rows-[0fr] opacity-0 mt-0"
-                      }`}
+                      className={`grid overflow-hidden transition-[grid-template-rows,opacity,margin] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${isSubMenuOpen ? "grid-rows-[1fr] opacity-100 mt-1" : "grid-rows-[0fr] opacity-0 mt-0"}`}
                     >
                       <div className="min-h-0">
                         <div className="flex flex-col space-y-0.5 pb-0.5">
-                      {item.subItems?.map((subItem) => {
-                        const isSubActive = pathname === subItem.href;
-                        return (
-                          <Link
-                            key={subItem.name}
-                            href={subItem.href}
-                            className={`flex items-center pl-12 pr-3 py-2 rounded-xl text-sm font-medium transition-[background-color,color,transform] duration-200 ${
-                              isSubActive ? "text-white bg-white/6" : "text-violet-100/40 hover:text-white hover:bg-white/5"
-                            }`}
-                          >
-                            <span>{subItem.name}</span>
-                          </Link>
-                        );
-                      })}
+                          {item.subItems?.map((subItem) => {
+                            const isSubActive = pathname === subItem.href;
+                            return (
+                              <Link
+                                key={subItem.name}
+                                href={subItem.href}
+                                className={`flex items-center pl-12 pr-3 py-2 rounded-xl text-sm font-medium transition-[background-color,color,transform] duration-200 ${
+                                  isSubActive ? "text-white bg-white/6" : "text-violet-100/40 hover:text-white hover:bg-white/5"
+                                }`}
+                              >
+                                <span>{subItem.name}</span>
+                              </Link>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
@@ -284,7 +284,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           })}
         </nav>
 
-        <div className="h-14 border-t border-white/5 shrink-0 flex items-center px-3">
+        <div className="h-20 shrink-0 flex items-center px-3">
           <button onClick={handleLogout} className={`flex items-center w-full text-violet-100/50 hover:text-red-400 transition-all duration-300 group ${isCollapsed ? "justify-center" : "gap-3 px-3 py-2"}`}>
             <IconLogout size={20} stroke={2} />
             <span
