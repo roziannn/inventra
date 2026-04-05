@@ -234,7 +234,7 @@ export default function AuditTrailPage() {
             />
           </div>
         </div>
-        <DataTable data={filteredLogs} columns={columns} pageSize={10} density="dense" />
+        <DataTable data={filteredLogs} columns={columns} pageSize={10} density="dense" bodyCellClassName="!py-4" />
         <Modal isOpen={isModalOpen} onClose={handleCloseModal} title="Export Audit Trail">
           <form onSubmit={handleExport} className="space-y-6">
             <div className="p-4 bg-violet-50 dark:bg-violet-500/10 rounded-xl border border-violet-100 dark:border-violet-500/20">

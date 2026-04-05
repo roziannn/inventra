@@ -15,8 +15,8 @@ export default function FormLabel({ icon, block = false, className, children, ..
   return (
     <label
       className={cn(
-        "text-gray-400 uppercase",
-        block ? "mb-2 block text-sm font-bold tracking-wider" : "flex items-center gap-2 text-xs font-bold tracking-widest",
+        "text-gray-400 flex items-center gap-2 font-semibold",
+        block ? "mb-2 text-sm" : "text-xs",
         className,
       )}
       {...props}
