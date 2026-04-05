@@ -282,9 +282,7 @@ export default function UsersPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                  <IconUser size={16} /> Nama Lengkap
-                </label>
+                <FormLabel icon={<IconUser size={16} />}>Nama Lengkap</FormLabel>
                 <input
                   required
                   type="text"
@@ -295,9 +293,7 @@ export default function UsersPage() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                  <IconMail size={16} /> Email Perusahaan
-                </label>
+                <FormLabel icon={<IconMail size={16} />}>Email Perusahaan</FormLabel>
                 <div className="flex items-center bg-gray-50 border border-gray-100 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-violet-500/10 transition-all">
                   <input
                     required
@@ -307,13 +303,11 @@ export default function UsersPage() {
                     placeholder="nama.user"
                     className="flex-1 px-4 py-3 bg-transparent text-sm focus:outline-none"
                   />
-                  <span className="px-4 py-3 bg-gray-100 text-gray-400 text-xs font-black border-l border-gray-100 tracking-tighter">@inventra.co.id</span>
+                  <span className="px-4 py-3 bg-gray-100 text-gray-400 text-sm font-semibold border-l border-gray-100">@inventra.co.id</span>
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                  <IconBriefcase size={16} /> Role / Jabatan
-                </label>
+                <FormLabel icon={<IconBriefcase size={16} />}>Role / Jabatan</FormLabel>
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
@@ -331,7 +325,9 @@ export default function UsersPage() {
               {editingUser && (
                 <div className="pt-2 flex items-center justify-between p-4 bg-gray-50 dark:bg-muted/50 rounded-xl border border-gray-100 dark:border-border">
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.status === "Active" ? "bg-violet-100 text-violet-600 dark:bg-violet-500/20 dark:text-violet-400" : "bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400"}`}>
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.status === "Active" ? "bg-violet-100 text-violet-600 dark:bg-violet-500/20 dark:text-violet-400" : "bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400"}`}
+                    >
                       {formData.status === "Active" ? <IconCircleCheckFilled size={20} /> : <IconCircleXFilled size={20} />}
                     </div>
                     <div>

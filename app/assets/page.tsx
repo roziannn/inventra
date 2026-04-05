@@ -6,6 +6,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
 import Button from "@/components/Button";
+import FormLabel from "@/components/FormLabel";
 import {
   IconPlus,
   IconSearch,
@@ -238,9 +239,7 @@ export default function AssetsPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                  <IconBoxSeam size={16} /> Nama Aset
-                </label>
+                <FormLabel icon={<IconBoxSeam size={16} />}>Nama Aset</FormLabel>
                 <input
                   required
                   type="text"
@@ -253,9 +252,7 @@ export default function AssetsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                    <IconHash size={16} /> Serial Number
-                  </label>
+                  <FormLabel icon={<IconHash size={16} />}>Serial Number</FormLabel>
                   <input
                     required
                     type="text"
@@ -266,9 +263,7 @@ export default function AssetsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                    <IconTags size={16} /> Kategori
-                  </label>
+                  <FormLabel icon={<IconTags size={16} />}>Kategori</FormLabel>
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
@@ -287,9 +282,7 @@ export default function AssetsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                    <IconUser size={16} /> PIC / Assignee
-                  </label>
+                  <FormLabel icon={<IconUser size={16} />}>PIC / Assignee</FormLabel>
                   <input
                     type="text"
                     value={formData.assignee}
@@ -299,9 +292,7 @@ export default function AssetsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                    <IconInfoCircle size={16} /> Kondisi
-                  </label>
+                  <FormLabel icon={<IconInfoCircle size={16} />}>Kondisi</FormLabel>
                   <select
                     value={formData.condition}
                     onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
@@ -334,7 +325,7 @@ export default function AssetsPage() {
             </div>
 
             <div className="space-y-3">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Tambah Kategori Baru</label>
+              <FormLabel>Tambah Kategori Baru</FormLabel>
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -350,7 +341,7 @@ export default function AssetsPage() {
             </div>
 
             <div className="space-y-3">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">List Kategori Terdaftar</label>
+              <FormLabel>List Kategori Terdaftar</FormLabel>
               <div className="grid grid-cols-1 gap-2 max-h-62.5 overflow-y-auto pr-2 scrollbar-hide">
                 {categories.map((cat) => (
                   <div key={cat.name} className={`flex items-center justify-between p-3.5 border rounded-xl transition-all ${cat.isActive ? "bg-white border-gray-100" : "bg-gray-50/50 border-gray-200 opacity-60"}`}>

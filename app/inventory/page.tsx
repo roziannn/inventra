@@ -223,9 +223,7 @@ export default function InventoryPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                  <IconPackage size={16} /> Nama Barang
-                </label>
+                <FormLabel icon={<IconPackage size={16} />}>Nama Barang</FormLabel>
                 <input
                   required
                   type="text"
@@ -238,9 +236,7 @@ export default function InventoryPage() {
               {/* SKU & Category */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                    <IconHash size={16} /> SKU / Kode
-                  </label>
+                  <FormLabel icon={<IconHash size={16} />}>SKU / Kode</FormLabel>
                   <input
                     required
                     type="text"
@@ -251,9 +247,7 @@ export default function InventoryPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                    <IconTags size={16} /> Kategori
-                  </label>
+                  <FormLabel icon={<IconTags size={16} />}>Kategori</FormLabel>
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
@@ -272,9 +266,7 @@ export default function InventoryPage() {
               {/* Stock & Unit */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                    <IconDatabase size={16} /> Jumlah Stok
-                  </label>
+                  <FormLabel icon={<IconDatabase size={16} />}>Jumlah Stok</FormLabel>
                   <input
                     required
                     type="number"
@@ -285,9 +277,7 @@ export default function InventoryPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                    <IconWeight size={16} /> Satuan
-                  </label>
+                  <FormLabel icon={<IconWeight size={16} />}>Satuan</FormLabel>
                   <input
                     required
                     type="text"

@@ -236,9 +236,7 @@ export default function VendorsPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                  <IconBuildingSkyscraper size={16} /> Nama Vendor
-                </label>
+                <FormLabel icon={<IconBuildingSkyscraper size={16} />}>Nama Vendor</FormLabel>
                 <input
                   required
                   type="text"
@@ -251,9 +249,7 @@ export default function VendorsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                    <IconUser size={16} /> Contact Person
-                  </label>
+                  <FormLabel icon={<IconUser size={16} />}>Contact Person</FormLabel>
                   <input
                     required
                     type="text"
@@ -264,9 +260,7 @@ export default function VendorsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                    <IconTags size={16} /> Kategori
-                  </label>
+                  <FormLabel icon={<IconTags size={16} />}>Kategori</FormLabel>
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
@@ -285,9 +279,7 @@ export default function VendorsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                    <IconMail size={16} /> Email
-                  </label>
+                  <FormLabel icon={<IconMail size={16} />}>Email</FormLabel>
                   <input
                     required
                     type="email"
@@ -298,9 +290,7 @@ export default function VendorsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                    <IconPhone size={16} /> Telepon
-                  </label>
+                  <FormLabel icon={<IconPhone size={16} />}>Telepon</FormLabel>
                   <input
                     required
                     type="text"
@@ -313,9 +303,7 @@ export default function VendorsPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                  <IconMapPin size={16} /> Alamat
-                </label>
+                <FormLabel icon={<IconMapPin size={16} />}>Alamat</FormLabel>
                 <textarea
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}

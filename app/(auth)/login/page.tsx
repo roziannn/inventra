@@ -7,6 +7,7 @@ import { Sulphur_Point } from "next/font/google";
 import toast from "react-hot-toast";
 import Modal from "@/components/Modal";
 import Button from "@/components/Button";
+import FormLabel from "@/components/FormLabel";
 
 const sulphurPoint = Sulphur_Point({
   subsets: ["latin"],
@@ -100,9 +101,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleLogin} className="mt-10 space-y-5">
             <div className="space-y-2 group">
-              <label className="text-sm font-semibold text-gray-400 flex items-center gap-2 group-focus-within:text-violet-500 transition-colors">
-                <IconMail size={14} /> Alamat Email
-              </label>
+              <FormLabel block icon={<IconMail size={14} />}>Alamat Email</FormLabel>
               <div className="relative">
                 <input
                   required
@@ -117,10 +116,8 @@ export default function LoginPage() {
 
             <div className="space-y-2 group">
               <div className="flex justify-between items-center">
-                <label className="text-sm font-semibold text-gray-400 flex items-center gap-2 group-focus-within:text-violet-500 transition-colors">
-                  <IconLock size={14} /> Kata Sandi
-                </label>
-                <button type="button" onClick={() => setIsModalOpen(true)} className="text-sm font-semibold text-violet-500  hover:text-violet-500 transition-colors cursor-pointer">
+                <FormLabel block icon={<IconLock size={14} />}>Kata Sandi</FormLabel>
+                <button type="button" onClick={() => setIsModalOpen(true)} className="text-sm font-semibold text-violet-500  hover:text-violet-500 transition-colors cursor-pointer mb-2">
                   Lupa Sandi?
                 </button>
               </div>

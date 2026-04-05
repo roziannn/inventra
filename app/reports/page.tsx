@@ -6,6 +6,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import DataTable from "@/components/DataTable";
 import Modal from "@/components/Modal";
 import Button from "@/components/Button";
+import FormLabel from "@/components/FormLabel";
 import SearchableSelect from "@/components/SearchableSelect";
 import {
   IconSearch,
@@ -708,7 +709,7 @@ export default function ReportsPage() {
         <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Buat Laporan Baru">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Nama Barang</label>
+              <FormLabel icon={<IconBookmark size={16} />}>Nama Barang</FormLabel>
               <input
                 required
                 type="text"
@@ -723,7 +724,7 @@ export default function ReportsPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Tipe Layanan</label>
+                <FormLabel icon={<IconTool size={16} />}>Tipe Layanan</FormLabel>
                 <select
                   value={formData.serviceType}
                   onChange={(e) => setFormData({ ...formData, serviceType: e.target.value })}
@@ -737,7 +738,7 @@ export default function ReportsPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Deskripsi Masalah</label>
+              <FormLabel icon={<IconAlertTriangle size={16} />}>Deskripsi Masalah</FormLabel>
               <textarea
                 required
                 value={formData.problem}
@@ -774,9 +775,7 @@ export default function ReportsPage() {
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                  <IconMail size={16} /> Konfirmasi Email
-                </label>
+                <FormLabel icon={<IconMail size={16} />}>Konfirmasi Email</FormLabel>
                 <input
                   required
                   type="email"
@@ -788,9 +787,7 @@ export default function ReportsPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                  <IconLock size={16} /> Kata Sandi
-                </label>
+                <FormLabel icon={<IconLock size={16} />}>Kata Sandi</FormLabel>
                 <input
                   required
                   type="password"
@@ -822,9 +819,7 @@ export default function ReportsPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                  <IconCalendar size={16} /> Dari Tanggal
-                </label>
+                <FormLabel icon={<IconCalendar size={16} />}>Dari Tanggal</FormLabel>
                 <input
                   required
                   type="date"
@@ -836,9 +831,7 @@ export default function ReportsPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                  <IconCalendar size={16} /> Hingga Tanggal
-                </label>
+                <FormLabel icon={<IconCalendar size={16} />}>Hingga Tanggal</FormLabel>
                 <input
                   required
                   type="date"
