@@ -284,17 +284,77 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           })}
         </nav>
 
-        <div className="h-20 shrink-0 flex items-center px-3">
-          <button onClick={handleLogout} className={`flex items-center w-full text-violet-100/50 hover:text-red-400 transition-all duration-300 group ${isCollapsed ? "justify-center" : "gap-3 px-3 py-2"}`}>
-            <IconLogout size={20} stroke={2} />
-            <span
-              className={`text-sm font-medium whitespace-nowrap overflow-hidden transition-[opacity,transform,max-width] duration-300 ease-out ${
-                isCollapsed ? "opacity-0 -translate-x-1 max-w-0 pointer-events-none" : "opacity-100 translate-x-0 max-w-30"
+        {/* --- Sidebar Footer: User Profile --- */}
+        <div className="mt-auto border-t border-white/10 p-3 relative" ref={profileRef}>
+          <button
+            onClick={() => setIsProfileOpen(!isProfileOpen)}
+            className={`w-full flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-all group ${isCollapsed ? "justify-center" : ""}`}
+          >
+            <div className="w-9 h-9 bg-violet-500 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-lg">
+              AD
+            </div>
+            {!isCollapsed && (
+              <div className="flex-1 text-left overflow-hidden">
+                <p className="text-sm font-bold text-white truncate">Admin User</p>
+                <p className="text-xs text-violet-100/50 truncate">admin@inventra.com</p>
+              </div>
+            )}
+            {!isCollapsed && (
+              <IconChevronDown
+                size={14}
+                className={`text-violet-100/30 transition-transform duration-300 ${isProfileOpen ? "rotate-180" : ""}`}
+              />
+            )}
+          </button>
+
+          {/* Profile Dropdown (Popover Up) */}
+          {isProfileOpen && (
+            <div
+              className={`absolute bottom-full mb-2 bg-zinc-900 border border-white/10 rounded-2xl shadow-2xl py-2 z-200 animate-in fade-in slide-in-from-bottom-2 duration-200 origin-bottom ${
+                isCollapsed ? "left-14 w-48" : "left-3 right-3"
               }`}
             >
-              Logout
-            </span>
-          </button>
+              <div className="px-4 py-3 border-b border-white/5 mb-1">
+                <p className="text-[10px] font-bold text-violet-100/30 uppercase tracking-[0.2em]">Akun Saya</p>
+                <div className="flex items-center gap-3 mt-2">
+                  <div className="w-8 h-8 bg-white/5 rounded-full flex items-center justify-center text-white font-bold text-xs">AD</div>
+                  <div className="overflow-hidden">
+                    <p className="text-sm font-bold text-white truncate">Admin User</p>
+                    <p className="text-xs text-violet-100/40 truncate">Manager</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="px-2 space-y-0.5">
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-3 px-3 py-2 text-sm text-violet-100/60 hover:bg-white/5 hover:text-white rounded-xl transition-colors group"
+                >
+                  <IconUser size={18} stroke={1.5} />
+                  <span>Profil Saya</span>
+                </Link>
+                <Link
+                  href="/settings"
+                  className="flex items-center gap-3 px-3 py-2 text-sm text-violet-100/60 hover:bg-white/5 hover:text-white rounded-xl transition-colors group"
+                >
+                  <IconSettings size={18} stroke={1.5} />
+                  <span>Pengaturan</span>
+                </Link>
+              </div>
+
+              <div className="h-px bg-white/5 my-2 mx-4"></div>
+
+              <div className="px-2">
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-xl transition-colors group"
+                >
+                  <IconLogout size={18} stroke={1.5} />
+                  <span className="font-bold">Keluar Aplikasi</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </aside>
 
@@ -322,11 +382,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
               {/* Suggestions Dropdown */}
               {showSuggestions && filteredResults.length > 0 && (
-                <div className="absolute top-full left-0 w-full mt-2 bg-card rounded-xl shadow-2xl border border-border overflow-hidden z-200">
-                  <div className="p-2 border-b border-border/60 bg-muted/40">
+                <div className="absolute top-full left-0 w-full mt-2 bg-card rounded-xl shadow-2xl border border-border overflow-hidden z-[200]">
+                  <div className="p-2 border-b border-border/60 bg-muted">
                     <p className="text-xs font-bold text-gray-400 dark:text-gray-200 uppercase tracking-widest px-2">Hasil Pencarian</p>
                   </div>
-                  <div className="max-h-80 overflow-y-auto">
+                  <div className="max-h-80 overflow-y-auto custom-scrollbar">
                     {filteredResults.map((result, idx) => (
                       <button
                         key={`${result.type}-${result.id}-${idx}`}
@@ -335,10 +395,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                           setShowSuggestions(false);
                           setSearchQuery("");
                         }}
-                        className="w-full flex items-center justify-between p-3 hover:bg-violet-50/50 dark:hover:bg-violet-950/40 transition-colors group text-left border-b border-border last:border-0"
+                        className="w-full flex items-center justify-between p-3 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-colors group text-left border-b border-border last:border-0"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-muted group-hover:bg-violet-100 text-gray-500 group-hover:text-violet-600 flex items-center justify-center transition-colors">
+                          <div className="w-8 h-8 rounded-lg bg-muted group-hover:bg-violet-100 dark:group-hover:bg-violet-800/50 text-gray-500 group-hover:text-violet-600 dark:group-hover:text-violet-300 flex items-center justify-center transition-colors">
                             <result.icon size={16} />
                           </div>
                           <div>
@@ -356,7 +416,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               )}
 
               {showSuggestions && filteredResults.length === 0 && (
-                <div className="absolute top-full left-0 w-full mt-2 bg-card rounded-xl shadow-2xl border border-border p-6 z-200 text-center">
+                <div className="absolute top-full left-0 w-full mt-2 bg-card rounded-xl shadow-2xl border border-border p-6 z-[200] text-center">
                   <p className="text-sm text-gray-500 dark:text-gray-300 font-medium">Tidak ada hasil ditemukan untuk &quot;{searchQuery}&quot;</p>
                 </div>
               )}
@@ -370,62 +430,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <IconBell size={18} />
               <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
             </Link>
-
-            <div className="relative" ref={profileRef}>
-              <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="flex items-center gap-3 pl-4 border-l border-gray-100 focus:outline-none group transition-all">
-                <div className="text-right hidden md:block">
-                  <p className="text-sm font-bold text-gray-900 leading-tight group-hover:text-violet-500 transition-colors">Admin User</p>
-                  <p className="text-xs text-violet-500 font-semibold tracking-wide">Manager</p>
-                </div>
-                <div
-                  className={`w-9 h-9 bg-zinc-900 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md group-hover:ring-4 group-hover:ring-violet-50 transition-all ${isProfileOpen ? "ring-4 ring-violet-50" : ""}`}
-                >
-                  AD
-                </div>
-              </button>
-
-              {/* Profile Dropdown */}
-              {isProfileOpen && (
-                <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-200 animate-in fade-in zoom-in duration-200 origin-top-right">
-                  <div className="px-4 py-3 border-b border-gray-50 mb-1">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Informasi Akun</p>
-                    <div className="flex items-center gap-3 mt-2">
-                      <div className="w-10 h-10 bg-zinc-900 rounded-full flex items-center justify-center text-white font-bold text-xs">AD</div>
-                      <div>
-                        <p className="text-sm font-bold text-gray-900">Admin User</p>
-                        <p className="text-sm text-gray-500 font-medium">admin@inventra.com</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="px-2 space-y-0.5">
-                    <Link href="/profile" className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600 hover:bg-violet-50 hover:text-violet-700 rounded-xl transition-colors group">
-                      <div className="w-8 h-8 rounded-lg bg-gray-50 group-hover:bg-white flex items-center justify-center transition-colors">
-                        <IconUser size={18} stroke={2} />
-                      </div>
-                      <span className="font-medium">Profil Saya</span>
-                    </Link>
-                    <Link href="/settings" className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600 hover:bg-violet-50 hover:text-violet-700 rounded-xl transition-colors group">
-                      <div className="w-8 h-8 rounded-lg bg-gray-50 group-hover:bg-white flex items-center justify-center transition-colors">
-                        <IconSettings size={18} stroke={2} />
-                      </div>
-                      <span className="font-medium">Pengaturan</span>
-                    </Link>
-                  </div>
-
-                  <div className="h-px bg-gray-50 my-2 mx-4"></div>
-
-                  <div className="px-2">
-                    <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-xl transition-colors group">
-                      <div className="w-8 h-8 rounded-lg bg-red-50 group-hover:bg-white flex items-center justify-center transition-colors">
-                        <IconLogout size={18} stroke={2} />
-                      </div>
-                      <span className="font-bold">Keluar Aplikasi</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
         </header>
 

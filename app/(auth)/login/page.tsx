@@ -165,38 +165,38 @@ export default function LoginPage() {
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Bantuan Teknis & Akses">
         <div className="space-y-6">
-          <div className="flex items-start gap-4 p-4 bg-violet-50 rounded-2xl border border-violet-100">
-            <div className="w-10 h-10 bg-zinc-900 rounded-xl flex items-center justify-center shrink-0">
+          <div className="flex items-start gap-4 p-4 bg-violet-50 dark:bg-violet-500/10 rounded-2xl border border-violet-100 dark:border-violet-500/20">
+            <div className="w-10 h-10 bg-zinc-900 dark:bg-violet-500 rounded-xl flex items-center justify-center shrink-0">
               <IconHeadset size={20} className="text-white" />
             </div>
             <div>
-              <h4 className="font-bold text-gray-900 text-sm">Hubungi Tim IT Support</h4>
-              <p className="text-sm text-gray-500 mt-1 leading-relaxed">Jika Anda lupa kata sandi atau akun Anda terkunci, silakan hubungi administrator melalui saluran di bawah.</p>
+              <h4 className="font-bold text-gray-900 dark:text-violet-400 text-sm">Hubungi Tim IT Support</h4>
+              <p className="text-sm text-gray-500 dark:text-gray-300 mt-1 leading-relaxed">Jika Anda lupa kata sandi atau akun Anda terkunci, silakan hubungi administrator melalui saluran di bawah.</p>
             </div>
           </div>
 
           <div className="space-y-3">
-            <a href="https://wa.me/6281234567890" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-4 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all group">
+            <a href="https://wa.me/6281234567890" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-4 border border-gray-100 dark:border-border rounded-2xl hover:bg-gray-50 dark:hover:bg-muted/50 transition-all group">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-green-600">
+                <div className="w-8 h-8 bg-green-100 dark:bg-green-500/20 rounded-lg flex items-center justify-center text-green-600 dark:text-green-400">
                   <IconBrandWhatsapp size={18} />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-gray-900">WhatsApp Support</p>
-                  <p className="text-xs text-gray-500">Respon cepat (08:00 - 17:00)</p>
+                  <p className="text-xs font-bold text-gray-900 dark:text-foreground">WhatsApp Support</p>
+                  <p className="text-xs text-gray-500 dark:text-muted-foreground">Respon cepat (08:00 - 17:00)</p>
                 </div>
               </div>
               <IconExternalLink size={16} className="text-gray-300 group-hover:text-gray-400" />
             </a>
 
-            <a href="mailto:it.support@company.com" className="flex items-center justify-between p-4 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all group">
+            <a href="mailto:it.support@company.com" className="flex items-center justify-between p-4 border border-gray-100 dark:border-border rounded-2xl hover:bg-gray-50 dark:hover:bg-muted/50 transition-all group">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">
+                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-500/20 rounded-lg flex items-center justify-center text-blue-600 dark:text-blue-400">
                   <IconMail size={18} />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-gray-900">Email Ticketing</p>
-                  <p className="text-xs text-gray-500">it.support@inventra.com</p>
+                  <p className="text-xs font-bold text-gray-900 dark:text-foreground">Email Ticketing</p>
+                  <p className="text-xs text-gray-500 dark:text-muted-foreground">it.support@inventra.com</p>
                 </div>
               </div>
               <IconExternalLink size={16} className="text-gray-300 group-hover:text-gray-400" />

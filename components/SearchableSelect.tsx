@@ -64,8 +64,8 @@ export default function SearchableSelect({
       </div>
 
       {isOpen && (
-        <div className="absolute z-[200] mt-2 w-full bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="p-3 border-b border-gray-50">
+        <div className="absolute z-[200] mt-2 w-full bg-card rounded-2xl shadow-2xl border border-border overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="p-3 border-b border-border/60 bg-muted">
             <div className="relative">
               <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
               <input 
@@ -74,7 +74,7 @@ export default function SearchableSelect({
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Cari..."
-                className="w-full pl-9 pr-4 py-2 bg-gray-50 border-none rounded-lg text-xs focus:ring-0"
+                className="w-full pl-9 pr-4 py-2 bg-background border-none rounded-lg text-xs focus:ring-0"
               />
             </div>
           </div>
@@ -89,11 +89,11 @@ export default function SearchableSelect({
                     setIsOpen(false);
                     setSearchTerm("");
                   }}
-                  className="px-4 py-3 hover:bg-violet-50 cursor-pointer flex items-center justify-between group transition-colors"
+                  className="px-4 py-3 hover:bg-violet-50 dark:hover:bg-violet-900/20 cursor-pointer flex items-center justify-between group transition-colors"
                 >
                   <div>
-                    <p className="text-sm font-bold text-gray-800 group-hover:text-violet-500">{opt.label}</p>
-                    {opt.sublabel && <p className="text-xs text-gray-400">{opt.sublabel}</p>}
+                    <p className="text-sm font-bold text-gray-800 dark:text-gray-100 group-hover:text-violet-500">{opt.label}</p>
+                    {opt.sublabel && <p className="text-xs text-gray-400 dark:text-gray-400">{opt.sublabel}</p>}
                   </div>
                   {value === opt.label && <IconCheck size={16} className="text-violet-500" stroke={3} />}
                 </div>

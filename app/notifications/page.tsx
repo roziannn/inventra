@@ -12,6 +12,7 @@ import {
   IconCheck
 } from "@tabler/icons-react";
 import toast from "react-hot-toast";
+import Button from "@/components/Button";
 
 const dummyNotifications = [
   // ... (data tetap sama)
@@ -30,12 +31,13 @@ export default function NotificationsPage() {
             <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Notifikasi</h2>
             <p className="text-xs text-gray-500">Lihat semua pembaruan dan aktivitas terbaru di Inventra.</p>
           </div>
-          <button 
+          <Button 
+            variant="page-primary"
             onClick={handleMarkAllRead}
-            className="text-violet-500 hover:text-violet-600 text-xs font-bold flex items-center gap-1 transition-colors"
+            className="h-8"
           >
             <IconCheck size={16} /> Tandai semua dibaca
-          </button>
+          </Button>
         </div>
 
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">

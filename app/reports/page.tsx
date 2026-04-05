@@ -32,6 +32,8 @@ import {
   IconLoader,
 } from "@tabler/icons-react";
 import { toast } from "react-hot-toast";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const userOptions = [
   { id: "1", label: "Budi Santoso", sublabel: "IT Department" },
@@ -156,17 +158,142 @@ export default function ReportsPage() {
   const handleExport = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Simulate export process
-    const exportPromise = new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(`Data laporan dari ${startDate} hingga ${endDate} berhasil diekspor`);
-      }, 2000);
+    const exportPromise = new Promise((resolve, reject) => {
+      try {
+        const start = new Date(`${startDate}T00:00:00`);
+        const end = new Date(`${endDate}T23:59:59.999`);
+
+        const exportData = reports.filter((r) => {
+          const d = new Date(r.reportDate);
+          return d >= start && d <= end;
+        });
+
+        const doc = new jsPDF({
+          orientation: "portrait",
+          unit: "mm",
+          format: "a4",
+          putOnlyUsedFonts: true,
+          compress: true,
+        });
+
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const marginX = 14;
+        const headerTop = 12;
+        const headerHeight = 22;
+        const contentTop = headerTop + headerHeight;
+        const footerTop = pageHeight - 18;
+        const footerHeight = 10;
+
+        const exportedAt = new Date().toLocaleString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        });
+
+        autoTable(doc, {
+          startY: contentTop,
+          margin: { top: contentTop, left: marginX, right: marginX, bottom: 20 },
+          tableWidth: pageWidth - marginX * 2,
+          head: [["ID / Token", "Barang", "Pelapor", "Status", "Assignee"]],
+          body: exportData.length
+            ? exportData.map((r) => [`${r.id}\n${r.token.toLowerCase()}`, r.item, r.reporter, r.status, r.assignee])
+            : [
+                [
+                  {
+                    content: "Tidak ada data pada rentang tanggal yang dipilih.",
+                    colSpan: 5,
+                    styles: { halign: "center", textColor: [150, 150, 150] },
+                  },
+                ],
+              ],
+          styles: {
+            font: "helvetica",
+            fontSize: 8.5,
+            textColor: 0,
+            lineColor: 0,
+            lineWidth: 0.2,
+            cellPadding: 2,
+            valign: "middle",
+          },
+          headStyles: {
+            fillColor: [245, 246, 250],
+            textColor: 0,
+            lineColor: 0,
+            lineWidth: 0.25,
+            fontStyle: "bold",
+            fontSize: 8.5,
+          },
+          bodyStyles: {
+            fillColor: false,
+          },
+          alternateRowStyles: {
+            fillColor: [252, 252, 255],
+          },
+          columnStyles: {
+            0: { cellWidth: 35, fontSize: 7.5 },
+            1: { cellWidth: 45 },
+            2: { cellWidth: 35 },
+            3: { cellWidth: 30 },
+            4: { cellWidth: 37 },
+          },
+          didDrawPage: (data) => {
+            // Header
+            doc.setDrawColor(0);
+            doc.setLineWidth(0.3);
+            doc.rect(marginX, headerTop, pageWidth - marginX * 2, headerHeight);
+
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(9);
+            doc.text("INVENTRA", marginX + 4, headerTop + 5);
+            doc.setFontSize(16);
+            doc.text("Reports Data", marginX + 4, headerTop + 11);
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(9);
+            const rangeStr = `${new Date(startDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })} - ${new Date(endDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}`;
+            doc.text(`Periode ${rangeStr}`, marginX + 4, headerTop + 16);
+
+            const exportedBoxWidth = 58;
+            const exportedBoxX = pageWidth - marginX - exportedBoxWidth;
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(8);
+            doc.text("Exported at", exportedBoxX + exportedBoxWidth - 3, headerTop + 5, { align: "right" });
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(8);
+            doc.text(exportedAt, exportedBoxX + exportedBoxWidth - 3, headerTop + 10, { align: "right" });
+            doc.text(`Total data: ${exportData.length}`, exportedBoxX + exportedBoxWidth - 3, headerTop + 15, { align: "right" });
+          },
+        });
+
+        const totalPages = doc.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
+          doc.setPage(i);
+          doc.rect(marginX, footerTop, pageWidth - marginX * 2, footerHeight);
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(8);
+          doc.text("INVENTRA - Reports Export | Dicetak oleh Administrator", marginX + 3, footerTop + 6.2);
+          doc.text(`Halaman ${i} dari ${totalPages}`, pageWidth - marginX - 3, footerTop + 6.2, { align: "right" });
+        }
+
+        const fileName = `reports-${startDate}-to-${endDate}.pdf`;
+        doc.save(fileName);
+
+        resolve(`Data laporan berhasil diunduh.`);
+      } catch (err) {
+        console.error(err);
+        reject(err);
+      }
     });
 
     toast.promise(exportPromise, {
-      loading: "Menyiapkan data export...",
-      success: (message: any) => message,
-      error: "Gagal mengekspor data",
+      loading: "Mengekspor PDF...",
+      success: (msg: any) => msg,
+      error: "Gagal mengekspor PDF.",
     });
 
     handleCloseExportModal();
@@ -297,9 +424,7 @@ export default function ReportsPage() {
 
     {
       header: "Pelapor",
-      accessor: (item: any) => (
-        <span className="text-sm text-gray-700 font-medium">{item.reporter}</span>
-      ),
+      accessor: (item: any) => <span className="text-sm text-gray-700 font-medium">{item.reporter}</span>,
     },
 
     {
@@ -343,15 +468,15 @@ export default function ReportsPage() {
       className: "text-center w-[120px]",
       accessor: (item: any) => (
         <div className="flex items-center justify-center gap-1">
-            <button
-              onClick={() => {
-                setSelectedReport(item);
-                setView("detail");
-              }}
-              className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-300 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/12 transition-all"
-            >
-              <IconEye size={16} />
-            </button>
+          <button
+            onClick={() => {
+              setSelectedReport(item);
+              setView("detail");
+            }}
+            className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-300 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/12 transition-all"
+          >
+            <IconEye size={16} />
+          </button>
 
           <button onClick={() => handleEditClick(item)} className="p-1.5 text-gray-400 hover:text-violet-600 dark:hover:text-violet-300 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/12 transition-all">
             <IconEdit size={16} />
@@ -637,12 +762,12 @@ export default function ReportsPage() {
         {/* Delete Confirmation Modal */}
         <Modal isOpen={isDeleteModalOpen} onClose={handleCloseDeleteModal} title="Konfirmasi Hapus Laporan">
           <form onSubmit={handleConfirmDelete} className="space-y-6">
-            <div className="flex flex-col items-center text-center gap-2 p-4 bg-red-50 rounded-2xl border border-red-100">
-              <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-2">
+            <div className="flex flex-col items-center text-center gap-2 p-4 bg-red-50 dark:bg-red-500/10 rounded-2xl border border-red-100 dark:border-red-500/20">
+              <div className="w-12 h-12 bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mb-2">
                 <IconAlertTriangle size={28} />
               </div>
-              <h3 className="text-lg font-bold text-red-900">Apakah Anda yakin?</h3>
-              <p className="text-sm text-red-600 font-medium leading-relaxed">
+              <h3 className="text-lg font-bold text-red-900 dark:text-red-400">Apakah Anda yakin?</h3>
+              <p className="text-sm text-red-600 dark:text-red-300/80 font-medium leading-relaxed">
                 Tindakan ini tidak dapat dibatalkan. Menghapus laporan <span className="font-black uppercase">{reportToDelete?.id}</span> akan menghapus seluruh data terkait secara permanen.
               </p>
             </div>
@@ -681,11 +806,7 @@ export default function ReportsPage() {
               <Button variant="modal-secondary" type="button" onClick={handleCloseDeleteModal} className="flex-1">
                 Batal
               </Button>
-              <Button
-                variant="modal-danger"
-                type="submit"
-                className="flex-1"
-              >
+              <Button variant="modal-danger" type="submit" className="flex-1">
                 <IconTrash size={16} stroke={3} /> Hapus Permanen
               </Button>
             </div>
@@ -695,8 +816,8 @@ export default function ReportsPage() {
         {/* Export Reports Modal */}
         <Modal isOpen={isExportModalOpen} onClose={handleCloseExportModal} title="Export Data Laporan">
           <form onSubmit={handleExport} className="space-y-6">
-            <div className="p-4 bg-violet-50 rounded-xl border border-violet-100">
-              <p className="text-sm text-violet-800 leading-relaxed font-medium">Pilih rentang tanggal untuk mengekspor data laporan kerusakan dan perbaikan.</p>
+            <div className="p-4 bg-violet-50 dark:bg-violet-500/10 rounded-xl border border-violet-100 dark:border-violet-500/20">
+              <p className="text-sm text-violet-800 dark:text-violet-300 leading-relaxed font-medium">Pilih rentang tanggal untuk mengekspor data laporan kerusakan dan perbaikan.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -734,12 +855,7 @@ export default function ReportsPage() {
               <Button variant="modal-secondary" type="button" onClick={handleCloseExportModal} className="flex-1">
                 Batal
               </Button>
-              <Button
-                variant="modal-primary"
-                type="submit"
-                disabled={!startDate || !endDate || endDate < startDate}
-                className="flex-1"
-              >
+              <Button variant="modal-primary" type="submit" disabled={!startDate || !endDate || endDate < startDate} className="flex-1">
                 <IconFileExport size={16} /> Mulai Export
               </Button>
             </div>

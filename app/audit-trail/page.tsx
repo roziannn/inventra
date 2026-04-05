@@ -42,106 +42,138 @@ export default function AuditTrailPage() {
 
   const handleExport = (e: React.FormEvent) => {
     e.preventDefault();
-    const exportLogs = filterAuditLogsByRange(auditLogs, startDate, endDate);
-    const doc = new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: "a4",
+
+    const exportPromise = new Promise((resolve, reject) => {
+      try {
+        const exportLogs = filterAuditLogsByRange(auditLogs, startDate, endDate);
+        const doc = new jsPDF({
+          orientation: "portrait",
+          unit: "mm",
+          format: "a4",
+          putOnlyUsedFonts: true,
+          compress: true,
+        });
+
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const marginX = 14;
+        const headerTop = 12;
+        const headerHeight = 22;
+        const contentTop = headerTop + headerHeight;
+        const footerTop = pageHeight - 18;
+        const footerHeight = 10;
+
+        const exportedAt = new Date().toLocaleString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        });
+
+        autoTable(doc, {
+          startY: contentTop,
+          margin: { top: contentTop, left: marginX, right: marginX, bottom: 20 },
+          tableWidth: pageWidth - marginX * 2,
+          head: [["Aktivitas", "Deskripsi", "Oleh", "Waktu"]],
+          body: exportLogs.length
+            ? exportLogs.map((log) => [`${log.action} ${log.target}`, log.description, log.user, formatAuditDateTime(log.date)])
+            : [
+                [
+                  {
+                    content: "Tidak ada log pada rentang tanggal yang dipilih.",
+                    colSpan: 4,
+                    styles: { halign: "center", textColor: [150, 150, 150] },
+                  },
+                ],
+              ],
+          styles: {
+            font: "helvetica",
+            fontSize: 8.5,
+            textColor: 0,
+            lineColor: 0,
+            lineWidth: 0.2,
+            cellPadding: 2,
+            valign: "middle",
+          },
+          headStyles: {
+            fillColor: [245, 246, 250],
+            textColor: 0,
+            lineColor: 0,
+            lineWidth: 0.25,
+            fontStyle: "bold",
+            fontSize: 8.5,
+          },
+          bodyStyles: {
+            fillColor: false,
+          },
+          alternateRowStyles: {
+            fillColor: [252, 252, 255],
+          },
+          columnStyles: {
+            0: { cellWidth: 34 },
+            1: { cellWidth: 66, fontSize: 8 },
+            2: { cellWidth: 27 },
+            3: { cellWidth: 55, fontSize: 8.25, cellPadding: { top: 2, right: 2, bottom: 2, left: 2 } },
+          },
+          didDrawPage: (data) => {
+            // Header
+            doc.setDrawColor(0);
+            doc.setLineWidth(0.3);
+            doc.rect(marginX, headerTop, pageWidth - marginX * 2, headerHeight);
+
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(9);
+            doc.text("INVENTRA", marginX + 4, headerTop + 5);
+            doc.setFontSize(16);
+            doc.text("Audit Trail", marginX + 4, headerTop + 11);
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(9);
+            doc.text(`Periode ${formatAuditDateRange(startDate, endDate)}`, marginX + 4, headerTop + 16);
+
+            const exportedBoxWidth = 58;
+            const exportedBoxX = pageWidth - marginX - exportedBoxWidth;
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(8);
+            doc.text("Exported at", exportedBoxX + exportedBoxWidth - 3, headerTop + 5, { align: "right" });
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(8);
+            doc.text(exportedAt, exportedBoxX + exportedBoxWidth - 3, headerTop + 10, { align: "right" });
+            doc.text(`Total log: ${exportLogs.length}`, exportedBoxX + exportedBoxWidth - 3, headerTop + 15, { align: "right" });
+          },
+        });
+
+        const totalPages = doc.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
+          doc.setPage(i);
+          doc.rect(marginX, footerTop, pageWidth - marginX * 2, footerHeight);
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(8);
+          doc.text("INVENTRA - Audit Trail Export | Dicetak oleh Administrator", marginX + 3, footerTop + 6.2);
+          doc.text(`Halaman ${i} dari ${totalPages}`, pageWidth - marginX - 3, footerTop + 6.2, { align: "right" });
+        }
+
+        const fileName = `audit-trail-${startDate}-to-${endDate}.pdf`;
+
+        // Use doc.save() which is standard and handles multiple platforms
+        doc.save(fileName);
+
+        resolve(`Audit Trail berhasil diunduh.`);
+      } catch (err) {
+        console.error(err);
+        reject(err);
+      }
     });
 
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const marginX = 14;
-    const headerTop = 12;
-    const headerHeight = 22;
-    const footerHeight = 10;
-    const contentTop = headerTop + headerHeight;
-    const footerTop = pageHeight - 18;
-    const exportedAt = new Date().toLocaleString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
+    toast.promise(exportPromise, {
+      loading: "Mengekspor PDF...",
+      success: (msg: any) => msg,
+      error: "Gagal mengekspor PDF.",
     });
 
-    autoTable(doc, {
-      startY: contentTop,
-      margin: { top: contentTop, left: marginX, right: marginX, bottom: 20 },
-      tableWidth: pageWidth - marginX * 2,
-      head: [["Aktivitas", "Deskripsi", "Oleh", "Waktu"]],
-      body: exportLogs.length
-        ? exportLogs.map((log) => [`${log.action} ${log.target}`, log.description, log.user, formatAuditDateTime(log.date)])
-        : [["-", "Tidak ada log pada rentang tanggal yang dipilih.", "-", "-"]],
-      styles: {
-        font: "helvetica",
-        fontSize: 8.5,
-        textColor: 0,
-        lineColor: 0,
-        lineWidth: 0.2,
-        cellPadding: 2,
-        valign: "middle",
-      },
-      headStyles: {
-        fillColor: false,
-        textColor: 0,
-        lineColor: 0,
-        lineWidth: 0.25,
-        fontStyle: "bold",
-        fontSize: 8.5,
-      },
-      bodyStyles: {
-        fillColor: false,
-      },
-      alternateRowStyles: {
-        fillColor: false,
-      },
-      columnStyles: {
-        0: { cellWidth: 34 },
-        1: { cellWidth: 66, fontSize: 8 },
-        2: { cellWidth: 27 },
-        3: { cellWidth: 55, fontSize: 8.25, cellPadding: { top: 2, right: 2, bottom: 2, left: 2 } },
-      },
-    });
-
-    const totalPages = doc.getNumberOfPages();
-    for (let i = 1; i <= totalPages; i += 1) {
-      doc.setPage(i);
-      doc.setDrawColor(0);
-      doc.setLineWidth(0.3);
-      doc.rect(marginX, headerTop, pageWidth - marginX * 2, headerHeight);
-
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(9);
-      doc.text("INVENTRA", marginX + 4, headerTop + 5);
-      doc.setFontSize(16);
-      doc.text("Audit Trail", marginX + 4, headerTop + 11);
-
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      doc.text(`Periode ${formatAuditDateRange(startDate, endDate)}`, marginX + 4, headerTop + 16);
-
-      const exportedBoxWidth = 58;
-      const exportedBoxX = pageWidth - marginX - exportedBoxWidth;
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(8);
-      doc.text("Exported at", exportedBoxX + exportedBoxWidth - 3, headerTop + 5, { align: "right" });
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(8);
-      doc.text(exportedAt, exportedBoxX + exportedBoxWidth - 3, headerTop + 10, { align: "right" });
-      doc.text(`Total log: ${exportLogs.length}`, exportedBoxX + exportedBoxWidth - 3, headerTop + 15, { align: "right" });
-
-      doc.rect(marginX, footerTop, pageWidth - marginX * 2, footerHeight);
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(8);
-      doc.text("INVENTRA - Audit Trail Export | Dicetak oleh Administrator", marginX + 3, footerTop + 6.2);
-      doc.text(`Halaman ${i} dari ${totalPages}`, pageWidth - marginX - 3, footerTop + 6.2, { align: "right" });
-    }
-
-    doc.save(`audit-trail-${startDate}-to-${endDate}.pdf`);
-    toast.success(`Audit Trail ${startDate} sampai ${endDate} berhasil diunduh.`);
     handleCloseModal();
   };
 
@@ -205,8 +237,10 @@ export default function AuditTrailPage() {
         <DataTable data={filteredLogs} columns={columns} pageSize={10} density="dense" />
         <Modal isOpen={isModalOpen} onClose={handleCloseModal} title="Export Audit Trail">
           <form onSubmit={handleExport} className="space-y-6">
-            <div className="p-4 bg-violet-50 rounded-xl border border-violet-100">
-              <p className="text-sm text-violet-800 leading-relaxed font-medium">Pilih rentang tanggal untuk mengekspor log aktivitas. Pastikan tanggal &quot;Hingga&quot; tidak lebih kecil dari tanggal &quot;Dari&quot;.</p>
+            <div className="p-4 bg-violet-50 dark:bg-violet-500/10 rounded-xl border border-violet-100 dark:border-violet-500/20">
+              <p className="text-sm text-violet-800 dark:text-violet-300 leading-relaxed font-medium">
+                Pilih rentang tanggal untuk mengekspor log aktivitas. Pastikan tanggal &quot;Hingga&quot; tidak lebih kecil dari tanggal &quot;Dari&quot;.
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

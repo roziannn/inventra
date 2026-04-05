@@ -329,20 +329,20 @@ export default function UsersPage() {
                 </select>
               </div>
               {editingUser && (
-                <div className="pt-2 flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                <div className="pt-2 flex items-center justify-between p-4 bg-gray-50 dark:bg-muted/50 rounded-xl border border-gray-100 dark:border-border">
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.status === "Active" ? "bg-violet-100 text-violet-600" : "bg-red-100 text-red-600"}`}>
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${formData.status === "Active" ? "bg-violet-100 text-violet-600 dark:bg-violet-500/20 dark:text-violet-400" : "bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400"}`}>
                       {formData.status === "Active" ? <IconCircleCheckFilled size={20} /> : <IconCircleXFilled size={20} />}
                     </div>
                     <div>
-                      <p className="text-sm text-gray-900">Status User</p>
-                      <p className="text-xs text-gray-500">Klik toggle untuk mengubah ke {formData.status === "Active" ? "Inactive" : "Active"}</p>
+                      <p className="text-sm text-gray-900 dark:text-foreground">Status User</p>
+                      <p className="text-xs text-gray-500 dark:text-muted-foreground">Klik toggle untuk mengubah ke {formData.status === "Active" ? "Inactive" : "Active"}</p>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, status: formData.status === "Active" ? "Inactive" : "Active" })}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${formData.status === "Active" ? "bg-violet-600" : "bg-gray-300"}`}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${formData.status === "Active" ? "bg-violet-600" : "bg-gray-300 dark:bg-muted"}`}
                   >
                     <span className={`${formData.status === "Active" ? "translate-x-6" : "translate-x-1"} inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm`} />
                   </button>
@@ -362,8 +362,8 @@ export default function UsersPage() {
 
         <Modal isOpen={isRoleModalOpen} onClose={() => setIsRoleModalOpen(false)} title="Manajemen Role Group">
           <div className="space-y-6">
-            <div className="p-4 bg-violet-50 rounded-xl border border-violet-100">
-              <p className="text-sm text-violet-800 leading-relaxed font-medium">Kelola role pengguna untuk pengelompokan yang lebih baik di platform Inventra.</p>
+            <div className="p-4 bg-violet-50 dark:bg-violet-500/10 rounded-xl border border-violet-100 dark:border-violet-500/20">
+              <p className="text-sm text-violet-800 dark:text-violet-300 leading-relaxed font-medium">Kelola role pengguna untuk pengelompokan yang lebih baik di platform Inventra.</p>
             </div>
             <div className="space-y-3">
               <FormLabel>Tambah Role Baru</FormLabel>

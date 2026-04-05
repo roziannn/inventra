@@ -329,8 +329,8 @@ export default function AssetsPage() {
         {/* Category Modal */}
         <Modal isOpen={isCategoryModalOpen} onClose={() => setIsCategoryModalOpen(false)} title="Manajemen Kategori Aset">
           <div className="space-y-6">
-            <div className="p-4 bg-violet-50 rounded-xl border border-violet-100">
-              <p className="text-sm text-violet-800 leading-relaxed font-medium">Kelola kategori aset untuk pengelompokan yang lebih baik di platform Inventra.</p>
+            <div className="p-4 bg-violet-50 dark:bg-violet-500/10 rounded-xl border border-violet-100 dark:border-violet-500/20">
+              <p className="text-sm text-violet-800 dark:text-violet-300 leading-relaxed font-medium">Kelola kategori aset untuk pengelompokan yang lebih baik di platform Inventra.</p>
             </div>
 
             <div className="space-y-3">
