@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import { IconAlertCircle, IconCheck, IconCircleCheckFilled, IconCircleDotFilled, IconFileAnalytics, IconPackage, IconSettings, IconUserPlus } from "@tabler/icons-react";
+import { IconAlertCircle, IconCircleCheckFilled, IconCircleDotFilled, IconFileAnalytics, IconPackage, IconSettings, IconUserPlus } from "@tabler/icons-react";
 import toast from "react-hot-toast";
 import Button from "@/components/Button";
 import DataTable from "@/components/DataTable";
@@ -73,9 +73,7 @@ export default function NotificationsPage() {
   };
 
   const handleOpenNotification = (notification: NotificationItem) => {
-    setNotifications((current) =>
-      current.map((item) => (item.id === notification.id ? { ...item, isRead: true } : item)),
-    );
+    setNotifications((current) => current.map((item) => (item.id === notification.id ? { ...item, isRead: true } : item)));
     setSelectedNotification({ ...notification, isRead: true });
   };
 

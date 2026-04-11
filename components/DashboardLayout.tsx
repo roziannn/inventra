@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -122,7 +123,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     const activeSubMenu = getActiveSubMenu(pathname);
     if (activeSubMenu && openSubMenu !== activeSubMenu) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOpenSubMenu(activeSubMenu);
     }
   }, [getActiveSubMenu, openSubMenu, pathname]);
@@ -176,7 +176,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }
       });
 
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFilteredResults(results.slice(0, 6)); // Limit to 6 results
       setShowSuggestions(true);
     } else {
@@ -201,7 +200,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   // Close mobile menu on route change
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMobileMenuOpen(false);
     setSearchQuery("");
     setShowSuggestions(false);
