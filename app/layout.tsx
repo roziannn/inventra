@@ -18,6 +18,20 @@ export const metadata: Metadata = {
   description: "Modern Asset & Inventory Management System",
 };
 
+const themeInitScript = `
+  (function() {
+    try {
+      var storedTheme = localStorage.getItem("theme");
+      var systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      var resolvedTheme = storedTheme === "light" || storedTheme === "dark"
+        ? storedTheme
+        : (systemPrefersDark ? "dark" : "light");
+      document.documentElement.classList.toggle("dark", resolvedTheme === "dark");
+      document.documentElement.style.colorScheme = resolvedTheme;
+    } catch (error) {}
+  })();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -25,6 +39,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground transition-colors duration-300`}>
         <Toaster
           position="top-center"

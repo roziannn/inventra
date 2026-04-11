@@ -44,7 +44,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="h-screen bg-white flex overflow-hidden font-sans">
+    <div className="flex h-screen overflow-hidden bg-white font-sans transition-colors duration-300 dark:bg-background">
       {/* --- Left Side: Branding & Illustration (Hidden on Mobile) --- */}
       <div className="hidden lg:flex lg:w-1/2 bg-zinc-900 relative items-center justify-center p-12 overflow-hidden">
         {/* Abstract Background Decoration */}
@@ -84,19 +84,19 @@ export default function LoginPage() {
       </div>
 
       {/* --- Right Side: Login Form --- */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 lg:p-24 bg-slate-100 lg:bg-white">
+      <div className="flex w-full items-center justify-center bg-slate-100 p-6 transition-colors duration-300 dark:bg-background sm:p-12 lg:w-1/2 lg:bg-white lg:p-24 dark:lg:bg-background">
         <div className="w-full max-w-md space-y-8">
           {/* Header Mobile Only */}
           <div className="lg:hidden flex flex-col items-center mb-10">
-            <div className="w-12 h-12 bg-zinc-900 rounded-xl flex items-center justify-center shadow-lg mb-4">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-900 shadow-lg dark:bg-violet-500">
               <IconBoxSeam size={24} stroke={2.5} className="text-white" />
             </div>
             <h1 className={`${sulphurPoint.className} text-2xl font-bold text-violet-500 tracking-tighter uppercase`}>Inventra</h1>
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-3xl font-bold text-gray-900 tracking-tight">Selamat Datang</h3>
-            <p className="text-sm text-gray-500 font-medium leading-relaxed">Silahkan masuk ke akun Anda untuk mulai mengelola aset.</p>
+            <h3 className="text-3xl font-bold text-gray-900 tracking-tight dark:text-foreground">Selamat Datang</h3>
+            <p className="text-sm text-gray-500 font-medium leading-relaxed dark:text-gray-300">Silahkan masuk ke akun Anda untuk mulai mengelola aset.</p>
           </div>
 
           <form onSubmit={handleLogin} className="mt-10 space-y-5">
@@ -109,7 +109,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@company.com"
-                  className="w-full pl-4 pr-4 py-3.5 bg-gray-50 lg:bg-white border border-gray-200 rounded-2xl text-sm text-gray-900 focus:outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-400 transition-all"
+                  className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3.5 pl-4 pr-4 text-sm text-gray-900 transition-all focus:border-violet-400 focus:outline-none focus:ring-4 focus:ring-violet-500/10 dark:border-border dark:bg-card dark:text-foreground dark:placeholder:text-gray-500"
                 />
               </div>
             </div>
@@ -117,7 +117,7 @@ export default function LoginPage() {
             <div className="space-y-2 group">
               <div className="flex justify-between items-center">
                 <FormLabel block icon={<IconLock size={14} />}>Kata Sandi</FormLabel>
-                <button type="button" onClick={() => setIsModalOpen(true)} className="text-sm font-semibold text-violet-500  hover:text-violet-500 transition-colors cursor-pointer mb-2">
+                <button type="button" onClick={() => setIsModalOpen(true)} className="mb-2 cursor-pointer text-sm font-semibold text-violet-500 transition-colors hover:text-violet-400">
                   Lupa Sandi?
                 </button>
               </div>
@@ -128,9 +128,9 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="w-full pl-4 pr-12 py-3.5 bg-gray-50 lg:bg-white border border-gray-200 rounded-2xl text-sm text-gray-900 focus:outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-400 transition-all"
+                  className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3.5 pl-4 pr-12 text-sm text-gray-900 transition-all focus:border-violet-400 focus:outline-none focus:ring-4 focus:ring-violet-500/10 dark:border-border dark:bg-card dark:text-foreground dark:placeholder:text-gray-500"
                 />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300">
                   {showPassword ? <IconEyeOff size={20} /> : <IconEye size={20} />}
                 </button>
               </div>
@@ -139,7 +139,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full mt-6 bg-zinc-900 hover:bg-zinc-800 text-white py-4 rounded-2xl font-semibold text-sm shadow-xl shadow-violet-950/20 transition-all active:scale-95 disabled:opacity-70 flex items-center justify-center gap-2"
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-zinc-900 py-4 text-sm font-semibold text-white shadow-xl shadow-violet-950/20 transition-all active:scale-95 hover:bg-zinc-800 disabled:opacity-70 dark:bg-violet-500 dark:text-white dark:hover:bg-violet-400"
             >
               {isLoading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -151,7 +151,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="text-center text-xs font-medium text-gray-500 pt-6">
+          <p className="pt-6 text-center text-xs font-medium text-gray-500 dark:text-gray-300">
             Tidak bisa masuk?{" "}
             <button onClick={() => setIsModalOpen(true)} className="text-violet-500 font-bold hover:underline underline-offset-4">
               Hubungi Administrator

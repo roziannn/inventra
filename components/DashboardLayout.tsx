@@ -47,6 +47,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [filteredResults, setFilteredResults] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [openSubMenu, setOpenSubMenu] = useState<string | null>(() => getActiveSubMenu(pathname));
+  const [themePreference, setThemePreference] = useState<"light" | "dark" | null>(null);
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const router = useRouter();
   const searchRef = useRef<HTMLDivElement>(null);
@@ -54,24 +55,49 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const storedTheme = typeof window !== "undefined" ? localStorage.getItem("theme") : null;
-    const prefersDark = typeof window !== "undefined" ? window.matchMedia("(prefers-color-scheme: dark)").matches : false;
-    const initialTheme = storedTheme === "dark" || storedTheme === "light" ? storedTheme : prefersDark ? "dark" : "light";
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    const storedTheme = window.localStorage.getItem("theme");
+    const prefersDarkQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const hasStoredTheme = storedTheme === "dark" || storedTheme === "light";
+    const initialTheme = hasStoredTheme ? storedTheme : prefersDarkQuery.matches ? "dark" : "light";
+
+    setThemePreference(hasStoredTheme ? storedTheme : null);
     setTheme(initialTheme);
-    if (typeof document !== "undefined") {
-      document.documentElement.classList.toggle("dark", initialTheme === "dark");
-    }
+    document.documentElement.classList.toggle("dark", initialTheme === "dark");
+    document.documentElement.style.colorScheme = initialTheme;
     setMounted(true);
+
+    if (!hasStoredTheme) {
+      const handleSystemThemeChange = (event: MediaQueryListEvent) => {
+        const nextTheme = event.matches ? "dark" : "light";
+        setTheme(nextTheme);
+        document.documentElement.classList.toggle("dark", nextTheme === "dark");
+        document.documentElement.style.colorScheme = nextTheme;
+      };
+
+      prefersDarkQuery.addEventListener("change", handleSystemThemeChange);
+      return () => prefersDarkQuery.removeEventListener("change", handleSystemThemeChange);
+    }
   }, []);
 
   useEffect(() => {
     if (!mounted) return;
     document.documentElement.classList.toggle("dark", theme === "dark");
-    localStorage.setItem("theme", theme);
-  }, [theme, mounted]);
+    document.documentElement.style.colorScheme = theme;
 
-  const toggleTheme = () => setTheme((prev) => (prev === "light" ? "dark" : "light"));
+    if (themePreference) {
+      localStorage.setItem("theme", themePreference);
+    } else {
+      localStorage.removeItem("theme");
+    }
+  }, [theme, themePreference, mounted]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => {
+      const nextTheme = prev === "light" ? "dark" : "light";
+      setThemePreference(nextTheme);
+      return nextTheme;
+    });
+  };
 
   const sidebarItems = [
     { name: "Dashboard", icon: IconLayoutDashboard, href: "/" },
@@ -285,26 +311,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </nav>
 
         {/* --- Sidebar Footer: User Profile --- */}
-        <div className="mt-auto border-t border-white/10 p-3 relative" ref={profileRef}>
-          <button
-            onClick={() => setIsProfileOpen(!isProfileOpen)}
-            className={`w-full flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-all group ${isCollapsed ? "justify-center" : ""}`}
-          >
-            <div className="w-9 h-9 bg-violet-500 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-lg">
-              AD
-            </div>
+        <div className="mt-auto p-4 relative" ref={profileRef}>
+          <button onClick={() => setIsProfileOpen(!isProfileOpen)} className={`w-full flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-all group ${isCollapsed ? "justify-center" : ""}`}>
+            <div className="w-9 h-9 bg-violet-500 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-lg">AD</div>
             {!isCollapsed && (
               <div className="flex-1 text-left overflow-hidden">
                 <p className="text-sm font-bold text-white truncate">Admin User</p>
                 <p className="text-xs text-violet-100/50 truncate">admin@inventra.com</p>
               </div>
             )}
-            {!isCollapsed && (
-              <IconChevronDown
-                size={14}
-                className={`text-violet-100/30 transition-transform duration-300 ${isProfileOpen ? "rotate-180" : ""}`}
-              />
-            )}
+            {!isCollapsed && <IconChevronDown size={14} className={`text-violet-100/30 transition-transform duration-300 ${isProfileOpen ? "rotate-180" : ""}`} />}
           </button>
 
           {/* Profile Dropdown (Popover Up) */}
@@ -314,8 +330,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 isCollapsed ? "left-14 w-48" : "left-3 right-3"
               }`}
             >
-              <div className="px-4 py-3 border-b border-white/5 mb-1">
-                <p className="text-[10px] font-bold text-violet-100/30 uppercase tracking-[0.2em]">Akun Saya</p>
+              <div className="p-4 border-b border-white/5 mb-1">
+                <p className="text-xs font-bold text-violet-100/30">Akun Saya</p>
                 <div className="flex items-center gap-3 mt-2">
                   <div className="w-8 h-8 bg-white/5 rounded-full flex items-center justify-center text-white font-bold text-xs">AD</div>
                   <div className="overflow-hidden">
@@ -326,17 +342,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
 
               <div className="px-2 space-y-0.5">
-                <Link
-                  href="/profile"
-                  className="flex items-center gap-3 px-3 py-2 text-sm text-violet-100/60 hover:bg-white/5 hover:text-white rounded-xl transition-colors group"
-                >
+                <Link href="/profile" className="flex items-center gap-3 px-3 py-2 text-sm text-violet-100/60 hover:bg-white/5 hover:text-white rounded-xl transition-colors group">
                   <IconUser size={18} stroke={1.5} />
                   <span>Profil Saya</span>
                 </Link>
-                <Link
-                  href="/settings"
-                  className="flex items-center gap-3 px-3 py-2 text-sm text-violet-100/60 hover:bg-white/5 hover:text-white rounded-xl transition-colors group"
-                >
+                <Link href="/settings" className="flex items-center gap-3 px-3 py-2 text-sm text-violet-100/60 hover:bg-white/5 hover:text-white rounded-xl transition-colors group">
                   <IconSettings size={18} stroke={1.5} />
                   <span>Pengaturan</span>
                 </Link>
@@ -345,10 +355,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <div className="h-px bg-white/5 my-2 mx-4"></div>
 
               <div className="px-2">
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-xl transition-colors group"
-                >
+                <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-xl transition-colors group">
                   <IconLogout size={18} stroke={1.5} />
                   <span className="font-bold">Keluar Aplikasi</span>
                 </button>
@@ -424,11 +431,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
           <div className="flex items-center gap-2">
             <button onClick={toggleTheme} aria-label="Toggle theme" className="p-2 rounded-lg border border-border bg-muted/60 hover:bg-muted transition-colors text-gray-600 dark:text-gray-200">
-              {theme === "dark" ? <IconSun size={18} /> : <IconMoon size={18} />}
+              {mounted ? theme === "dark" ? <IconMoon size={18} /> : <IconSun size={18} /> : <span className="block h-[18px] w-[18px]" aria-hidden="true" />}
             </button>
             <Link href="/notifications" className="p-2 rounded-lg border border-border bg-muted/60 hover:bg-muted transition-colors text-gray-600 dark:text-gray-200 relative">
               <IconBell size={18} />
-              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+              <span className="absolute right-1.5 top-1.5 flex h-3 w-3 items-center justify-center rounded-full bg-card ring-2 ring-card">
+                <span className="h-2 w-2 rounded-full bg-red-500 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]" />
+              </span>
             </Link>
           </div>
         </header>
