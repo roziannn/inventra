@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { IconPlus, IconMinus } from "@tabler/icons-react";
 
 export interface ShelfData {
   id: string;
@@ -45,6 +46,10 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
   const onMoveRef = useRef(onMove);
   const yawRef = useRef(0);
   const pitchRef = useRef(1.0);
+  const zoomRef = useRef(1);
+  const zoomBy = (factor: number) => {
+    zoomRef.current = Math.max(0.3, Math.min(2, zoomRef.current * factor));
+  };
 
   useEffect(() => {
     selectedRef.current = selectedId;
@@ -145,10 +150,11 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
       groups.push({ id: shelf.id, group, boards, rotated: shelf.rotated });
     });
 
-    const radius = Math.max(6, Math.max(roomWidth, roomDepth) * 0.95);
+    const baseRadius = Math.max(6, Math.max(roomWidth, roomDepth) * 0.95);
     const target = new THREE.Vector3(0, 0.5, 0);
     const updateCamera = () => {
       const yaw = yawRef.current;
+      const radius = baseRadius * zoomRef.current;
       const pitch = pitchRef.current;
       camera.position.set(radius * Math.sin(yaw) * Math.cos(pitch), target.y + radius * Math.sin(pitch), radius * Math.cos(yaw) * Math.cos(pitch));
       camera.lookAt(target);
@@ -228,6 +234,11 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
       dragged = null;
       orbiting = false;
     };
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      zoomBy(e.deltaY > 0 ? 1.1 : 0.9);
+    };
+    dom.addEventListener("wheel", onWheel, { passive: false });
     dom.addEventListener("pointerdown", onDown);
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
@@ -248,6 +259,7 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
     return () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
+      dom.removeEventListener("wheel", onWheel);
       dom.removeEventListener("pointerdown", onDown);
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
@@ -260,5 +272,19 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
     };
   }, [shelves, roomWidth, roomDepth]);
 
-  return <div ref={containerRef} className="h-[calc(100vh-13rem)] min-h-[28rem] w-full rounded-xl bg-gray-50 dark:bg-white/5" />;
+  const zoomBtn = "flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-50 active:scale-95 dark:border-gray-100/10 dark:bg-zinc-800 dark:text-gray-100";
+
+  return (
+    <div className="relative">
+      <div ref={containerRef} className="h-[calc(100vh-13rem)] min-h-[28rem] w-full rounded-xl bg-gray-50 dark:bg-white/5" />
+      <div className="absolute bottom-3 right-3 flex flex-col gap-2">
+        <button type="button" aria-label="Zoom in" className={zoomBtn} onClick={() => zoomBy(0.8)}>
+          <IconPlus size={16} />
+        </button>
+        <button type="button" aria-label="Zoom out" className={zoomBtn} onClick={() => zoomBy(1.25)}>
+          <IconMinus size={16} />
+        </button>
+      </div>
+    </div>
+  );
 }
