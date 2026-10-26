@@ -450,13 +450,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <p className="text-xs text-gray-400 dark:text-gray-300 font-medium tracking-wider">
             &copy; {mounted ? new Date().getFullYear() : ""} <span className="text-violet-500 dark:text-violet-400 font-bold">INVENTRA</span>. ASSET & INVENTORY.
           </p>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 bg-violet-500 rounded-full animate-pulse"></div>
-              <span className="text-xs text-gray-500 dark:text-gray-300 font-bold uppercase tracking-widest hidden sm:block">System Online</span>
-            </div>
-            <span className="text-xs px-2 py-0.5 bg-muted border border-border text-gray-400 dark:text-gray-200 rounded-md font-mono">v1.0.2</span>
-          </div>
         </footer>
       </main>
     </div>

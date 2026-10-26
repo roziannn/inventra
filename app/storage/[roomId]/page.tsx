@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, use } from "react";
+import React, { useState, useRef, use } from "react";
 import dynamic from "next/dynamic";
 import { notFound } from "next/navigation";
 import toast from "react-hot-toast";
@@ -13,7 +13,7 @@ import { IconPlus, IconRotate, IconTrash, IconTool, IconCheck } from "@tabler/ic
 
 const ShelfViewer = dynamic(() => import("@/components/ShelfViewer"), {
   ssr: false,
-  loading: () => <div className="h-[calc(100vh-15rem)] min-h-[28rem] w-full animate-pulse rounded-xl bg-gray-100 dark:bg-white/5" />,
+  loading: () => <div className="h-full w-full animate-pulse rounded-xl bg-gray-100 dark:bg-white/5" />,
 });
 
 function findFreeSpot(draft: Pick<ShelfData, "rotated" | "length" | "type">, shelves: ShelfData[], width: number, depth: number) {
@@ -31,7 +31,7 @@ const inputClass = "w-full rounded-lg border border-gray-200 bg-transparent px-3
 
 function Slider({ label, value, min, max, onChange }: { label: string; value: number; min: number; max: number; onChange: (v: number) => void }) {
   return (
-    <label className="flex flex-col gap-1 text-xs text-gray-500">
+    <label className="flex min-w-0 flex-1 flex-col gap-1 text-[11px] text-gray-500">
       <span className="flex justify-between">
         {label} <b className="text-gray-900">{value.toFixed(1)} m</b>
       </span>
@@ -42,10 +42,19 @@ function Slider({ label, value, min, max, onChange }: { label: string; value: nu
 
 function ColorField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
-    <label className="flex items-center justify-between text-xs text-gray-500">
-      Warna
-      <input type="color" value={value} onChange={(e) => onChange(e.target.value)} className="h-8 w-14 cursor-pointer rounded-md border border-gray-200 bg-transparent dark:border-gray-100/10" />
-    </label>
+    <input type="color" aria-label="Warna" title="Warna" value={value} onChange={(e) => onChange(e.target.value)} className="h-8 w-10 shrink-0 cursor-pointer rounded-md border border-gray-200 bg-transparent dark:border-gray-100/10" />
+  );
+}
+
+function TypeSelect({ value, onChange }: { value: ShelfType; onChange: (t: ShelfType) => void }) {
+  return (
+    <select className={`${inputClass} flex-1`} value={value} onChange={(e) => onChange(e.target.value as ShelfType)}>
+      {typeOptions.map((t) => (
+        <option key={t} value={t}>
+          {SHELF_TYPES[t].label}
+        </option>
+      ))}
+    </select>
   );
 }
 
@@ -55,6 +64,8 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
   const [shelves, setShelves] = useState<ShelfData[]>(room?.shelves ?? []);
   const [selectedShelf, setSelectedShelf] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
+  const [showAdd, setShowAdd] = useState(false);
+  const nextId = useRef(0);
   const [draft, setDraft] = useState({ name: "", levels: 4, type: "standard" as ShelfType, ...pick("standard") });
 
   function pick(type: ShelfType) {
@@ -64,7 +75,6 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
 
   if (!room) notFound();
 
-  const selected = shelves.find((s) => s.id === selectedShelf);
   const update = (id: string, patch: Partial<ShelfData>) => setShelves((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
 
   // apply a change to a shelf only if it still fits in the room and doesn't hit other shelves
@@ -86,11 +96,13 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
       toast.error("Tidak ada ruang kosong untuk rak baru");
       return;
     }
-    const id = `RK-${Date.now()}`;
+    nextId.current += 1;
+    const id = `RK-new-${nextId.current}`;
     const name = draft.name.trim() || `Rak ${shelves.length + 1}`;
     setShelves((prev) => [...prev, { id, name, levels: draft.levels, usedPercent: 0, ...spot, ...place, height: draft.height, color: draft.color }]);
     setSelectedShelf(id);
     setDraft((d) => ({ ...d, name: "" }));
+    setShowAdd(false);
   };
 
   const remove = (id: string) => {
@@ -102,7 +114,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3">
         <Breadcrumb items={[{ label: "Storage", href: "/storage" }, { label: room.name }]} />
         <div className="flex items-center justify-between gap-4">
           <div>
@@ -116,8 +128,8 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <div className="lg:col-span-2">
+        <div className="flex flex-col gap-3 lg:h-[calc(100vh-14rem)] lg:min-h-[28rem] lg:flex-row">
+          <div className="relative h-96 min-w-0 lg:h-full lg:flex-1">
             <ShelfViewer
               shelves={shelves}
               roomWidth={room.width}
@@ -128,108 +140,97 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
               onMove={(id, x, z) => update(id, { x, z })}
               onBlocked={() => toast.error("Rak menabrak rak lain, posisi dikembalikan")}
             />
-            <p className="mt-2 text-[11px] text-gray-400">
-              {editMode ? "Drag rak untuk menggeser, drag area kosong untuk memutar kamera." : "Drag untuk memutar kamera, klik rak untuk melihat detail."}
+            <p className="pointer-events-none absolute left-3 top-3 rounded-md bg-white/80 px-2 py-1 text-[11px] text-gray-500 dark:bg-zinc-900/70">
+              {editMode ? "Drag rak untuk menggeser · drag area kosong untuk memutar · scroll untuk zoom" : "Drag untuk memutar · scroll untuk zoom · klik rak untuk detail"}
             </p>
           </div>
 
-          <div className="flex flex-col gap-3">
-            {editMode && (
-              <div className="flex flex-col gap-2 rounded-xl border border-gray-200 p-3 dark:border-gray-100/10">
-                <p className="text-xs font-bold text-gray-900">Tambah Rak</p>
-                <select
-                  className={inputClass}
+          <aside className="flex min-h-0 flex-col gap-2 overflow-y-auto rounded-xl border border-gray-200 bg-white p-3 lg:w-80 dark:border-gray-100/10 dark:bg-white/6">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-bold text-gray-900">Rak ({shelves.length})</p>
+              {editMode && (
+                <button onClick={() => setShowAdd((v) => !v)} className="flex items-center gap-1 rounded-lg bg-violet-600 px-2.5 py-1.5 text-[11px] font-bold text-white hover:bg-violet-700">
+                  <IconPlus size={14} stroke={3} /> {showAdd ? "Tutup" : "Tambah"}
+                </button>
+              )}
+            </div>
+
+            {editMode && showAdd && (
+              <div className="flex flex-col gap-2 rounded-lg bg-gray-50 p-2.5 dark:bg-white/5">
+                <TypeSelect
                   value={draft.type}
-                  onChange={(e) => {
-                    const type = e.target.value as ShelfType;
-                    setDraft((d) => ({ ...d, type, ...pick(type), length: Math.min(pick(type).length, maxLength) }));
-                  }}
-                >
-                  {typeOptions.map((t) => (
-                    <option key={t} value={t}>
-                      {SHELF_TYPES[t].label}
-                    </option>
-                  ))}
-                </select>
-                <input className={inputClass} placeholder={`Rak ${shelves.length + 1}`} value={draft.name} onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))} />
-                <Slider label="Panjang" value={draft.length} min={0.8} max={maxLength} onChange={(length) => setDraft((d) => ({ ...d, length }))} />
-                <Slider label="Tinggi" value={draft.height} min={1} max={5} onChange={(height) => setDraft((d) => ({ ...d, height }))} />
-                <label className="flex items-center justify-between text-xs text-gray-500">
+                  onChange={(type) => setDraft((d) => ({ ...d, type, ...pick(type), length: Math.min(pick(type).length, maxLength) }))}
+                />
+                <div className="flex gap-2">
+                  <input className={inputClass} placeholder={`Rak ${shelves.length + 1}`} value={draft.name} onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))} />
+                  <ColorField value={draft.color} onChange={(color) => setDraft((d) => ({ ...d, color }))} />
+                </div>
+                <div className="flex gap-3">
+                  <Slider label="Panjang" value={draft.length} min={0.8} max={maxLength} onChange={(length) => setDraft((d) => ({ ...d, length }))} />
+                  <Slider label="Tinggi" value={draft.height} min={1} max={5} onChange={(height) => setDraft((d) => ({ ...d, height }))} />
+                </div>
+                <label className="flex items-center justify-between text-[11px] text-gray-500">
                   Jumlah tingkat
-                  <input type="number" min={1} max={8} className={`${inputClass} !w-20`} value={draft.levels} onChange={(e) => setDraft((d) => ({ ...d, levels: Math.max(1, Math.min(8, Number(e.target.value) || 1)) }))} />
+                  <input type="number" min={1} max={8} className={`${inputClass} !w-16 !py-1`} value={draft.levels} onChange={(e) => setDraft((d) => ({ ...d, levels: Math.max(1, Math.min(8, Number(e.target.value) || 1)) }))} />
                 </label>
-                <ColorField value={draft.color} onChange={(color) => setDraft((d) => ({ ...d, color }))} />
                 <Button variant="modal-primary" onClick={addShelf}>
-                  <IconPlus size={16} /> Tambah
+                  Tambah ke ruangan
                 </Button>
               </div>
             )}
 
-            {shelves.map((s) => (
-              <button
-                key={s.id}
-                onClick={() => setSelectedShelf(s.id)}
-                className={`rounded-xl border p-3 text-left text-xs transition-all ${
-                  s.id === selectedShelf ? "border-violet-600 bg-violet-50 dark:bg-violet-500/12" : "border-gray-200 hover:border-violet-400 dark:border-gray-100/10"
-                }`}
-              >
-                <p className="flex items-center gap-2 font-bold text-gray-900">
-                  <span className="h-3 w-3 rounded-full border border-black/10" style={{ backgroundColor: s.color }} />
-                  {s.name}
-                </p>
-                <p className="text-gray-500">
-                  {SHELF_TYPES[s.type].label} · {s.length.toFixed(1)} x {s.height.toFixed(1)} m · {s.levels} tingkat · terisi {s.usedPercent}%
-                </p>
-                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-white/10">
-                  <div className="h-full rounded-full bg-violet-600" style={{ width: `${s.usedPercent}%` }} />
-                </div>
-              </button>
-            ))}
+            {shelves.map((s) => {
+              const isSelected = s.id === selectedShelf;
+              return (
+                <div key={s.id} className={`rounded-lg border transition-all ${isSelected ? "border-violet-600 bg-violet-50/60 dark:bg-violet-500/12" : "border-gray-200 dark:border-gray-100/10"}`}>
+                  <button onClick={() => setSelectedShelf(isSelected ? null : s.id)} className="flex w-full items-center gap-2 px-2.5 py-2 text-left">
+                    <span className="h-3 w-3 shrink-0 rounded-full border border-black/10" style={{ backgroundColor: s.color }} />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-xs font-bold text-gray-900">{s.name}</span>
+                      <span className="block truncate text-[11px] text-gray-500">
+                        {SHELF_TYPES[s.type].label} · {s.length.toFixed(1)} x {s.height.toFixed(1)} m
+                      </span>
+                    </span>
+                    <span className="text-[11px] font-semibold text-gray-600">{s.usedPercent}%</span>
+                  </button>
 
-            {editMode && selected && (
-              <div className="flex flex-col gap-2 rounded-xl border border-gray-200 p-3 dark:border-gray-100/10">
-                <p className="text-xs font-bold text-gray-900">Edit {selected.name}</p>
-                <select
-                  className={inputClass}
-                  value={selected.type}
-                  onChange={(e) => {
-                    const type = e.target.value as ShelfType;
-                    tryUpdate(selected, { type, ...pick(type) });
-                  }}
-                >
-                  {typeOptions.map((t) => (
-                    <option key={t} value={t}>
-                      {SHELF_TYPES[t].label}
-                    </option>
-                  ))}
-                </select>
-                <input className={inputClass} value={selected.name} onChange={(e) => update(selected.id, { name: e.target.value })} />
-                <Slider label="Panjang" value={selected.length} min={0.8} max={maxLength} onChange={(length) => tryUpdate(selected, { length }, "Panjang ditolak, rak akan menabrak atau keluar ruangan")} />
-                <Slider label="Tinggi" value={selected.height} min={1} max={5} onChange={(height) => update(selected.id, { height })} />
-                <label className="flex items-center justify-between text-xs text-gray-500">
-                  Jumlah tingkat
-                  <input
-                    type="number"
-                    min={1}
-                    max={8}
-                    className={`${inputClass} !w-20`}
-                    value={selected.levels}
-                    onChange={(e) => update(selected.id, { levels: Math.max(1, Math.min(8, Number(e.target.value) || 1)) })}
-                  />
-                </label>
-                <ColorField value={selected.color} onChange={(color) => update(selected.id, { color })} />
-                <div className="flex gap-2">
-                  <Button variant="modal-secondary" className="flex-1" onClick={() => tryUpdate(selected, { rotated: !selected.rotated }, "Tidak bisa diputar, rak akan menabrak atau keluar ruangan")}>
-                    <IconRotate size={16} /> Putar
-                  </Button>
-                  <Button variant="modal-danger" className="flex-1" onClick={() => remove(selected.id)}>
-                    <IconTrash size={16} /> Hapus
-                  </Button>
+                  {isSelected && editMode && (
+                    <div className="flex flex-col gap-2 border-t border-violet-200 p-2.5 dark:border-violet-500/20">
+                      <TypeSelect value={s.type} onChange={(type) => tryUpdate(s, { type, ...pick(type) })} />
+                      <div className="flex gap-2">
+                        <input className={inputClass} value={s.name} onChange={(e) => update(s.id, { name: e.target.value })} />
+                        <ColorField value={s.color} onChange={(color) => update(s.id, { color })} />
+                      </div>
+                      <div className="flex gap-3">
+                        <Slider label="Panjang" value={s.length} min={0.8} max={maxLength} onChange={(length) => tryUpdate(s, { length }, "Panjang ditolak, rak akan menabrak atau keluar ruangan")} />
+                        <Slider label="Tinggi" value={s.height} min={1} max={5} onChange={(height) => update(s.id, { height })} />
+                      </div>
+                      <label className="flex items-center justify-between text-[11px] text-gray-500">
+                        Jumlah tingkat
+                        <input
+                          type="number"
+                          min={1}
+                          max={8}
+                          className={`${inputClass} !w-16 !py-1`}
+                          value={s.levels}
+                          onChange={(e) => update(s.id, { levels: Math.max(1, Math.min(8, Number(e.target.value) || 1)) })}
+                        />
+                      </label>
+                      <div className="flex gap-2">
+                        <Button variant="modal-secondary" className="flex-1 !min-h-8 !py-1.5" onClick={() => tryUpdate(s, { rotated: !s.rotated }, "Tidak bisa diputar, rak akan menabrak atau keluar ruangan")}>
+                          <IconRotate size={14} /> Putar
+                        </Button>
+                        <Button variant="modal-danger" className="flex-1 !min-h-8 !py-1.5" onClick={() => remove(s.id)}>
+                          <IconTrash size={14} /> Hapus
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            )}
+              );
+            })}
             {shelves.length === 0 && <p className="text-[11px] text-gray-400">Belum ada rak. Aktifkan Rak Builder untuk menambah.</p>}
-          </div>
+          </aside>
         </div>
       </div>
     </DashboardLayout>
