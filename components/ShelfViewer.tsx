@@ -186,5 +186,5 @@ export default function ShelfViewer({ shelves, selectedId, onSelect }: ShelfView
     };
   }, [shelves]);
 
-  return <div ref={containerRef} className="h-80 w-full cursor-grab rounded-xl bg-gray-50 active:cursor-grabbing dark:bg-white/5" />;
+  return <div ref={containerRef} className="h-[28rem] w-full cursor-grab rounded-xl bg-gray-50 active:cursor-grabbing dark:bg-white/5" />;
 }
