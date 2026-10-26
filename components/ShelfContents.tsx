@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { IconBox, IconPlus, IconX } from "@tabler/icons-react";
+import { IconBox, IconPlus, IconTag, IconX } from "@tabler/icons-react";
 import Button from "@/components/Button";
 import { inputClass } from "@/components/BuilderFields";
-import { itemsAtLevel, levelSlots, type ShelfData } from "@/lib/shelf-model";
+import { defaultLevelTag, itemsAtLevel, levelSlots, levelTag, type ShelfData } from "@/lib/shelf-model";
 
 interface CatalogItem {
   id: string;
@@ -14,15 +14,18 @@ interface CatalogItem {
 
 interface ShelfContentsProps {
   shelf: ShelfData;
+  shelfIndex: number;
+  roomCode: string;
   level: number | null;
   onLevel: (level: number) => void;
   catalog: CatalogItem[];
   editable: boolean;
   onAdd: (level: number, item: CatalogItem, qty: number) => void;
   onRemove: (itemId: string) => void;
+  onTag: (level: number, text: string) => void;
 }
 
-export default function ShelfContents({ shelf, level, onLevel, catalog, editable, onAdd, onRemove }: ShelfContentsProps) {
+export default function ShelfContents({ shelf, shelfIndex, roomCode, level, onLevel, catalog, editable, onAdd, onRemove, onTag }: ShelfContentsProps) {
   const [catalogId, setCatalogId] = useState(catalog[0]?.id ?? "");
   const [qty, setQty] = useState(1);
   const slots = levelSlots(shelf);
@@ -52,11 +55,28 @@ export default function ShelfContents({ shelf, level, onLevel, catalog, editable
       ) : (
         <div className="flex flex-col gap-1.5 rounded-lg bg-gray-50 p-2 dark:bg-white/5">
           <div className="flex items-center justify-between text-[11px]">
-            <b className="text-gray-900">Tingkat {level + 1}</b>
+            <span className="flex items-center gap-2">
+              <b className="text-gray-900">Tingkat {level + 1}</b>
+              <span className="flex items-center gap-1 rounded bg-[#b9a3f0] px-1.5 py-0.5 text-[10px] font-bold text-white">
+                <IconTag size={10} /> {levelTag(roomCode, shelfIndex, shelf, level)}
+              </span>
+            </span>
             <span className={items.length > slots ? "font-bold text-red-600" : "text-gray-500"}>
               {items.length}/{slots} slot
             </span>
           </div>
+          {editable && (
+            <label className="flex items-center gap-2 text-[11px] text-gray-500">
+              Tag
+              <input
+                className={`${inputClass} !py-1`}
+                maxLength={16}
+                placeholder={defaultLevelTag(roomCode, shelfIndex, level)}
+                value={shelf.tags?.[level] ?? ""}
+                onChange={(e) => onTag(level, e.target.value)}
+              />
+            </label>
+          )}
           {items.length === 0 && <p className="py-1 text-[11px] text-gray-400">Tingkat ini kosong.</p>}
           {items.map((it) => (
             <div key={it.id} className="flex items-center gap-2 rounded-md bg-white px-2 py-1.5 dark:bg-white/6">

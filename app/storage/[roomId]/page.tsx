@@ -78,6 +78,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
   const [size, setSize] = useState({ width: room?.width ?? 10, depth: room?.depth ?? 6 });
   const [sizeDraft, setSizeDraft] = useState({ width: String(room?.width ?? 10), depth: String(room?.depth ?? 6) });
   const nextId = useRef(0);
+  const roomCode = (room?.id.replace(/\D/g, "").slice(-2) ?? "01").padStart(2, "0");
   const [draft, setDraft] = useState({ name: "", levels: 4, type: "standard" as ShelfType, ...pick("standard") });
 
   function pick(type: ShelfType) {
@@ -208,6 +209,9 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
     const entry = { id: `${shelf.id}-new-${nextId.current}`, level, name: item.name, sku: item.sku, qty };
     setShelves((prev) => prev.map((s) => (s.id === shelf.id ? { ...s, items: [...s.items, entry] } : s)));
   };
+
+  const setTag = (shelfId: string, level: number, text: string) =>
+    setShelves((prev) => prev.map((s) => (s.id === shelfId ? { ...s, tags: { ...s.tags, [level]: text } } : s)), `${shelfId}:tag:${level}`);
 
   const removeItem = (shelfId: string, itemId: string) => {
     setShelves((prev) => prev.map((s) => (s.id === shelfId ? { ...s, items: s.items.filter((i) => i.id !== itemId) } : s)));
@@ -405,6 +409,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
               openings={openings}
               roomWidth={size.width}
               roomDepth={size.depth}
+              roomCode={roomCode}
               selectedId={activeId}
               selectedOpeningId={activeOpeningId}
               mode={mode}
@@ -478,7 +483,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
               </div>
             )}
 
-            {shelves.map((s) => {
+            {shelves.map((s, shelfIndex) => {
               const isSelected = s.id === activeId;
               return (
                 <div key={s.id} className={`rounded-lg border transition-all ${isSelected ? "border-violet-600 bg-violet-50/60 dark:bg-violet-500/12" : "border-gray-200 dark:border-gray-100/10"}`}>
@@ -500,12 +505,15 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
                     <div className="border-t border-violet-200 p-2.5 dark:border-violet-500/20">
                       <ShelfContents
                         shelf={s}
+                        shelfIndex={shelfIndex}
+                        roomCode={roomCode}
                         level={selectedLevel !== null && selectedLevel < s.levels ? selectedLevel : null}
                         onLevel={setSelectedLevel}
                         catalog={itemCatalog}
                         editable={editMode}
                         onAdd={(level, item, qty) => addItem(s, level, item, qty)}
                         onRemove={(itemId) => removeItem(s.id, itemId)}
+                        onTag={(level, text) => setTag(s.id, level, text)}
                       />
                     </div>
                   )}

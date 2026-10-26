@@ -26,6 +26,8 @@ export interface ShelfData {
   length: number;
   height: number;
   color: string;
+  /** custom tag text per level (key = level index); empty means the auto code is used */
+  tags?: Record<number, string>;
 }
 
 /** how many items fit on one level (one box slot per item) */
@@ -41,4 +43,15 @@ export function fillPercent(s: Pick<ShelfData, "type" | "length" | "levels" | "i
   const capacity = s.levels * levelSlots(s);
   const used = s.items.filter((i) => i.level < s.levels).length;
   return Math.min(100, Math.round((used / capacity) * 100));
+}
+
+const pad = (n: number) => String(n).padStart(2, "0");
+
+/** auto location code: room . shelf . level, e.g. 01.02.03 */
+export function defaultLevelTag(roomCode: string, shelfIndex: number, level: number) {
+  return `${roomCode}.${pad(shelfIndex + 1)}.${pad(level + 1)}`;
+}
+
+export function levelTag(roomCode: string, shelfIndex: number, shelf: Pick<ShelfData, "tags">, level: number) {
+  return shelf.tags?.[level]?.trim() || defaultLevelTag(roomCode, shelfIndex, level);
 }

@@ -5,9 +5,9 @@ import * as THREE from "three";
 import { IconPlus, IconMinus } from "@tabler/icons-react";
 import { OPENING_KINDS, clampOffset, doorClearances, openingsCollide, wallLength, type Opening, type Rect, type WallId } from "@/lib/room-openings";
 
-import { SHELF_TYPES, itemsAtLevel, levelSlots, type ShelfData } from "@/lib/shelf-model";
+import { SHELF_TYPES, itemsAtLevel, levelSlots, levelTag, type ShelfData } from "@/lib/shelf-model";
 
-export { SHELF_TYPES, fillPercent, itemsAtLevel, levelSlots } from "@/lib/shelf-model";
+export { SHELF_TYPES, defaultLevelTag, fillPercent, itemsAtLevel, levelSlots, levelTag } from "@/lib/shelf-model";
 export type { ShelfData, ShelfItem, ShelfType } from "@/lib/shelf-model";
 
 export type ShelfPlace = Pick<ShelfData, "x" | "z" | "rotated" | "length" | "type">;
@@ -19,6 +19,7 @@ interface ShelfViewerProps {
   openings: Opening[];
   roomWidth: number;
   roomDepth: number;
+  roomCode: string;
   selectedId: string | null;
   selectedOpeningId: string | null;
   mode: ViewerMode;
@@ -63,7 +64,7 @@ export function blockedByDoor(s: ShelfPlace, openings: Opening[], roomWidth: num
   return doorClearances(openings, roomWidth, roomDepth).some((r) => hitsRect(s, r));
 }
 
-export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, selectedId, selectedOpeningId, selectedLevel, mode, onSelect, onSelectOpening, onMove, onMoveOpening, onBlocked }: ShelfViewerProps) {
+export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, roomCode, selectedId, selectedOpeningId, selectedLevel, mode, onSelect, onSelectOpening, onMove, onMoveOpening, onBlocked }: ShelfViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const selectedRef = useRef(selectedId);
   const modeRef = useRef(mode);
@@ -141,7 +142,43 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, s
     const groups: { id: string; group: THREE.Group; shelf: ShelfData; beamMat: THREE.MeshStandardMaterial; danger: THREE.Mesh; sel: THREE.Mesh; band: THREE.Mesh }[] = [];
     const placeOf = (g: (typeof groups)[number]): ShelfPlace => ({ x: g.group.position.x, z: g.group.position.z, rotated: g.shelf.rotated, length: g.shelf.length, type: g.shelf.type });
 
-    shelves.forEach((shelf) => {
+    // purple location tag, drawn on a canvas so the code is readable in 3D
+    const tagGeo = new THREE.PlaneGeometry(0.52, 0.228);
+    const textures: THREE.Texture[] = [];
+    const tagMats: THREE.Material[] = [];
+    const makeTag = (text: string) => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 256;
+      canvas.height = 112;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.fillStyle = "#b9a3f0";
+        ctx.beginPath();
+        ctx.roundRect(4, 4, 248, 104, 14);
+        ctx.fill();
+        ctx.strokeStyle = "#8b6fd8";
+        ctx.lineWidth = 6;
+        ctx.stroke();
+        let size = 54;
+        ctx.font = `700 ${size}px sans-serif`;
+        while (ctx.measureText(text).width > 220 && size > 18) {
+          size -= 2;
+          ctx.font = `700 ${size}px sans-serif`;
+        }
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(text, 128, 58);
+      }
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      textures.push(tex);
+      const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, toneMapped: false });
+      tagMats.push(mat);
+      return mat;
+    };
+
+    shelves.forEach((shelf, shelfIndex) => {
       const group = new THREE.Group();
       group.position.set(shelf.x, 0, shelf.z);
       group.rotation.y = shelf.rotated ? Math.PI / 2 : 0;
@@ -158,6 +195,11 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, s
         group.add(m);
         return m;
       };
+      const addTag = (text: string, x: number, y: number, z: number) => {
+        const m = new THREE.Mesh(tagGeo, makeTag(text));
+        m.position.set(x, y, z);
+        group.add(m);
+      };
 
       if (shelf.type === "standard") {
         for (const sx of [-1, 1]) for (const sz of [-1, 1]) add(0.06, H, 0.06, frameMat, (sx * W) / 2, H / 2, (sz * D) / 2);
@@ -165,6 +207,7 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, s
         const perLevel = levelSlots(shelf);
         for (let l = 0; l < shelf.levels; l++) {
           add(W, 0.05, D, beamMat, 0, l * step + 0.03, 0);
+          addTag(levelTag(roomCode, shelfIndex, shelf, l), -W / 2 + 0.38, l * step + 0.08, D / 2 + 0.012);
           const count = Math.min(perLevel, itemsAtLevel(shelf, l).length);
           for (let b = 0; b < count; b++) {
             add(0.4, step * 0.6, 0.45, boxMat, (b - (perLevel - 1) / 2) * (W / perLevel), l * step + 0.05 + (step * 0.6) / 2, 0);
@@ -197,6 +240,7 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, s
           const y = 0.25 + l * step;
           add(W, 0.12, 0.05, beamMat, 0, y, -zf);
           add(W, 0.12, 0.05, beamMat, 0, y, zf);
+          addTag(levelTag(roomCode, shelfIndex, shelf, l), -W / 2 + 0.5, y, zf + 0.03);
           for (let b = 0; b < bays; b++) {
             const cx = -W / 2 + (b + 0.5) * bayW;
             add(bayW - 0.12, 0.03, D - 0.12, woodMat, cx, y + 0.04, 0);
@@ -244,6 +288,9 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, s
     const buildWalls = (ops: Opening[]) => {
       wallGroup.clear();
       wallGeoms.forEach((g) => g.dispose());
+      tagGeo.dispose();
+      textures.forEach((t) => t.dispose());
+      tagMats.forEach((m) => m.dispose());
       wallGeoms = [];
       builtSelected = selectedOpeningRef.current;
 
@@ -518,7 +565,7 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, s
       renderer.dispose();
       container.removeChild(dom);
     };
-  }, [shelves, openings, roomWidth, roomDepth]);
+  }, [shelves, openings, roomWidth, roomDepth, roomCode]);
 
   const zoomBtn = "flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-50 active:scale-95 dark:border-gray-100/10 dark:bg-zinc-800 dark:text-gray-100";
 
