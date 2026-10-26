@@ -9,7 +9,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import Button from "@/components/Button";
 import { clampToRoom, shelfsOverlap, SHELF_TYPES, type ShelfData, type ShelfType } from "@/components/ShelfViewer";
 import { rooms } from "@/lib/storage-data";
-import { IconPlus, IconRotate, IconTrash, IconTool, IconCheck, IconArrowBackUp, IconArrowForwardUp } from "@tabler/icons-react";
+import { IconPlus, IconRotate, IconTrash, IconTool, IconCheck, IconArrowBackUp, IconArrowForwardUp, IconCopy, IconMagnet } from "@tabler/icons-react";
 
 const ShelfViewer = dynamic(() => import("@/components/ShelfViewer"), {
   ssr: false,
@@ -73,6 +73,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
   const activeId = shelves.some((s) => s.id === selectedShelf) ? selectedShelf : null;
   const [editMode, setEditMode] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
+  const [snap, setSnap] = useState(true);
   const [size, setSize] = useState({ width: room?.width ?? 10, depth: room?.depth ?? 6 });
   const [sizeDraft, setSizeDraft] = useState({ width: String(room?.width ?? 10), depth: String(room?.depth ?? 6) });
   const nextId = useRef(0);
@@ -161,14 +162,44 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
     ));
   };
 
+  const duplicate = (s: ShelfData) => {
+    const depth = SHELF_TYPES[s.type].depth;
+    const ex = s.rotated ? depth : s.length;
+    const ez = s.rotated ? s.length : depth;
+    const gap = 0.1;
+    const candidates = [
+      { x: s.x + ex + gap, z: s.z },
+      { x: s.x - ex - gap, z: s.z },
+      { x: s.x, z: s.z + ez + gap },
+      { x: s.x, z: s.z - ez - gap },
+    ];
+    const fits = (c: { x: number; z: number }) => {
+      const cl = clampToRoom(c.x, c.z, s, size.width, size.depth);
+      return Math.abs(cl.x - c.x) < 1e-6 && Math.abs(cl.z - c.z) < 1e-6 && !shelves.some((o) => shelfsOverlap({ ...s, ...c }, o));
+    };
+    const spot = candidates.find(fits) ?? findFreeSpot(s, shelves, size.width, size.depth);
+    if (!spot) {
+      toast.error("Tidak ada ruang kosong untuk menduplikat rak");
+      return;
+    }
+    nextId.current += 1;
+    const id = `RK-new-${nextId.current}`;
+    setShelves((prev) => [...prev, { ...s, id, name: `${s.name} (salinan)`, x: spot.x, z: spot.z }]);
+    setSelectedShelf(id);
+  };
+
   const removeRef = useRef(remove);
   const undoRef = useRef(undo);
   const redoRef = useRef(redo);
+  const duplicateRef = useRef(duplicate);
+  const shelvesRef = useRef(shelves);
   const activeRef = useRef(activeId);
   useEffect(() => {
     removeRef.current = remove;
     undoRef.current = undo;
     redoRef.current = redo;
+    duplicateRef.current = duplicate;
+    shelvesRef.current = shelves;
     activeRef.current = activeId;
   });
 
@@ -183,6 +214,10 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
       if ((e.key === "Delete" || e.key === "Backspace") && activeRef.current) {
         e.preventDefault();
         removeRef.current(activeRef.current);
+      } else if (mod && k === "d" && activeRef.current) {
+        e.preventDefault();
+        const target = shelvesRef.current.find((x) => x.id === activeRef.current);
+        if (target) duplicateRef.current(target);
       } else if (mod && k === "z") {
         e.preventDefault();
         if (e.shiftKey) redoRef.current();
@@ -256,12 +291,24 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
               roomDepth={size.depth}
               selectedId={activeId}
               editable={editMode}
+              snap={snap}
               onSelect={setSelectedShelf}
               onMove={(id, x, z) => update(id, { x, z })}
               onBlocked={() => toast.error("Rak menabrak rak lain, posisi dikembalikan")}
             />
+            {editMode && (
+              <button
+                onClick={() => setSnap((v) => !v)}
+                className={`absolute right-3 top-3 flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-bold shadow-sm ${
+                  snap ? "border-violet-600 bg-violet-600 text-white" : "border-gray-200 bg-white text-gray-600 dark:border-gray-100/10 dark:bg-zinc-800 dark:text-gray-200"
+                }`}
+                title="Tempel ke grid dan tepi rak lain saat digeser"
+              >
+                <IconMagnet size={14} /> Snap {snap ? "On" : "Off"}
+              </button>
+            )}
             <p className="pointer-events-none absolute left-3 top-3 rounded-md bg-white/80 px-2 py-1 text-[11px] text-gray-500 dark:bg-zinc-900/70">
-              {editMode ? "Drag rak untuk menggeser · Delete untuk hapus · Ctrl+Z untuk undo" : "Drag untuk memutar · scroll untuk zoom · klik rak untuk detail"}
+              {editMode ? "Drag rak untuk menggeser · Delete hapus · Ctrl+Z undo · Ctrl+D duplikat" : "Drag untuk memutar · scroll untuk zoom · klik rak untuk detail"}
             </p>
           </div>
 
@@ -364,6 +411,9 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
                       <div className="flex gap-2">
                         <Button variant="modal-secondary" className="flex-1 !min-h-8 !py-1.5" onClick={() => tryUpdate(s, { rotated: !s.rotated }, "Tidak bisa diputar, rak akan menabrak atau keluar ruangan")}>
                           <IconRotate size={14} /> Putar
+                        </Button>
+                        <Button variant="modal-secondary" className="flex-1 !min-h-8 !py-1.5" onClick={() => duplicate(s)} title="Duplikat (Ctrl+D)">
+                          <IconCopy size={14} /> Duplikat
                         </Button>
                         <Button variant="modal-danger" className="flex-1 !min-h-8 !py-1.5" onClick={() => remove(s.id)}>
                           <IconTrash size={14} /> Hapus

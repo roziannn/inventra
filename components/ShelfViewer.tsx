@@ -33,6 +33,7 @@ interface ShelfViewerProps {
   roomDepth: number;
   selectedId: string | null;
   editable: boolean;
+  snap?: boolean;
   onSelect: (id: string | null) => void;
   onMove: (id: string, x: number, z: number) => void;
   onBlocked?: () => void;
@@ -57,13 +58,35 @@ export function clampToRoom(x: number, z: number, s: Pick<ShelfData, "rotated" |
 export function shelfsOverlap(a: ShelfPlace, b: ShelfPlace) {
   const ea = halfExtents(a);
   const eb = halfExtents(b);
-  return Math.abs(a.x - b.x) < ea.hx + eb.hx && Math.abs(a.z - b.z) < ea.hz + eb.hz;
+  return Math.abs(a.x - b.x) < ea.hx + eb.hx - 1e-6 && Math.abs(a.z - b.z) < ea.hz + eb.hz - 1e-6;
 }
 
-export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId, editable, onSelect, onMove, onBlocked }: ShelfViewerProps) {
+const SNAP_GRID = 0.5;
+const SNAP_NEAR = 0.2;
+
+// snap one axis: edge-to-edge/aligned with other shelves when close, otherwise the shelf's min edge to the grid
+function snapAxis(c: number, h: number, others: { c: number; h: number }[]) {
+  let best: number | null = null;
+  let bestD = SNAP_NEAR;
+  for (const o of others) {
+    for (const mine of [c - h, c + h]) {
+      for (const theirs of [o.c - o.h, o.c + o.h]) {
+        const d = Math.abs(mine - theirs);
+        if (d < bestD) {
+          bestD = d;
+          best = c + (theirs - mine);
+        }
+      }
+    }
+  }
+  return best ?? Math.round((c - h) / SNAP_GRID) * SNAP_GRID + h;
+}
+
+export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId, editable, snap = false, onSelect, onMove, onBlocked }: ShelfViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const selectedRef = useRef(selectedId);
   const editableRef = useRef(editable);
+  const snapRef = useRef(snap);
   const onSelectRef = useRef(onSelect);
   const onMoveRef = useRef(onMove);
   const onBlockedRef = useRef(onBlocked);
@@ -77,6 +100,7 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
   useEffect(() => {
     selectedRef.current = selectedId;
     editableRef.current = editable;
+    snapRef.current = snap;
     onSelectRef.current = onSelect;
     onMoveRef.current = onMove;
     onBlockedRef.current = onBlocked;
@@ -298,7 +322,16 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
         moved += Math.abs(dx) + Math.abs(dy);
         setRay(e);
         if (raycaster.ray.intersectPlane(plane, point)) {
-          const c = clampToRoom(point.x + offset.x, point.z + offset.z, dragged.shelf, roomWidth, roomDepth);
+          let nx = point.x + offset.x;
+          let nz = point.z + offset.z;
+          if (snapRef.current) {
+            const self = dragged;
+            const { hx, hz } = halfExtents(self.shelf);
+            const others = groups.filter((o) => o !== self).map((o) => ({ ...halfExtents(o.shelf), x: o.group.position.x, z: o.group.position.z }));
+            nx = snapAxis(nx, hx, others.map((o) => ({ c: o.x, h: o.hx })));
+            nz = snapAxis(nz, hz, others.map((o) => ({ c: o.z, h: o.hz })));
+          }
+          const c = clampToRoom(nx, nz, dragged.shelf, roomWidth, roomDepth);
           dragged.group.position.set(c.x, 0, c.z);
         }
       } else if (orbiting) {
