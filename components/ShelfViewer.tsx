@@ -24,6 +24,7 @@ interface ShelfViewerProps {
   selectedOpeningId: string | null;
   mode: ViewerMode;
   selectedLevel: number | null;
+  highlights?: { id: string; level: number }[];
   onSelect: (id: string | null, level?: number | null) => void;
   onSelectOpening: (id: string | null) => void;
   onMove: (id: string, x: number, z: number) => void;
@@ -64,7 +65,7 @@ export function blockedByDoor(s: ShelfPlace, openings: Opening[], roomWidth: num
   return doorClearances(openings, roomWidth, roomDepth).some((r) => hitsRect(s, r));
 }
 
-export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, roomCode, selectedId, selectedOpeningId, selectedLevel, mode, onSelect, onSelectOpening, onMove, onMoveOpening, onBlocked }: ShelfViewerProps) {
+export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, roomCode, selectedId, selectedOpeningId, selectedLevel, highlights, mode, onSelect, onSelectOpening, onMove, onMoveOpening, onBlocked }: ShelfViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const selectedRef = useRef(selectedId);
   const modeRef = useRef(mode);
@@ -72,6 +73,7 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
   const onSelectOpeningRef = useRef(onSelectOpening);
   const onMoveOpeningRef = useRef(onMoveOpening);
   const selectedLevelRef = useRef(selectedLevel);
+  const highlightRef = useRef(new Set<string>());
   const onSelectRef = useRef(onSelect);
   const onMoveRef = useRef(onMove);
   const onBlockedRef = useRef(onBlocked);
@@ -89,6 +91,7 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
     onSelectOpeningRef.current = onSelectOpening;
     onMoveOpeningRef.current = onMoveOpening;
     selectedLevelRef.current = selectedLevel;
+    highlightRef.current = new Set((highlights ?? []).map((h) => `${h.id}:${h.level}`));
     onSelectRef.current = onSelect;
     onMoveRef.current = onMove;
     onBlockedRef.current = onBlocked;
@@ -138,10 +141,12 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
     const boxMat = new THREE.MeshStandardMaterial({ color: 0xd4a373 });
     const dangerFloorMat = new THREE.MeshBasicMaterial({ color: 0xef4444, transparent: true, opacity: 0.55, depthWrite: false });
     const bandMat = new THREE.MeshBasicMaterial({ color: 0x7c3aed, transparent: true, opacity: 0.3, depthWrite: false });
+    const hlMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b, transparent: true, opacity: 0.4, depthWrite: false });
+    const hlEdgeMat = new THREE.LineBasicMaterial({ color: 0xb45309, depthTest: false, transparent: true });
     const bandEdgeMat = new THREE.LineBasicMaterial({ color: 0x5b21b6, depthTest: false, transparent: true });
     const hitMat = new THREE.MeshBasicMaterial({ visible: false });
 
-    const groups: { id: string; group: THREE.Group; shelf: ShelfData; levelMats: THREE.MeshStandardMaterial[]; coverMat: THREE.MeshStandardMaterial; danger: THREE.Mesh; sel: THREE.Mesh; band: THREE.Mesh }[] = [];
+    const groups: { id: string; group: THREE.Group; shelf: ShelfData; levelMats: THREE.MeshStandardMaterial[]; coverMat: THREE.MeshStandardMaterial; danger: THREE.Mesh; sel: THREE.Mesh; band: THREE.Mesh; hlBands: THREE.Mesh[] }[] = [];
     const placeOf = (g: (typeof groups)[number]): ShelfPlace => ({ x: g.group.position.x, z: g.group.position.z, rotated: g.shelf.rotated, length: g.shelf.length, type: g.shelf.type });
 
     // purple location tag, drawn on a canvas so the code is readable in 3D
@@ -310,8 +315,21 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
       band.visible = false;
       group.add(band);
 
+      // search result highlight (amber), one per level
+      const hlBands = Array.from({ length: shelf.levels }, (_, l) => {
+        const m = new THREE.Mesh(bandGeo, hlMat);
+        const e = new THREE.LineSegments(new THREE.EdgesGeometry(bandGeo), hlEdgeMat);
+        geoms.push(e.geometry);
+        e.renderOrder = 10;
+        m.add(e);
+        m.position.y = ((l + 0.5) * H) / shelf.levels;
+        m.visible = false;
+        group.add(m);
+        return m;
+      });
+
       scene.add(group);
-      groups.push({ id: shelf.id, group, shelf, levelMats, coverMat, danger, sel, band });
+      groups.push({ id: shelf.id, group, shelf, levelMats, coverMat, danger, sel, band, hlBands });
     });
 
     // walls with door/window cut-outs; rebuilt cheaply while an opening is being dragged
@@ -579,10 +597,13 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
       groups.forEach((g) => {
         const colliding = groups.some((o) => o !== g && shelfsOverlap(placeOf(g), placeOf(o))) || blockedByDoor(placeOf(g), liveOpenings, roomWidth, roomDepth);
         const isSel = g.id === selectedRef.current;
+        const hl = highlightRef.current;
+        const searching = hl.size > 0;
+        g.hlBands.forEach((m, l) => (m.visible = hl.has(`${g.id}:${l}`)));
         g.coverMat.color.set(colliding ? 0xef4444 : g.shelf.color);
         const lvl = selectedLevelRef.current;
         g.levelMats.forEach((m, l) => {
-          const dim = isSel && lvl !== null && l !== lvl;
+          const dim = searching ? !hl.has(`${g.id}:${l}`) : isSel && lvl !== null && l !== lvl;
           m.color.set(colliding ? 0xef4444 : g.shelf.color);
           if (dim && !colliding) m.color.lerp(dimColor, 0.6);
           m.emissive.setHex(colliding ? 0x991b1b : isSel && !dim ? 0x333333 : 0x000000);
@@ -611,7 +632,7 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
       wallGeoms.forEach((g) => g.dispose());
       grid.geometry.dispose();
       (grid.material as THREE.Material).dispose();
-      [...beamMats, frameMat, metalMat, blueMat, woodMat, selectedFloorMat, dangerFloorMat, boxMat, bandMat, bandEdgeMat, hitMat, floorMat, wallMat, doorLeafMat, doorFrameMat, windowFrameMat, glassMat, selectedFrameMat, clearanceMat].forEach((m) => m.dispose());
+      [...beamMats, frameMat, metalMat, blueMat, woodMat, selectedFloorMat, dangerFloorMat, boxMat, bandMat, bandEdgeMat, hlMat, hlEdgeMat, hitMat, floorMat, wallMat, doorLeafMat, doorFrameMat, windowFrameMat, glassMat, selectedFrameMat, clearanceMat].forEach((m) => m.dispose());
       renderer.dispose();
       container.removeChild(dom);
     };
