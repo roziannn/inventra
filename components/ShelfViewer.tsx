@@ -136,11 +136,11 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
     const beamMats: THREE.MeshStandardMaterial[] = [];
     const boxMat = new THREE.MeshStandardMaterial({ color: 0xd4a373 });
     const dangerFloorMat = new THREE.MeshBasicMaterial({ color: 0xef4444, transparent: true, opacity: 0.55, depthWrite: false });
-    const bandMat = new THREE.MeshBasicMaterial({ color: 0x06b6d4, transparent: true, opacity: 0.32, depthWrite: false });
-    const bandEdgeMat = new THREE.LineBasicMaterial({ color: 0x0e7490, depthTest: false, transparent: true });
+    const bandMat = new THREE.MeshBasicMaterial({ color: 0x7c3aed, transparent: true, opacity: 0.3, depthWrite: false });
+    const bandEdgeMat = new THREE.LineBasicMaterial({ color: 0x5b21b6, depthTest: false, transparent: true });
     const hitMat = new THREE.MeshBasicMaterial({ visible: false });
 
-    const groups: { id: string; group: THREE.Group; shelf: ShelfData; beamMat: THREE.MeshStandardMaterial; danger: THREE.Mesh; sel: THREE.Mesh; band: THREE.Mesh }[] = [];
+    const groups: { id: string; group: THREE.Group; shelf: ShelfData; levelMats: THREE.MeshStandardMaterial[]; danger: THREE.Mesh; sel: THREE.Mesh; band: THREE.Mesh }[] = [];
     const placeOf = (g: (typeof groups)[number]): ShelfPlace => ({ x: g.group.position.x, z: g.group.position.z, rotated: g.shelf.rotated, length: g.shelf.length, type: g.shelf.type });
 
     // purple location tag, drawn on a canvas so the code is readable in 3D
@@ -188,8 +188,9 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
       const W = shelf.length;
       const H = shelf.height;
       const D = SHELF_TYPES[shelf.type].depth;
-      const beamMat = new THREE.MeshStandardMaterial({ color: shelf.color });
-      beamMats.push(beamMat);
+      // one material per level so unselected levels can be dimmed while one is selected
+      const levelMats = Array.from({ length: shelf.levels }, () => new THREE.MeshStandardMaterial({ color: shelf.color }));
+      beamMats.push(...levelMats);
       const add = (w: number, h: number, d: number, mat: THREE.Material, x: number, y: number, z: number) => {
         const m = new THREE.Mesh(box(w, h, d), mat);
         m.position.set(x, y, z);
@@ -207,7 +208,7 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
         const step = H / shelf.levels;
         const perLevel = levelSlots(shelf);
         for (let l = 0; l < shelf.levels; l++) {
-          add(W, 0.05, D, beamMat, 0, l * step + 0.03, 0);
+          add(W, 0.05, D, levelMats[l], 0, l * step + 0.03, 0);
           addTag(levelTag(roomCode, shelfIndex, shelf, l), -W / 2 + 0.38, l * step + 0.08, D / 2 + 0.012);
           const count = Math.min(perLevel, itemsAtLevel(shelf, l).length);
           for (let b = 0; b < count; b++) {
@@ -239,8 +240,8 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
         for (let l = 0; l < shelf.levels; l++) {
           const stocked = itemsAtLevel(shelf, l).length;
           const y = 0.25 + l * step;
-          add(W, 0.12, 0.05, beamMat, 0, y, -zf);
-          add(W, 0.12, 0.05, beamMat, 0, y, zf);
+          add(W, 0.12, 0.05, levelMats[l], 0, y, -zf);
+          add(W, 0.12, 0.05, levelMats[l], 0, y, zf);
           addTag(levelTag(roomCode, shelfIndex, shelf, l), -W / 2 + 0.5, y, zf + 0.03);
           for (let b = 0; b < bays; b++) {
             const cx = -W / 2 + (b + 0.5) * bayW;
@@ -274,7 +275,7 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
       group.add(band);
 
       scene.add(group);
-      groups.push({ id: shelf.id, group, shelf, beamMat, danger, sel, band });
+      groups.push({ id: shelf.id, group, shelf, levelMats, danger, sel, band });
     });
 
     // walls with door/window cut-outs; rebuilt cheaply while an opening is being dragged
@@ -536,15 +537,21 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
 
+    const dimColor = new THREE.Color(0x9ca3af);
     let raf = 0;
     const animate = () => {
       groups.forEach((g) => {
         const colliding = groups.some((o) => o !== g && shelfsOverlap(placeOf(g), placeOf(o))) || blockedByDoor(placeOf(g), liveOpenings, roomWidth, roomDepth);
-        g.beamMat.color.set(colliding ? 0xef4444 : g.shelf.color);
-        g.beamMat.emissive.setHex(colliding ? 0x991b1b : g.id === selectedRef.current ? 0x333333 : 0x000000);
+        const isSel = g.id === selectedRef.current;
+        const lvl = selectedLevelRef.current;
+        g.levelMats.forEach((m, l) => {
+          const dim = isSel && lvl !== null && l !== lvl;
+          m.color.set(colliding ? 0xef4444 : g.shelf.color);
+          if (dim && !colliding) m.color.lerp(dimColor, 0.6);
+          m.emissive.setHex(colliding ? 0x991b1b : isSel && !dim ? 0x333333 : 0x000000);
+        });
         g.danger.visible = colliding;
         g.sel.visible = !colliding && g.id === selectedRef.current;
-        const lvl = selectedLevelRef.current;
         g.band.visible = g.id === selectedRef.current && lvl !== null && lvl < g.shelf.levels;
         if (g.band.visible && lvl !== null) g.band.position.y = ((lvl + 0.5) * g.shelf.height) / g.shelf.levels;
       });
