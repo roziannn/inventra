@@ -44,7 +44,7 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
   const onSelectRef = useRef(onSelect);
   const onMoveRef = useRef(onMove);
   const yawRef = useRef(0);
-  const pitchRef = useRef(0.9);
+  const pitchRef = useRef(1.0);
 
   useEffect(() => {
     selectedRef.current = selectedId;
@@ -92,7 +92,10 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
       wall.position.set(x, WALL_H / 2, z);
       scene.add(wall);
     });
-    const grid = new THREE.GridHelper(Math.max(roomWidth, roomDepth), Math.max(roomWidth, roomDepth), 0x94a3b8, 0xcbd5e1);
+    const gridPts: number[] = [];
+    for (let x = -roomWidth / 2; x <= roomWidth / 2 + 1e-6; x += 1) gridPts.push(x, 0, -roomDepth / 2, x, 0, roomDepth / 2);
+    for (let z = -roomDepth / 2; z <= roomDepth / 2 + 1e-6; z += 1) gridPts.push(-roomWidth / 2, 0, z, roomWidth / 2, 0, z);
+    const grid = new THREE.LineSegments(new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(gridPts, 3)), new THREE.LineBasicMaterial({ color: 0xcbd5e1 }));
     grid.position.y = 0.005;
     scene.add(grid);
 
@@ -142,7 +145,7 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
       groups.push({ id: shelf.id, group, boards, rotated: shelf.rotated });
     });
 
-    const radius = Math.max(8, Math.max(roomWidth, roomDepth) * 1.2);
+    const radius = Math.max(6, Math.max(roomWidth, roomDepth) * 0.95);
     const target = new THREE.Vector3(0, 0.5, 0);
     const updateCamera = () => {
       const yaw = yawRef.current;
@@ -257,5 +260,5 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
     };
   }, [shelves, roomWidth, roomDepth]);
 
-  return <div ref={containerRef} className="h-[28rem] w-full rounded-xl bg-gray-50 dark:bg-white/5" />;
+  return <div ref={containerRef} className="h-[calc(100vh-13rem)] min-h-[28rem] w-full rounded-xl bg-gray-50 dark:bg-white/5" />;
 }
