@@ -26,6 +26,8 @@ function findFreeSpot(draft: Pick<ShelfData, "rotated" | "length" | "type">, she
   return null;
 }
 
+const MIN_ROOM = 3;
+const MAX_ROOM = 50;
 const typeOptions = Object.keys(SHELF_TYPES) as ShelfType[];
 const inputClass = "w-full rounded-lg border border-gray-200 bg-transparent px-3 py-2 text-xs focus:border-violet-600 focus:outline-none dark:border-gray-100/10";
 
@@ -65,6 +67,8 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
   const [selectedShelf, setSelectedShelf] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
+  const [size, setSize] = useState({ width: room?.width ?? 10, depth: room?.depth ?? 6 });
+  const [sizeDraft, setSizeDraft] = useState({ width: String(room?.width ?? 10), depth: String(room?.depth ?? 6) });
   const nextId = useRef(0);
   const [draft, setDraft] = useState({ name: "", levels: 4, type: "standard" as ShelfType, ...pick("standard") });
 
@@ -80,8 +84,8 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
   // apply a change to a shelf only if it still fits in the room and doesn't hit other shelves
   const tryUpdate = (s: ShelfData, patch: Partial<ShelfData>, errorMessage = "Perubahan ditolak, rak tidak muat atau menabrak rak lain") => {
     const next = { ...s, ...patch };
-    const limit = next.rotated ? room.depth : room.width;
-    const pos = clampToRoom(next.x, next.z, next, room.width, room.depth);
+    const limit = next.rotated ? size.depth : size.width;
+    const pos = clampToRoom(next.x, next.z, next, size.width, size.depth);
     if (next.length > limit - 0.1 || shelves.some((o) => o.id !== s.id && shelfsOverlap({ ...next, ...pos }, o))) {
       toast.error(errorMessage);
       return;
@@ -91,7 +95,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
 
   const addShelf = () => {
     const place = { rotated: false, length: draft.length, type: draft.type };
-    const spot = findFreeSpot(place, shelves, room.width, room.depth);
+    const spot = findFreeSpot(place, shelves, size.width, size.depth);
     if (!spot) {
       toast.error("Tidak ada ruang kosong untuk rak baru");
       return;
@@ -110,7 +114,29 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
     setSelectedShelf(null);
   };
 
-  const maxLength = Math.max(1, Math.floor(Math.min(room.width, room.depth) * 10 - 1) / 10);
+  const applySize = () => {
+    const width = Number(sizeDraft.width.replace(",", "."));
+    const depth = Number(sizeDraft.depth.replace(",", "."));
+    const reset = () => setSizeDraft({ width: String(size.width), depth: String(size.depth) });
+    if (!Number.isFinite(width) || !Number.isFinite(depth) || width < MIN_ROOM || depth < MIN_ROOM || width > MAX_ROOM || depth > MAX_ROOM) {
+      toast.error(`Ukuran ruangan harus antara ${MIN_ROOM} - ${MAX_ROOM} meter`);
+      reset();
+      return;
+    }
+    const fits = shelves.every((s) => {
+      const c = clampToRoom(s.x, s.z, s, width, depth);
+      return Math.abs(c.x - s.x) < 1e-6 && Math.abs(c.z - s.z) < 1e-6 && s.length <= (s.rotated ? depth : width);
+    });
+    if (!fits) {
+      toast.error("Ukuran terlalu kecil, ada rak yang berada di luar ruangan. Geser atau kecilkan rak dulu.");
+      reset();
+      return;
+    }
+    setSize({ width, depth });
+    setSizeDraft({ width: String(width), depth: String(depth) });
+  };
+
+  const maxLength = Math.max(1, Math.floor(Math.min(size.width, size.depth) * 10 - 1) / 10);
 
   return (
     <DashboardLayout>
@@ -120,7 +146,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
           <div>
             <h2 className="text-2xl font-bold text-gray-900 tracking-tight">{room.name}</h2>
             <p className="text-xs text-gray-500 font-medium">
-              {room.location} · {room.width} x {room.depth} m
+              {room.location} · {size.width} x {size.depth} m
             </p>
           </div>
           <Button variant={editMode ? "page-primary" : "page-secondary"} onClick={() => setEditMode((v) => !v)}>
@@ -132,8 +158,8 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
           <div className="relative h-96 min-w-0 lg:h-full lg:flex-1">
             <ShelfViewer
               shelves={shelves}
-              roomWidth={room.width}
-              roomDepth={room.depth}
+              roomWidth={size.width}
+              roomDepth={size.depth}
               selectedId={selectedShelf}
               editable={editMode}
               onSelect={setSelectedShelf}
@@ -146,6 +172,31 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
           </div>
 
           <aside className="flex min-h-0 flex-col gap-2 overflow-y-auto rounded-xl border border-gray-200 bg-white p-3 lg:w-80 dark:border-gray-100/10 dark:bg-white/6">
+            {editMode && (
+              <div className="flex flex-col gap-2 rounded-lg bg-gray-50 p-2.5 dark:bg-white/5">
+                <p className="text-xs font-bold text-gray-900">Ukuran Ruangan</p>
+                <div className="flex gap-2">
+                  {(["width", "depth"] as const).map((key) => (
+                    <label key={key} className="flex min-w-0 flex-1 flex-col gap-1 text-[11px] text-gray-500">
+                      {key === "width" ? "Lebar" : "Panjang"} (m)
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        min={MIN_ROOM}
+                        max={MAX_ROOM}
+                        step={0.5}
+                        className={inputClass}
+                        value={sizeDraft[key]}
+                        onChange={(e) => setSizeDraft((d) => ({ ...d, [key]: e.target.value }))}
+                        onBlur={applySize}
+                        onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+                      />
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center justify-between">
               <p className="text-xs font-bold text-gray-900">Rak ({shelves.length})</p>
               {editMode && (
