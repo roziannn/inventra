@@ -8,27 +8,49 @@ export interface ShelfData {
   name: string;
   levels: number;
   usedPercent: number;
+  x: number;
+  z: number;
+  rotated: boolean;
 }
 
 interface ShelfViewerProps {
   shelves: ShelfData[];
+  roomWidth: number;
+  roomDepth: number;
   selectedId: string | null;
-  onSelect: (id: string) => void;
+  editable: boolean;
+  onSelect: (id: string | null) => void;
+  onMove: (id: string, x: number, z: number) => void;
 }
 
-const SHELF_W = 1.6;
-const SHELF_D = 0.7;
+export const SHELF_W = 1.6;
+export const SHELF_D = 0.7;
 const SHELF_H = 2.2;
-const GAP = 0.6;
+const WALL_H = 0.5;
 
-export default function ShelfViewer({ shelves, selectedId, onSelect }: ShelfViewerProps) {
+export function clampToRoom(x: number, z: number, rotated: boolean, roomWidth: number, roomDepth: number) {
+  const hw = (rotated ? SHELF_D : SHELF_W) / 2;
+  const hd = (rotated ? SHELF_W : SHELF_D) / 2;
+  return {
+    x: Math.max(-roomWidth / 2 + hw, Math.min(roomWidth / 2 - hw, x)),
+    z: Math.max(-roomDepth / 2 + hd, Math.min(roomDepth / 2 - hd, z)),
+  };
+}
+
+export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId, editable, onSelect, onMove }: ShelfViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const selectedRef = useRef(selectedId);
+  const editableRef = useRef(editable);
   const onSelectRef = useRef(onSelect);
+  const onMoveRef = useRef(onMove);
+  const yawRef = useRef(0);
+  const pitchRef = useRef(0.9);
 
   useEffect(() => {
     selectedRef.current = selectedId;
+    editableRef.current = editable;
     onSelectRef.current = onSelect;
+    onMoveRef.current = onMove;
   });
 
   useEffect(() => {
@@ -46,17 +68,6 @@ export default function ShelfViewer({ shelves, selectedId, onSelect }: ShelfView
     dir.position.set(4, 8, 6);
     scene.add(dir);
 
-    const totalW = shelves.length * SHELF_W + (shelves.length - 1) * GAP;
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(totalW + 4, 5), new THREE.MeshStandardMaterial({ color: 0xe5e7eb }));
-    floor.rotation.x = -Math.PI / 2;
-    scene.add(floor);
-
-    const frameMat = new THREE.MeshStandardMaterial({ color: 0x52525b });
-    const boardMat = new THREE.MeshStandardMaterial({ color: 0xa78bfa });
-    const selectedMat = new THREE.MeshStandardMaterial({ color: 0x7c3aed, emissive: 0x4c1d95 });
-    const boxMat = new THREE.MeshStandardMaterial({ color: 0xd4a373 });
-
-    const groups: { id: string; group: THREE.Group; boards: THREE.Mesh[] }[] = [];
     const geoms: THREE.BufferGeometry[] = [];
     const box = (w: number, h: number, d: number) => {
       const g = new THREE.BoxGeometry(w, h, d);
@@ -64,9 +75,39 @@ export default function ShelfViewer({ shelves, selectedId, onSelect }: ShelfView
       return g;
     };
 
-    shelves.forEach((shelf, i) => {
+    // room floor + low walls
+    const floorMat = new THREE.MeshStandardMaterial({ color: 0xe5e7eb });
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1 });
+    const floor = new THREE.Mesh(box(roomWidth, 0.04, roomDepth), floorMat);
+    floor.position.y = -0.02;
+    scene.add(floor);
+    const walls: [number, number, number, number][] = [
+      [roomWidth, 0.08, 0, -roomDepth / 2],
+      [roomWidth, 0.08, 0, roomDepth / 2],
+      [0.08, roomDepth, -roomWidth / 2, 0],
+      [0.08, roomDepth, roomWidth / 2, 0],
+    ];
+    walls.forEach(([w, d, x, z]) => {
+      const wall = new THREE.Mesh(box(w, WALL_H, d), wallMat);
+      wall.position.set(x, WALL_H / 2, z);
+      scene.add(wall);
+    });
+    const grid = new THREE.GridHelper(Math.max(roomWidth, roomDepth), Math.max(roomWidth, roomDepth), 0x94a3b8, 0xcbd5e1);
+    grid.position.y = 0.005;
+    scene.add(grid);
+
+    const frameMat = new THREE.MeshStandardMaterial({ color: 0x52525b });
+    const boardMat = new THREE.MeshStandardMaterial({ color: 0xa78bfa });
+    const selectedMat = new THREE.MeshStandardMaterial({ color: 0x7c3aed, emissive: 0x4c1d95 });
+    const boxMat = new THREE.MeshStandardMaterial({ color: 0xd4a373 });
+    const hitMat = new THREE.MeshBasicMaterial({ visible: false });
+
+    const groups: { id: string; group: THREE.Group; boards: THREE.Mesh[]; rotated: boolean }[] = [];
+
+    shelves.forEach((shelf) => {
       const group = new THREE.Group();
-      group.position.x = -totalW / 2 + SHELF_W / 2 + i * (SHELF_W + GAP);
+      group.position.set(shelf.x, 0, shelf.z);
+      group.rotation.y = shelf.rotated ? Math.PI / 2 : 0;
       group.userData.id = shelf.id;
       const boards: THREE.Mesh[] = [];
 
@@ -93,21 +134,20 @@ export default function ShelfViewer({ shelves, selectedId, onSelect }: ShelfView
           group.add(item);
         }
       }
-      // invisible hit area so the whole shelf is clickable
-      const hit = new THREE.Mesh(box(SHELF_W, SHELF_H, SHELF_D), new THREE.MeshBasicMaterial({ visible: false }));
+      const hit = new THREE.Mesh(box(SHELF_W, SHELF_H, SHELF_D), hitMat);
       hit.position.y = SHELF_H / 2;
       group.add(hit);
 
       scene.add(group);
-      groups.push({ id: shelf.id, group, boards });
+      groups.push({ id: shelf.id, group, boards, rotated: shelf.rotated });
     });
 
-    const radius = Math.max(7, totalW * 1.1);
-    const target = new THREE.Vector3(0, SHELF_H / 2, 0);
-    let yaw = 0;
-    let pitch = 0.35;
+    const radius = Math.max(8, Math.max(roomWidth, roomDepth) * 1.2);
+    const target = new THREE.Vector3(0, 0.5, 0);
     const updateCamera = () => {
-      camera.position.set(target.x + radius * Math.sin(yaw) * Math.cos(pitch), target.y + radius * Math.sin(pitch), radius * Math.cos(yaw) * Math.cos(pitch));
+      const yaw = yawRef.current;
+      const pitch = pitchRef.current;
+      camera.position.set(radius * Math.sin(yaw) * Math.cos(pitch), target.y + radius * Math.sin(pitch), radius * Math.cos(yaw) * Math.cos(pitch));
       camera.lookAt(target);
     };
 
@@ -121,39 +161,69 @@ export default function ShelfViewer({ shelves, selectedId, onSelect }: ShelfView
     const ro = new ResizeObserver(resize);
     ro.observe(container);
 
-    // drag to orbit, click to select
     const dom = renderer.domElement;
-    let dragging = false;
+    const raycaster = new THREE.Raycaster();
+    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+    const point = new THREE.Vector3();
+    const setRay = (e: PointerEvent) => {
+      const rect = dom.getBoundingClientRect();
+      raycaster.setFromCamera(new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1), camera);
+    };
+    const pickShelf = () => {
+      const hit = raycaster.intersectObjects(groups.map((g) => g.group), true)[0];
+      let obj: THREE.Object3D | null = hit?.object ?? null;
+      while (obj && !obj.userData.id) obj = obj.parent;
+      return groups.find((g) => g.group === obj) ?? null;
+    };
+
+    let orbiting = false;
+    let dragged: (typeof groups)[number] | null = null;
+    const offset = new THREE.Vector3();
     let moved = 0;
     let lastX = 0;
     let lastY = 0;
+
     const onDown = (e: PointerEvent) => {
-      dragging = true;
       moved = 0;
       lastX = e.clientX;
       lastY = e.clientY;
+      setRay(e);
+      const picked = pickShelf();
+      if (picked && editableRef.current) {
+        dragged = picked;
+        onSelectRef.current(picked.id);
+        if (raycaster.ray.intersectPlane(plane, point)) offset.copy(picked.group.position).sub(point);
+      } else {
+        orbiting = true;
+      }
     };
     const onMove = (e: PointerEvent) => {
-      if (!dragging) return;
       const dx = e.clientX - lastX;
       const dy = e.clientY - lastY;
-      moved += Math.abs(dx) + Math.abs(dy);
-      yaw = Math.max(-1, Math.min(1, yaw - dx * 0.006));
-      pitch = Math.max(0.05, Math.min(1.2, pitch + dy * 0.006));
       lastX = e.clientX;
       lastY = e.clientY;
+      if (dragged) {
+        moved += Math.abs(dx) + Math.abs(dy);
+        setRay(e);
+        if (raycaster.ray.intersectPlane(plane, point)) {
+          const c = clampToRoom(point.x + offset.x, point.z + offset.z, dragged.rotated, roomWidth, roomDepth);
+          dragged.group.position.set(c.x, 0, c.z);
+        }
+      } else if (orbiting) {
+        moved += Math.abs(dx) + Math.abs(dy);
+        yawRef.current = Math.max(-1.2, Math.min(1.2, yawRef.current - dx * 0.006));
+        pitchRef.current = Math.max(0.1, Math.min(1.4, pitchRef.current + dy * 0.006));
+      }
     };
     const onUp = (e: PointerEvent) => {
-      dragging = false;
-      if (moved > 5) return;
-      const rect = dom.getBoundingClientRect();
-      const ndc = new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
-      const ray = new THREE.Raycaster();
-      ray.setFromCamera(ndc, camera);
-      const hit = ray.intersectObjects(scene.children, true)[0];
-      let obj: THREE.Object3D | null = hit?.object ?? null;
-      while (obj && !obj.userData.id) obj = obj.parent;
-      if (obj) onSelectRef.current(obj.userData.id);
+      if (dragged) {
+        if (moved > 3) onMoveRef.current(dragged.id, dragged.group.position.x, dragged.group.position.z);
+      } else if (orbiting && moved <= 5 && e.target === dom) {
+        setRay(e);
+        onSelectRef.current(pickShelf()?.id ?? null);
+      }
+      dragged = null;
+      orbiting = false;
     };
     dom.addEventListener("pointerdown", onDown);
     window.addEventListener("pointermove", onMove);
@@ -165,6 +235,7 @@ export default function ShelfViewer({ shelves, selectedId, onSelect }: ShelfView
         const mat = id === selectedRef.current ? selectedMat : boardMat;
         boards.forEach((b) => (b.material = mat));
       });
+      dom.style.cursor = editableRef.current ? (dragged ? "grabbing" : "move") : "grab";
       updateCamera();
       renderer.render(scene, camera);
       raf = requestAnimationFrame(animate);
@@ -178,13 +249,13 @@ export default function ShelfViewer({ shelves, selectedId, onSelect }: ShelfView
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
       geoms.forEach((g) => g.dispose());
-      [frameMat, boardMat, selectedMat, boxMat].forEach((m) => m.dispose());
-      floor.geometry.dispose();
-      (floor.material as THREE.Material).dispose();
+      grid.geometry.dispose();
+      (grid.material as THREE.Material).dispose();
+      [frameMat, boardMat, selectedMat, boxMat, hitMat, floorMat, wallMat].forEach((m) => m.dispose());
       renderer.dispose();
       container.removeChild(dom);
     };
-  }, [shelves]);
+  }, [shelves, roomWidth, roomDepth]);
 
-  return <div ref={containerRef} className="h-80 w-full cursor-grab rounded-xl bg-gray-50 active:cursor-grabbing dark:bg-white/5" />;
+  return <div ref={containerRef} className="h-[28rem] w-full rounded-xl bg-gray-50 dark:bg-white/5" />;
 }
