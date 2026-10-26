@@ -130,6 +130,7 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
     scene.add(grid);
 
     const frameMat = new THREE.MeshStandardMaterial({ color: 0x52525b });
+    const metalMat = new THREE.MeshStandardMaterial({ color: 0x9ca3af, metalness: 0.4, roughness: 0.5 });
     const blueMat = new THREE.MeshStandardMaterial({ color: 0x1e40af });
     const woodMat = new THREE.MeshStandardMaterial({ color: 0xc99a5b });
     const selectedFloorMat = new THREE.MeshBasicMaterial({ color: 0x7c3aed, transparent: true, opacity: 0.35, depthWrite: false });
@@ -213,6 +214,35 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
           const count = Math.min(perLevel, itemsAtLevel(shelf, l).length);
           for (let b = 0; b < count; b++) {
             add(0.4, step * 0.6, 0.45, boxMat, (b - (perLevel - 1) / 2) * (W / perLevel), l * step + 0.05 + (step * 0.6) / 2, 0);
+          }
+        }
+      } else if (shelf.type === "angle") {
+        // galvanized angle-iron racking: L-profile posts shared between bays, light panels with a front lip
+        const bays = Math.max(1, Math.round(W / 1.5));
+        const bayW = W / bays;
+        const zf = D / 2 - 0.02;
+        for (let i = 0; i <= bays; i++) {
+          const x = -W / 2 + i * bayW;
+          for (const sz of [-1, 1]) {
+            add(0.05, H, 0.012, metalMat, x, H / 2, sz * zf + sz * 0.019);
+            add(0.012, H, 0.04, metalMat, x - 0.019, H / 2, sz * zf);
+          }
+        }
+        const perLevel = levelSlots(shelf);
+        const step = shelf.levels > 1 ? (H - 0.25) / (shelf.levels - 1) : 0;
+        for (let l = 0; l < shelf.levels; l++) {
+          const y = 0.1 + l * step;
+          for (let b = 0; b < bays; b++) {
+            const cx = -W / 2 + (b + 0.5) * bayW;
+            add(bayW - 0.06, 0.02, D, levelMats[l], cx, y, 0);
+            add(bayW - 0.06, 0.06, 0.012, levelMats[l], cx, y - 0.02, D / 2 + 0.006);
+            add(bayW - 0.06, 0.06, 0.012, levelMats[l], cx, y - 0.02, -D / 2 - 0.006);
+          }
+          addTag(levelTag(roomCode, shelfIndex, shelf, l), -W / 2 + 0.34, y - 0.02, D / 2 + 0.02);
+          const count = Math.min(perLevel, itemsAtLevel(shelf, l).length);
+          const boxH = Math.max(0.18, Math.min(0.45, (step || H) * 0.6));
+          for (let b = 0; b < count; b++) {
+            add(Math.min(0.4, (W / perLevel) * 0.8), boxH, D * 0.8, boxMat, -W / 2 + (b + 0.5) * (W / perLevel), y + 0.01 + boxH / 2, 0);
           }
         }
       } else {
@@ -574,7 +604,7 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
       wallGeoms.forEach((g) => g.dispose());
       grid.geometry.dispose();
       (grid.material as THREE.Material).dispose();
-      [...beamMats, frameMat, blueMat, woodMat, selectedFloorMat, dangerFloorMat, boxMat, bandMat, bandEdgeMat, hitMat, floorMat, wallMat, doorLeafMat, doorFrameMat, windowFrameMat, glassMat, selectedFrameMat, clearanceMat].forEach((m) => m.dispose());
+      [...beamMats, frameMat, metalMat, blueMat, woodMat, selectedFloorMat, dangerFloorMat, boxMat, bandMat, bandEdgeMat, hitMat, floorMat, wallMat, doorLeafMat, doorFrameMat, windowFrameMat, glassMat, selectedFrameMat, clearanceMat].forEach((m) => m.dispose());
       renderer.dispose();
       container.removeChild(dom);
     };
