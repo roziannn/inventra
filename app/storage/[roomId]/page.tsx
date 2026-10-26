@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, use } from "react";
+import React, { useState, useRef, useEffect, use } from "react";
 import dynamic from "next/dynamic";
 import { notFound } from "next/navigation";
 import toast from "react-hot-toast";
@@ -9,7 +9,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import Button from "@/components/Button";
 import { clampToRoom, shelfsOverlap, SHELF_TYPES, type ShelfData, type ShelfType } from "@/components/ShelfViewer";
 import { rooms } from "@/lib/storage-data";
-import { IconPlus, IconRotate, IconTrash, IconTool, IconCheck } from "@tabler/icons-react";
+import { IconPlus, IconRotate, IconTrash, IconTool, IconCheck, IconArrowBackUp, IconArrowForwardUp } from "@tabler/icons-react";
 
 const ShelfViewer = dynamic(() => import("@/components/ShelfViewer"), {
   ssr: false,
@@ -28,6 +28,9 @@ function findFreeSpot(draft: Pick<ShelfData, "rotated" | "length" | "type">, she
 
 const MIN_ROOM = 3;
 const MAX_ROOM = 50;
+const CONTINUOUS_FIELDS = ["name", "color", "length", "height", "levels"];
+const MAX_HISTORY = 100;
+
 const typeOptions = Object.keys(SHELF_TYPES) as ShelfType[];
 const inputClass = "w-full rounded-lg border border-gray-200 bg-transparent px-3 py-2 text-xs focus:border-violet-600 focus:outline-none dark:border-gray-100/10";
 
@@ -63,8 +66,11 @@ function TypeSelect({ value, onChange }: { value: ShelfType; onChange: (t: Shelf
 export default function RoomDetailPage({ params }: { params: Promise<{ roomId: string }> }) {
   const { roomId } = use(params);
   const room = rooms.find((r) => r.id === roomId);
-  const [shelves, setShelves] = useState<ShelfData[]>(room?.shelves ?? []);
+  const [history, setHistory] = useState<{ past: ShelfData[][]; present: ShelfData[]; future: ShelfData[][] }>({ past: [], present: room?.shelves ?? [], future: [] });
   const [selectedShelf, setSelectedShelf] = useState<string | null>(null);
+  const batchKey = useRef<string | null>(null);
+  const shelves = history.present;
+  const activeId = shelves.some((s) => s.id === selectedShelf) ? selectedShelf : null;
   const [editMode, setEditMode] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [size, setSize] = useState({ width: room?.width ?? 10, depth: room?.depth ?? 6 });
@@ -79,7 +85,33 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
 
   if (!room) notFound();
 
-  const update = (id: string, patch: Partial<ShelfData>) => setShelves((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
+  // every change goes through here so it lands on the undo stack; slider/color/name tweaks on one shelf merge into one step
+  const setShelves = (fn: (prev: ShelfData[]) => ShelfData[], key: string | null = null) => {
+    const merge = key !== null && batchKey.current === key;
+    batchKey.current = key;
+    setHistory((h) => {
+      const next = fn(h.present);
+      if (next === h.present) return h;
+      return { past: merge ? h.past : [...h.past, h.present].slice(-MAX_HISTORY), present: next, future: [] };
+    });
+  };
+  const endBatch = () => {
+    batchKey.current = null;
+  };
+  const undo = () => {
+    batchKey.current = null;
+    setHistory((h) => (h.past.length ? { past: h.past.slice(0, -1), present: h.past[h.past.length - 1], future: [h.present, ...h.future] } : h));
+  };
+  const redo = () => {
+    batchKey.current = null;
+    setHistory((h) => (h.future.length ? { past: [...h.past, h.present], present: h.future[0], future: h.future.slice(1) } : h));
+  };
+
+  const update = (id: string, patch: Partial<ShelfData>) => {
+    const keys = Object.keys(patch);
+    const continuous = keys.some((k) => CONTINUOUS_FIELDS.includes(k)) && keys.every((k) => CONTINUOUS_FIELDS.includes(k) || k === "x" || k === "z");
+    setShelves((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)), continuous ? `${id}:${keys.filter((k) => k !== "x" && k !== "z").join(",")}` : null);
+  };
 
   // apply a change to a shelf only if it still fits in the room and doesn't hit other shelves
   const tryUpdate = (s: ShelfData, patch: Partial<ShelfData>, errorMessage = "Perubahan ditolak, rak tidak muat atau menabrak rak lain") => {
@@ -110,9 +142,59 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
   };
 
   const remove = (id: string) => {
+    const name = shelves.find((s) => s.id === id)?.name;
     setShelves((prev) => prev.filter((s) => s.id !== id));
     setSelectedShelf(null);
+    toast((t) => (
+      <span className="flex items-center gap-3 text-xs">
+        {name} dihapus
+        <button
+          className="font-bold text-violet-600"
+          onClick={() => {
+            undo();
+            toast.dismiss(t.id);
+          }}
+        >
+          Urungkan
+        </button>
+      </span>
+    ));
   };
+
+  const removeRef = useRef(remove);
+  const undoRef = useRef(undo);
+  const redoRef = useRef(redo);
+  const activeRef = useRef(activeId);
+  useEffect(() => {
+    removeRef.current = remove;
+    undoRef.current = undo;
+    redoRef.current = redo;
+    activeRef.current = activeId;
+  });
+
+  // keyboard: Delete removes the selected shelf, Ctrl/Cmd+Z undo, Ctrl/Cmd+Shift+Z or Ctrl+Y redo
+  useEffect(() => {
+    if (!editMode) return;
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement;
+      if (el.tagName === "TEXTAREA" || el.tagName === "SELECT" || (el.tagName === "INPUT" && !["range", "color", "checkbox"].includes((el as HTMLInputElement).type))) return;
+      const mod = e.ctrlKey || e.metaKey;
+      const k = e.key.toLowerCase();
+      if ((e.key === "Delete" || e.key === "Backspace") && activeRef.current) {
+        e.preventDefault();
+        removeRef.current(activeRef.current);
+      } else if (mod && k === "z") {
+        e.preventDefault();
+        if (e.shiftKey) redoRef.current();
+        else undoRef.current();
+      } else if (mod && k === "y") {
+        e.preventDefault();
+        redoRef.current();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [editMode]);
 
   const applySize = () => {
     const width = Number(sizeDraft.width.replace(",", "."));
@@ -149,9 +231,21 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
               {room.location} · {size.width} x {size.depth} m
             </p>
           </div>
-          <Button variant={editMode ? "page-primary" : "page-secondary"} onClick={() => setEditMode((v) => !v)}>
-            {editMode ? <IconCheck size={16} /> : <IconTool size={16} />} {editMode ? "Selesai" : "Rak Builder"}
-          </Button>
+          <div className="flex items-center gap-2">
+            {editMode && (
+              <>
+                <Button variant="page-secondary" onClick={undo} disabled={!history.past.length} title="Undo (Ctrl+Z)" aria-label="Undo">
+                  <IconArrowBackUp size={16} />
+                </Button>
+                <Button variant="page-secondary" onClick={redo} disabled={!history.future.length} title="Redo (Ctrl+Shift+Z)" aria-label="Redo">
+                  <IconArrowForwardUp size={16} />
+                </Button>
+              </>
+            )}
+            <Button variant={editMode ? "page-primary" : "page-secondary"} onClick={() => setEditMode((v) => !v)}>
+              {editMode ? <IconCheck size={16} /> : <IconTool size={16} />} {editMode ? "Selesai" : "Rak Builder"}
+            </Button>
+          </div>
         </div>
 
         <div className="flex flex-col gap-3 lg:h-[calc(100vh-14rem)] lg:min-h-[28rem] lg:flex-row">
@@ -160,18 +254,18 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
               shelves={shelves}
               roomWidth={size.width}
               roomDepth={size.depth}
-              selectedId={selectedShelf}
+              selectedId={activeId}
               editable={editMode}
               onSelect={setSelectedShelf}
               onMove={(id, x, z) => update(id, { x, z })}
               onBlocked={() => toast.error("Rak menabrak rak lain, posisi dikembalikan")}
             />
             <p className="pointer-events-none absolute left-3 top-3 rounded-md bg-white/80 px-2 py-1 text-[11px] text-gray-500 dark:bg-zinc-900/70">
-              {editMode ? "Drag rak untuk menggeser · drag area kosong untuk memutar · scroll untuk zoom" : "Drag untuk memutar · scroll untuk zoom · klik rak untuk detail"}
+              {editMode ? "Drag rak untuk menggeser · Delete untuk hapus · Ctrl+Z untuk undo" : "Drag untuk memutar · scroll untuk zoom · klik rak untuk detail"}
             </p>
           </div>
 
-          <aside className="flex min-h-0 flex-col gap-2 overflow-y-auto rounded-xl border border-gray-200 bg-white p-3 lg:w-80 dark:border-gray-100/10 dark:bg-white/6">
+          <aside onPointerUp={endBatch} onBlurCapture={endBatch} className="flex min-h-0 flex-col gap-2 overflow-y-auto rounded-xl border border-gray-200 bg-white p-3 lg:w-80 dark:border-gray-100/10 dark:bg-white/6">
             {editMode && (
               <div className="flex flex-col gap-2 rounded-lg bg-gray-50 p-2.5 dark:bg-white/5">
                 <p className="text-xs font-bold text-gray-900">Ukuran Ruangan</p>
@@ -231,7 +325,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
             )}
 
             {shelves.map((s) => {
-              const isSelected = s.id === selectedShelf;
+              const isSelected = s.id === activeId;
               return (
                 <div key={s.id} className={`rounded-lg border transition-all ${isSelected ? "border-violet-600 bg-violet-50/60 dark:bg-violet-500/12" : "border-gray-200 dark:border-gray-100/10"}`}>
                   <button onClick={() => setSelectedShelf(isSelected ? null : s.id)} className="flex w-full items-center gap-2 px-2.5 py-2 text-left">
