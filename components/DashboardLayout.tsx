@@ -23,6 +23,7 @@ import {
   IconSettings,
   IconSun,
   IconMoon,
+  IconBuildingWarehouse,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -104,6 +105,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: "Dashboard", icon: IconLayoutDashboard, href: "/" },
     { name: "Inventory", icon: IconPackage, href: "/inventory" },
     { name: "Assets", icon: IconBoxSeam, href: "/assets" },
+    { name: "Storage", icon: IconBuildingWarehouse, href: "/storage" },
     { name: "Vendors", icon: IconBuildingSkyscraper, href: "/vendors" },
     { name: "Users", icon: IconUsers, href: "/users" },
     {
