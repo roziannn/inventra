@@ -12,7 +12,7 @@ import { IconPlus, IconRotate, IconTrash, IconTool, IconCheck } from "@tabler/ic
 
 const ShelfViewer = dynamic(() => import("@/components/ShelfViewer"), {
   ssr: false,
-  loading: () => <div className="h-[28rem] w-full animate-pulse rounded-xl bg-gray-100 dark:bg-white/5" />,
+  loading: () => <div className="h-[calc(100vh-13rem)] min-h-[28rem] w-full animate-pulse rounded-xl bg-gray-100 dark:bg-white/5" />,
 });
 
 export default function RoomDetailPage({ params }: { params: Promise<{ roomId: string }> }) {
