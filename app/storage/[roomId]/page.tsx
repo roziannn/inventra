@@ -12,7 +12,8 @@ import RoomBuilderPanel from "@/components/RoomBuilderPanel";
 import { ColorField, CoverToggles, Slider, inputClass } from "@/components/BuilderFields";
 import { blockedByDoor, clampToRoom, shelfsOverlap, SHELF_TYPES, type ShelfData, type ShelfType, type ViewerMode } from "@/components/ShelfViewer";
 import { OPENING_KINDS, clampOffset, openingFits, openingsCollide, wallLength, WALL_IDS, type Opening, type OpeningKind } from "@/lib/room-openings";
-import { itemCatalog, rooms } from "@/lib/storage-data";
+import { itemCatalog, type Room } from "@/lib/storage-data";
+import { updateRoom, useHydrated, useRooms } from "@/lib/room-store";
 import { fillPercent, levelSlots, levelTag } from "@/lib/shelf-model";
 import { IconPlus, IconRotate, IconTrash, IconTool, IconBuildingWarehouse, IconEye, IconArrowBackUp, IconArrowForwardUp, IconCopy, IconSearch, IconX } from "@tabler/icons-react";
 
@@ -62,7 +63,23 @@ function TypeSelect({ value, onChange }: { value: ShelfType; onChange: (t: Shelf
 
 export default function RoomDetailPage({ params }: { params: Promise<{ roomId: string }> }) {
   const { roomId } = use(params);
+  const rooms = useRooms();
+  const hydrated = useHydrated();
   const room = rooms.find((r) => r.id === roomId);
+
+  // rooms come from localStorage, which only exists in the browser
+  if (!hydrated) {
+    return (
+      <DashboardLayout>
+        <div className="h-[28rem] animate-pulse rounded-xl bg-gray-100 dark:bg-white/5" />
+      </DashboardLayout>
+    );
+  }
+  if (!room) notFound();
+  return <RoomEditor key={room.id} room={room} />;
+}
+
+function RoomEditor({ room }: { room: Room }) {
   const [history, setHistory] = useState<{ past: Layout[]; present: Layout; future: Layout[] }>({ past: [], present: { shelves: room?.shelves ?? [], openings: room?.openings ?? [] }, future: [] });
   const [selectedShelf, setSelectedShelf] = useState<string | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<number | null>(null);
@@ -87,9 +104,13 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
     return { length, height, color };
   }
 
-  if (!room) notFound();
-
   // every change goes through here so it lands on the undo stack; slider/color/name tweaks on one shelf merge into one step
+  // keep the room in the store so it survives navigation and refresh
+  useEffect(() => {
+    if (shelves === room.shelves && openings === room.openings && size.width === room.width && size.depth === room.depth) return;
+    updateRoom(room.id, { shelves, openings, width: size.width, depth: size.depth });
+  }, [shelves, openings, size, room]);
+
   const setLayout = (fn: (prev: Layout) => Layout, key: string | null = null) => {
     const merge = key !== null && batchKey.current === key;
     batchKey.current = key;

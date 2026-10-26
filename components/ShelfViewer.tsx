@@ -296,13 +296,16 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
 
       const hit = add(W, H, D, hitMat, 0, H / 2, 0);
       hit.userData.hit = true;
+      hit.userData.helper = true;
 
       const danger = new THREE.Mesh(box(W + 0.2, 0.01, D + 0.2), dangerFloorMat);
       danger.position.y = 0.015;
+      danger.userData.helper = true;
       danger.visible = false;
       group.add(danger);
       const sel = new THREE.Mesh(box(W + 0.2, 0.01, D + 0.2), selectedFloorMat);
       sel.position.y = 0.012;
+      sel.userData.helper = true;
       sel.visible = false;
       group.add(sel);
 
@@ -313,6 +316,7 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
       bandEdges.renderOrder = 10;
       band.add(bandEdges);
       band.visible = false;
+      band.userData.helper = true;
       group.add(band);
 
       // search result highlight (amber), one per level
@@ -323,6 +327,7 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
         e.renderOrder = 10;
         m.add(e);
         m.position.y = ((l + 0.5) * H) / shelf.levels;
+        m.userData.helper = true;
         m.visible = false;
         group.add(m);
         return m;
@@ -454,15 +459,34 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
       const rect = dom.getBoundingClientRect();
       raycaster.setFromCamera(new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1), camera);
     };
+    // pick against the real geometry first (boards, posts, boxes, covers); the invisible helper boxes
+    // would make the ray enter high on the shelf and always report the top level
+    const isHelper = (o: THREE.Object3D | null) => {
+      for (let x = o; x; x = x.parent) if (x.userData.helper) return true;
+      return false;
+    };
+    const shelfOf = (o: THREE.Object3D | null) => {
+      let x = o;
+      while (x && !x.userData.id) x = x.parent;
+      return groups.find((g) => g.group === x) ?? null;
+    };
+    const levelAt = (g: (typeof groups)[number], y: number) => Math.max(0, Math.min(g.shelf.levels - 1, Math.floor(y / (g.shelf.height / g.shelf.levels))));
     const pickShelf = () => {
-      const hit = raycaster.intersectObjects(groups.map((g) => g.group), true)[0];
-      let obj: THREE.Object3D | null = hit?.object ?? null;
-      while (obj && !obj.userData.id) obj = obj.parent;
-      const g = groups.find((x) => x.group === obj);
-      if (!g || !hit) return null;
-      const localY = g.group.worldToLocal(hit.point.clone()).y;
-      const level = Math.max(0, Math.min(g.shelf.levels - 1, Math.floor(localY / (g.shelf.height / g.shelf.levels))));
-      return { g, level };
+      const hits = raycaster.intersectObjects(
+        groups.map((g) => g.group),
+        true,
+      );
+      const real = hits.find((h) => !isHelper(h.object));
+      const realShelf = real && shelfOf(real.object);
+      if (real && realShelf) return { g: realShelf, level: levelAt(realShelf, realShelf.group.worldToLocal(real.point.clone()).y) };
+
+      // empty space inside a shelf: use the height where the ray crosses the shelf's middle depth plane
+      const boxHit = hits.find((h) => h.object.userData.hit);
+      const g = boxHit && shelfOf(boxHit.object);
+      if (!g) return null;
+      const ray = raycaster.ray.clone().applyMatrix4(g.group.matrixWorld.clone().invert());
+      const t = Math.abs(ray.direction.z) > 1e-6 ? -ray.origin.z / ray.direction.z : 0;
+      return { g, level: levelAt(g, ray.origin.y + t * ray.direction.y) };
     };
 
     let orbiting = false;
