@@ -13,8 +13,8 @@ import { ColorField, CoverToggles, Slider, inputClass } from "@/components/Build
 import { blockedByDoor, clampToRoom, shelfsOverlap, SHELF_TYPES, type ShelfData, type ShelfType, type ViewerMode } from "@/components/ShelfViewer";
 import { OPENING_KINDS, clampOffset, openingFits, openingsCollide, wallLength, WALL_IDS, type Opening, type OpeningKind } from "@/lib/room-openings";
 import { itemCatalog, rooms } from "@/lib/storage-data";
-import { fillPercent, levelSlots } from "@/lib/shelf-model";
-import { IconPlus, IconRotate, IconTrash, IconTool, IconBuildingWarehouse, IconEye, IconArrowBackUp, IconArrowForwardUp, IconCopy } from "@tabler/icons-react";
+import { fillPercent, levelSlots, levelTag } from "@/lib/shelf-model";
+import { IconPlus, IconRotate, IconTrash, IconTool, IconBuildingWarehouse, IconEye, IconArrowBackUp, IconArrowForwardUp, IconCopy, IconSearch, IconX } from "@tabler/icons-react";
 
 const ShelfViewer = dynamic(() => import("@/components/ShelfViewer"), {
   ssr: false,
@@ -66,6 +66,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
   const [history, setHistory] = useState<{ past: Layout[]; present: Layout; future: Layout[] }>({ past: [], present: { shelves: room?.shelves ?? [], openings: room?.openings ?? [] }, future: [] });
   const [selectedShelf, setSelectedShelf] = useState<string | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<number | null>(null);
+  const [query, setQuery] = useState("");
   const [selectedOpening, setSelectedOpening] = useState<string | null>(null);
   const batchKey = useRef<string | null>(null);
   const shelves = history.present.shelves;
@@ -198,6 +199,22 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
     const id = `RK-new-${nextId.current}`;
     setShelves((prev) => [...prev, { ...s, id, name: `${s.name} (salinan)`, items: [], x: spot.x, z: spot.z }]);
     setSelectedShelf(id);
+  };
+
+  // item search: every stocked item whose name, SKU or level tag matches
+  const q = query.trim().toLowerCase();
+  const results = q
+    ? shelves.flatMap((shelf, shelfIndex) =>
+        shelf.items
+          .filter((i) => i.level < shelf.levels)
+          .map((item) => ({ shelf, shelfIndex, item, tag: levelTag(roomCode, shelfIndex, shelf, item.level) }))
+          .filter(({ item, tag }) => item.name.toLowerCase().includes(q) || item.sku.toLowerCase().includes(q) || tag.toLowerCase().includes(q)),
+      )
+    : [];
+  const highlights = results.map(({ shelf, item }) => ({ id: shelf.id, level: item.level }));
+  const focusResult = (shelfId: string, level: number) => {
+    setSelectedShelf(shelfId);
+    setSelectedLevel(level);
   };
 
   const addItem = (shelf: ShelfData, level: number, item: { name: string; sku: string }, qty: number) => {
@@ -414,6 +431,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
               selectedOpeningId={activeOpeningId}
               mode={mode}
               selectedLevel={activeId ? selectedLevel : null}
+              highlights={highlights}
               onSelect={(id, level) => {
                 setSelectedShelf(id);
                 setSelectedLevel(level ?? null);
@@ -450,6 +468,49 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
               />
             ) : (
               <>
+                <div className="relative">
+                  <IconSearch size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="search"
+                    placeholder="Cari barang, SKU, atau tag..."
+                    className={`${inputClass} !pl-8 !pr-8`}
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Escape") setQuery("");
+                      if (e.key === "Enter" && results[0]) focusResult(results[0].shelf.id, results[0].item.level);
+                    }}
+                  />
+                  {query && (
+                    <button onClick={() => setQuery("")} aria-label="Hapus pencarian" className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-gray-400 hover:text-gray-700">
+                      <IconX size={14} />
+                    </button>
+                  )}
+                </div>
+
+                {q && (
+                  <div className="flex flex-col gap-1 rounded-lg bg-amber-50 p-2 dark:bg-amber-500/10">
+                    <p className="text-[11px] font-bold text-amber-800 dark:text-amber-200">{results.length ? `${results.length} barang ditemukan` : "Barang tidak ditemukan di ruangan ini"}</p>
+                    <div className="flex max-h-52 flex-col gap-1 overflow-y-auto">
+                      {results.map(({ shelf, shelfIndex, item, tag }) => (
+                        <button
+                          key={`${shelf.id}:${item.id}`}
+                          onClick={() => focusResult(shelf.id, item.level)}
+                          className="flex items-center gap-2 rounded-md bg-white px-2 py-1.5 text-left hover:ring-1 hover:ring-amber-400 dark:bg-white/6"
+                        >
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-xs font-semibold text-gray-900">{item.name}</span>
+                            <span className="block truncate text-[10px] text-gray-500">
+                              {shelf.name || `Rak ${shelfIndex + 1}`} · Tingkat {item.level + 1} · {tag}
+                            </span>
+                          </span>
+                          <span className="text-[11px] font-bold text-gray-700">×{item.qty}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
             <div className="flex items-center justify-between">
               <p className="text-xs font-bold text-gray-900">Rak ({shelves.length})</p>
               {editMode && (
