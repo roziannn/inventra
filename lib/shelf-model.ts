@@ -27,6 +27,10 @@ export interface ShelfData {
   length: number;
   height: number;
   color: string;
+  /** closed panels around the shelf */
+  coverTop?: boolean;
+  coverBack?: boolean;
+  coverSides?: boolean;
   /** custom tag text per level (key = level index); empty means the auto code is used */
   tags?: Record<number, string>;
 }

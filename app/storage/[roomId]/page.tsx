@@ -9,7 +9,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import Button from "@/components/Button";
 import ShelfContents from "@/components/ShelfContents";
 import RoomBuilderPanel from "@/components/RoomBuilderPanel";
-import { ColorField, Slider, inputClass } from "@/components/BuilderFields";
+import { ColorField, CoverToggles, Slider, inputClass } from "@/components/BuilderFields";
 import { blockedByDoor, clampToRoom, shelfsOverlap, SHELF_TYPES, type ShelfData, type ShelfType, type ViewerMode } from "@/components/ShelfViewer";
 import { OPENING_KINDS, clampOffset, openingFits, openingsCollide, wallLength, WALL_IDS, type Opening, type OpeningKind } from "@/lib/room-openings";
 import { itemCatalog, rooms } from "@/lib/storage-data";
@@ -79,7 +79,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
   const [sizeDraft, setSizeDraft] = useState({ width: String(room?.width ?? 10), depth: String(room?.depth ?? 6) });
   const nextId = useRef(0);
   const roomCode = (room?.id.replace(/\D/g, "").slice(-2) ?? "01").padStart(2, "0");
-  const [draft, setDraft] = useState({ name: "", levels: 4, type: "standard" as ShelfType, ...pick("standard") });
+  const [draft, setDraft] = useState({ name: "", levels: 4, type: "standard" as ShelfType, coverTop: false, coverBack: false, coverSides: false, ...pick("standard") });
 
   function pick(type: ShelfType) {
     const { length, height, color } = SHELF_TYPES[type];
@@ -148,7 +148,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
     nextId.current += 1;
     const id = `RK-new-${nextId.current}`;
     const name = draft.name.trim() || `Rak ${shelves.length + 1}`;
-    setShelves((prev) => [...prev, { id, name, levels: draft.levels, items: [], ...spot, ...place, height: draft.height, color: draft.color }]);
+    setShelves((prev) => [...prev, { id, name, levels: draft.levels, items: [], ...spot, ...place, height: draft.height, color: draft.color, coverTop: draft.coverTop, coverBack: draft.coverBack, coverSides: draft.coverSides }]);
     setSelectedShelf(id);
     setDraft((d) => ({ ...d, name: "" }));
     setShowAdd(false);
@@ -477,6 +477,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
                   Jumlah tingkat
                   <input type="number" min={1} max={8} className={`${inputClass} !w-16 !py-1`} value={draft.levels} onChange={(e) => setDraft((d) => ({ ...d, levels: Math.max(1, Math.min(8, Number(e.target.value) || 1)) }))} />
                 </label>
+                <CoverToggles value={draft} onChange={(patch) => setDraft((d) => ({ ...d, ...patch }))} />
                 <Button variant="modal-primary" onClick={addShelf}>
                   Tambah ke ruangan
                 </Button>
@@ -540,14 +541,15 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
                           onChange={(e) => update(s.id, { levels: Math.max(1, Math.min(8, Number(e.target.value) || 1)) })}
                         />
                       </label>
+                      <CoverToggles value={s} onChange={(patch) => update(s.id, patch)} />
                       <div className="flex gap-2">
-                        <Button variant="modal-secondary" className="flex-1 !min-h-8 !py-1.5" onClick={() => tryUpdate(s, { rotated: !s.rotated }, "Tidak bisa diputar, rak akan menabrak atau keluar ruangan")}>
+                        <Button variant="modal-secondary" className="min-w-0 flex-1 !min-h-8 !px-2 !py-1.5" onClick={() => tryUpdate(s, { rotated: !s.rotated }, "Tidak bisa diputar, rak akan menabrak atau keluar ruangan")}>
                           <IconRotate size={14} /> Putar
                         </Button>
-                        <Button variant="modal-secondary" className="flex-1 !min-h-8 !py-1.5" onClick={() => duplicate(s)} title="Duplikat (Ctrl+D)">
+                        <Button variant="modal-secondary" className="min-w-0 flex-1 !min-h-8 !px-2 !py-1.5" onClick={() => duplicate(s)} title="Duplikat (Ctrl+D)">
                           <IconCopy size={14} /> Duplikat
                         </Button>
-                        <Button variant="modal-danger" className="flex-1 !min-h-8 !py-1.5" onClick={() => remove(s.id)}>
+                        <Button variant="modal-danger" className="min-w-0 flex-1 !min-h-8 !px-2 !py-1.5" onClick={() => remove(s.id)}>
                           <IconTrash size={14} /> Hapus
                         </Button>
                       </div>

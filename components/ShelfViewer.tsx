@@ -141,7 +141,7 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
     const bandEdgeMat = new THREE.LineBasicMaterial({ color: 0x5b21b6, depthTest: false, transparent: true });
     const hitMat = new THREE.MeshBasicMaterial({ visible: false });
 
-    const groups: { id: string; group: THREE.Group; shelf: ShelfData; levelMats: THREE.MeshStandardMaterial[]; danger: THREE.Mesh; sel: THREE.Mesh; band: THREE.Mesh }[] = [];
+    const groups: { id: string; group: THREE.Group; shelf: ShelfData; levelMats: THREE.MeshStandardMaterial[]; coverMat: THREE.MeshStandardMaterial; danger: THREE.Mesh; sel: THREE.Mesh; band: THREE.Mesh }[] = [];
     const placeOf = (g: (typeof groups)[number]): ShelfPlace => ({ x: g.group.position.x, z: g.group.position.z, rotated: g.shelf.rotated, length: g.shelf.length, type: g.shelf.type });
 
     // purple location tag, drawn on a canvas so the code is readable in 3D
@@ -191,7 +191,8 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
       const D = SHELF_TYPES[shelf.type].depth;
       // one material per level so unselected levels can be dimmed while one is selected
       const levelMats = Array.from({ length: shelf.levels }, () => new THREE.MeshStandardMaterial({ color: shelf.color }));
-      beamMats.push(...levelMats);
+      const coverMat = new THREE.MeshStandardMaterial({ color: shelf.color });
+      beamMats.push(...levelMats, coverMat);
       const add = (w: number, h: number, d: number, mat: THREE.Material, x: number, y: number, z: number) => {
         const m = new THREE.Mesh(box(w, h, d), mat);
         m.position.set(x, y, z);
@@ -283,6 +284,11 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
         }
       }
 
+      // closed panels
+      if (shelf.coverTop) add(W + 0.04, 0.03, D + 0.04, coverMat, 0, H + 0.015, 0);
+      if (shelf.coverBack) add(W, H, 0.02, coverMat, 0, H / 2, -D / 2 + 0.01);
+      if (shelf.coverSides) for (const sx of [-1, 1]) add(0.02, H, D, coverMat, sx * (W / 2 + 0.01), H / 2, 0);
+
       const hit = add(W, H, D, hitMat, 0, H / 2, 0);
       hit.userData.hit = true;
 
@@ -305,7 +311,7 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
       group.add(band);
 
       scene.add(group);
-      groups.push({ id: shelf.id, group, shelf, levelMats, danger, sel, band });
+      groups.push({ id: shelf.id, group, shelf, levelMats, coverMat, danger, sel, band });
     });
 
     // walls with door/window cut-outs; rebuilt cheaply while an opening is being dragged
@@ -573,6 +579,7 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
       groups.forEach((g) => {
         const colliding = groups.some((o) => o !== g && shelfsOverlap(placeOf(g), placeOf(o))) || blockedByDoor(placeOf(g), liveOpenings, roomWidth, roomDepth);
         const isSel = g.id === selectedRef.current;
+        g.coverMat.color.set(colliding ? 0xef4444 : g.shelf.color);
         const lvl = selectedLevelRef.current;
         g.levelMats.forEach((m, l) => {
           const dim = isSel && lvl !== null && l !== lvl;
