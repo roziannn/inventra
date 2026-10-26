@@ -370,9 +370,9 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
   const zoomBtn = "flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-50 active:scale-95 dark:border-gray-100/10 dark:bg-zinc-800 dark:text-gray-100";
 
   return (
-    <div className="relative">
-      <div ref={containerRef} className="h-[calc(100vh-15rem)] min-h-[28rem] w-full rounded-xl bg-gray-50 dark:bg-white/5" />
-      <div className="absolute bottom-3 right-3 flex flex-col gap-2">
+    <div className="relative h-full w-full">
+      <div ref={containerRef} className="h-full w-full overflow-hidden rounded-xl bg-gray-50 dark:bg-white/5" />
+      <div className="absolute bottom-3 left-3 flex flex-col gap-2">
         <button type="button" aria-label="Zoom in" className={zoomBtn} onClick={() => zoomBy(0.8)}>
           <IconPlus size={16} />
         </button>
