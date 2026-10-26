@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { IconPlus, IconMinus } from "@tabler/icons-react";
+import { OPENING_KINDS, clampOffset, doorClearances, openingsCollide, wallLength, type Opening, type Rect, type WallId } from "@/lib/room-openings";
 
 export type ShelfType = "standard" | "pallet";
 
@@ -27,19 +28,26 @@ export interface ShelfData {
 
 export type ShelfPlace = Pick<ShelfData, "x" | "z" | "rotated" | "length" | "type">;
 
+export type ViewerMode = "view" | "rak" | "ruangan";
+
 interface ShelfViewerProps {
   shelves: ShelfData[];
+  openings: Opening[];
   roomWidth: number;
   roomDepth: number;
   selectedId: string | null;
-  editable: boolean;
+  selectedOpeningId: string | null;
+  mode: ViewerMode;
   snap?: boolean;
   onSelect: (id: string | null) => void;
+  onSelectOpening: (id: string | null) => void;
   onMove: (id: string, x: number, z: number) => void;
+  onMoveOpening: (id: string, wall: WallId, offset: number) => void;
   onBlocked?: () => void;
 }
 
-const WALL_H = 0.5;
+const WALL_H = 2.6;
+const WALL_T = 0.12;
 
 function halfExtents(s: Pick<ShelfData, "rotated" | "length" | "type">) {
   const hl = s.length / 2;
@@ -59,6 +67,16 @@ export function shelfsOverlap(a: ShelfPlace, b: ShelfPlace) {
   const ea = halfExtents(a);
   const eb = halfExtents(b);
   return Math.abs(a.x - b.x) < ea.hx + eb.hx - 1e-6 && Math.abs(a.z - b.z) < ea.hz + eb.hz - 1e-6;
+}
+
+function hitsRect(s: ShelfPlace, r: Rect) {
+  const { hx, hz } = halfExtents(s);
+  return Math.abs(s.x - r.cx) < hx + r.hx - 1e-6 && Math.abs(s.z - r.cz) < hz + r.hz - 1e-6;
+}
+
+/** true when the shelf stands in the clear area in front of a door */
+export function blockedByDoor(s: ShelfPlace, openings: Opening[], roomWidth: number, roomDepth: number) {
+  return doorClearances(openings, roomWidth, roomDepth).some((r) => hitsRect(s, r));
 }
 
 const SNAP_GRID = 0.5;
@@ -82,10 +100,13 @@ function snapAxis(c: number, h: number, others: { c: number; h: number }[]) {
   return best ?? Math.round((c - h) / SNAP_GRID) * SNAP_GRID + h;
 }
 
-export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId, editable, snap = false, onSelect, onMove, onBlocked }: ShelfViewerProps) {
+export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, selectedId, selectedOpeningId, mode, snap = false, onSelect, onSelectOpening, onMove, onMoveOpening, onBlocked }: ShelfViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const selectedRef = useRef(selectedId);
-  const editableRef = useRef(editable);
+  const modeRef = useRef(mode);
+  const selectedOpeningRef = useRef(selectedOpeningId);
+  const onSelectOpeningRef = useRef(onSelectOpening);
+  const onMoveOpeningRef = useRef(onMoveOpening);
   const snapRef = useRef(snap);
   const onSelectRef = useRef(onSelect);
   const onMoveRef = useRef(onMove);
@@ -99,7 +120,10 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
 
   useEffect(() => {
     selectedRef.current = selectedId;
-    editableRef.current = editable;
+    modeRef.current = mode;
+    selectedOpeningRef.current = selectedOpeningId;
+    onSelectOpeningRef.current = onSelectOpening;
+    onMoveOpeningRef.current = onMoveOpening;
     snapRef.current = snap;
     onSelectRef.current = onSelect;
     onMoveRef.current = onMove;
@@ -128,23 +152,12 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
       return g;
     };
 
-    // room floor + low walls
+    // room floor
     const floorMat = new THREE.MeshStandardMaterial({ color: 0xe5e7eb });
-    const wallMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1 });
     const floor = new THREE.Mesh(box(roomWidth, 0.04, roomDepth), floorMat);
     floor.position.y = -0.02;
     scene.add(floor);
-    const walls: [number, number, number, number][] = [
-      [roomWidth, 0.08, 0, -roomDepth / 2],
-      [roomWidth, 0.08, 0, roomDepth / 2],
-      [0.08, roomDepth, -roomWidth / 2, 0],
-      [0.08, roomDepth, roomWidth / 2, 0],
-    ];
-    walls.forEach(([w, d, x, z]) => {
-      const wall = new THREE.Mesh(box(w, WALL_H, d), wallMat);
-      wall.position.set(x, WALL_H / 2, z);
-      scene.add(wall);
-    });
+
     const gridPts: number[] = [];
     for (let x = -roomWidth / 2; x <= roomWidth / 2 + 1e-6; x += 1) gridPts.push(x, 0, -roomDepth / 2, x, 0, roomDepth / 2);
     for (let z = -roomDepth / 2; z <= roomDepth / 2 + 1e-6; z += 1) gridPts.push(-roomWidth / 2, 0, z, roomWidth / 2, 0, z);
@@ -250,10 +263,96 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
       groups.push({ id: shelf.id, group, shelf, beamMat, danger, sel });
     });
 
+    // walls with door/window cut-outs; rebuilt cheaply while an opening is being dragged
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, transparent: true, opacity: 0.3, depthWrite: false });
+    const doorLeafMat = new THREE.MeshStandardMaterial({ color: 0x92602b });
+    const doorFrameMat = new THREE.MeshStandardMaterial({ color: 0x78350f });
+    const windowFrameMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc });
+    const glassMat = new THREE.MeshStandardMaterial({ color: 0x93c5fd, transparent: true, opacity: 0.5, depthWrite: false });
+    const selectedFrameMat = new THREE.MeshStandardMaterial({ color: 0x7c3aed, emissive: 0x4c1d95 });
+    const clearanceMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b, transparent: true, opacity: 0.25, depthWrite: false });
+    const wallGroup = new THREE.Group();
+    scene.add(wallGroup);
+    let wallGeoms: THREE.BufferGeometry[] = [];
+    let liveOpenings = openings;
+    let builtSelected: string | null = null;
+
+    const buildWalls = (ops: Opening[]) => {
+      wallGroup.clear();
+      wallGeoms.forEach((g) => g.dispose());
+      wallGeoms = [];
+      builtSelected = selectedOpeningRef.current;
+
+      // a piece of wall: `along` = center along the wall, w = length, y0..y1 vertical span
+      const piece = (wall: WallId, along: number, w: number, y0: number, y1: number, t: number, mat: THREE.Material, parent: THREE.Object3D = wallGroup) => {
+        if (w <= 1e-4 || y1 - y0 <= 1e-4) return null;
+        const horizontal = wall === "back" || wall === "front";
+        const g = horizontal ? new THREE.BoxGeometry(w, y1 - y0, t) : new THREE.BoxGeometry(t, y1 - y0, w);
+        wallGeoms.push(g);
+        const m = new THREE.Mesh(g, mat);
+        const fixed = wall === "back" ? -roomDepth / 2 : wall === "front" ? roomDepth / 2 : wall === "left" ? -roomWidth / 2 : roomWidth / 2;
+        const y = (y0 + y1) / 2;
+        if (horizontal) m.position.set(along, y, fixed);
+        else m.position.set(fixed, y, along);
+        parent.add(m);
+        return m;
+      };
+
+      (["back", "front", "left", "right"] as WallId[]).forEach((wall) => {
+        const len = wallLength(wall, roomWidth, roomDepth);
+        const onWall = ops.filter((o) => o.wall === wall).sort((a, b) => a.offset - b.offset);
+        let cursor = -len / 2 - WALL_T / 2;
+        const solid = (from: number, to: number) => piece(wall, (from + to) / 2, to - from, 0, WALL_H, WALL_T, wallMat);
+
+        onWall.forEach((o) => {
+          const spec = OPENING_KINDS[o.kind];
+          const a = o.offset - o.width / 2;
+          const b = o.offset + o.width / 2;
+          if (a > cursor) solid(cursor, a);
+          cursor = Math.max(cursor, b);
+          piece(wall, o.offset, o.width, 0, spec.sill, WALL_T, wallMat);
+          piece(wall, o.offset, o.width, spec.sill + spec.height, WALL_H, WALL_T, wallMat);
+
+          const selected = o.id === selectedOpeningRef.current;
+          const group = new THREE.Group();
+          group.userData.openingId = o.id;
+          wallGroup.add(group);
+          const top = spec.sill + spec.height;
+          const frame = selected ? selectedFrameMat : o.kind === "door" ? doorFrameMat : windowFrameMat;
+          const T = WALL_T + 0.05;
+          const f = 0.06;
+          piece(wall, a + f / 2, f, spec.sill, top, T, frame, group);
+          piece(wall, b - f / 2, f, spec.sill, top, T, frame, group);
+          piece(wall, o.offset, o.width, top - f, top, T, frame, group);
+          if (spec.sill > 0) piece(wall, o.offset, o.width, spec.sill, spec.sill + f, T + 0.08, frame, group);
+          if (o.kind === "door") {
+            piece(wall, o.offset, o.width - 2 * f, 0, spec.height - f, 0.05, doorLeafMat, group);
+            piece(wall, o.offset + o.width / 2 - 0.2, 0.05, 0.95, 1.05, 0.12, frame, group);
+          } else {
+            piece(wall, o.offset, o.width - 2 * f, spec.sill + f, top - f, 0.02, glassMat, group);
+            piece(wall, o.offset, 0.04, spec.sill + f, top - f, 0.05, frame, group);
+          }
+          // invisible, slightly bigger box so the opening is easy to grab
+          const hit = piece(wall, o.offset, o.width + 0.2, spec.sill, top, 0.6, hitMat, group);
+          if (hit) hit.userData.openingId = o.id;
+        });
+        solid(cursor, len / 2 + WALL_T / 2);
+      });
+
+      doorClearances(ops, roomWidth, roomDepth).forEach((r) => {
+        const g = new THREE.BoxGeometry(r.hx * 2, 0.01, r.hz * 2);
+        wallGeoms.push(g);
+        const m = new THREE.Mesh(g, clearanceMat);
+        m.position.set(r.cx, 0.012, r.cz);
+        wallGroup.add(m);
+      });
+    };
+    buildWalls(openings);
+
     const fitRadius = () => {
       const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
       const forWidth = (roomWidth / 2 + 0.5) / (t * camera.aspect);
-      const forDepth = (roomDepth / 2 + 1.5) / t;
+      const forDepth = (roomDepth / 2 + 2.5) / t;
       return Math.max(6, Math.max(forWidth, forDepth * 0.8) * 1.05);
     };
     const target = new THREE.Vector3(0, 0.5, 0);
@@ -291,6 +390,8 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
     };
 
     let orbiting = false;
+    let draggedOpening: { id: string; wall: WallId; offset: number } | null = null;
+    let dragMoved = false;
     let dragged: (typeof groups)[number] | null = null;
     const offset = new THREE.Vector3();
     let moved = 0;
@@ -298,13 +399,36 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
     let lastX = 0;
     let lastY = 0;
 
+    const pickOpening = () => {
+      const hit = raycaster.intersectObject(wallGroup, true).find((h) => {
+        let obj: THREE.Object3D | null = h.object;
+        while (obj && !obj.userData.openingId) obj = obj.parent;
+        return !!obj;
+      });
+      let obj: THREE.Object3D | null = hit?.object ?? null;
+      while (obj && !obj.userData.openingId) obj = obj.parent;
+      return (obj?.userData.openingId as string | undefined) ?? null;
+    };
+
     const onDown = (e: PointerEvent) => {
       moved = 0;
       lastX = e.clientX;
       lastY = e.clientY;
       setRay(e);
+      if (modeRef.current === "ruangan") {
+        const id = pickOpening();
+        const op = liveOpenings.find((o) => o.id === id);
+        if (op) {
+          draggedOpening = { id: op.id, wall: op.wall, offset: op.offset };
+          dragMoved = false;
+          onSelectOpeningRef.current(op.id);
+        } else {
+          orbiting = true;
+        }
+        return;
+      }
       const picked = pickShelf();
-      if (picked && editableRef.current) {
+      if (picked && modeRef.current === "rak") {
         dragged = picked;
         startPos.copy(picked.group.position);
         onSelectRef.current(picked.id);
@@ -318,7 +442,30 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
       const dy = e.clientY - lastY;
       lastX = e.clientX;
       lastY = e.clientY;
-      if (dragged) {
+      if (draggedOpening) {
+        moved += Math.abs(dx) + Math.abs(dy);
+        if (moved <= 3) return;
+        setRay(e);
+        if (raycaster.ray.intersectPlane(plane, point)) {
+          const dist: [WallId, number][] = [
+            ["back", Math.abs(point.z + roomDepth / 2)],
+            ["front", Math.abs(point.z - roomDepth / 2)],
+            ["left", Math.abs(point.x + roomWidth / 2)],
+            ["right", Math.abs(point.x - roomWidth / 2)],
+          ];
+          const wall = dist.sort((a, b) => a[1] - b[1])[0][0];
+          const current = liveOpenings.find((o) => o.id === draggedOpening!.id)!;
+          const along = wall === "back" || wall === "front" ? point.x : point.z;
+          const next = { ...current, wall, offset: clampOffset(along, current.width, wall, roomWidth, roomDepth) };
+          const valid = next.width <= wallLength(wall, roomWidth, roomDepth) - 0.2 && !liveOpenings.some((o) => openingsCollide(next, o));
+          if (valid && (next.wall !== current.wall || next.offset !== current.offset)) {
+            draggedOpening = { id: next.id, wall: next.wall, offset: next.offset };
+            dragMoved = true;
+            liveOpenings = liveOpenings.map((o) => (o.id === next.id ? next : o));
+            buildWalls(liveOpenings);
+          }
+        }
+      } else if (dragged) {
         moved += Math.abs(dx) + Math.abs(dy);
         setRay(e);
         if (raycaster.ray.intersectPlane(plane, point)) {
@@ -341,10 +488,12 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
       }
     };
     const onUp = (e: PointerEvent) => {
-      if (dragged) {
+      if (draggedOpening) {
+        if (dragMoved) onMoveOpeningRef.current(draggedOpening.id, draggedOpening.wall, draggedOpening.offset);
+      } else if (dragged) {
         if (moved > 3) {
           const d = dragged;
-          const blocked = groups.some((o) => o !== d && shelfsOverlap(placeOf(d), placeOf(o)));
+          const blocked = groups.some((o) => o !== d && shelfsOverlap(placeOf(d), placeOf(o))) || blockedByDoor(placeOf(d), liveOpenings, roomWidth, roomDepth);
           if (blocked) {
             d.group.position.copy(startPos);
             onBlockedRef.current?.();
@@ -354,9 +503,11 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
         }
       } else if (orbiting && moved <= 5 && e.target === dom) {
         setRay(e);
-        onSelectRef.current(pickShelf()?.id ?? null);
+        if (modeRef.current === "ruangan") onSelectOpeningRef.current(null);
+        else onSelectRef.current(pickShelf()?.id ?? null);
       }
       dragged = null;
+      draggedOpening = null;
       orbiting = false;
     };
     const onWheel = (e: WheelEvent) => {
@@ -371,13 +522,14 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
     let raf = 0;
     const animate = () => {
       groups.forEach((g) => {
-        const colliding = groups.some((o) => o !== g && shelfsOverlap(placeOf(g), placeOf(o)));
+        const colliding = groups.some((o) => o !== g && shelfsOverlap(placeOf(g), placeOf(o))) || blockedByDoor(placeOf(g), liveOpenings, roomWidth, roomDepth);
         g.beamMat.color.set(colliding ? 0xef4444 : g.shelf.color);
         g.beamMat.emissive.setHex(colliding ? 0x991b1b : g.id === selectedRef.current ? 0x333333 : 0x000000);
         g.danger.visible = colliding;
         g.sel.visible = !colliding && g.id === selectedRef.current;
       });
-      dom.style.cursor = editableRef.current ? (dragged ? "grabbing" : "move") : "grab";
+      if (builtSelected !== selectedOpeningRef.current) buildWalls(liveOpenings);
+      dom.style.cursor = dragged || draggedOpening ? "grabbing" : modeRef.current === "view" ? "grab" : "move";
       updateCamera();
       renderer.render(scene, camera);
       raf = requestAnimationFrame(animate);
@@ -392,13 +544,14 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
       geoms.forEach((g) => g.dispose());
+      wallGeoms.forEach((g) => g.dispose());
       grid.geometry.dispose();
       (grid.material as THREE.Material).dispose();
-      [...beamMats, frameMat, blueMat, woodMat, selectedFloorMat, dangerFloorMat, boxMat, hitMat, floorMat, wallMat].forEach((m) => m.dispose());
+      [...beamMats, frameMat, blueMat, woodMat, selectedFloorMat, dangerFloorMat, boxMat, hitMat, floorMat, wallMat, doorLeafMat, doorFrameMat, windowFrameMat, glassMat, selectedFrameMat, clearanceMat].forEach((m) => m.dispose());
       renderer.dispose();
       container.removeChild(dom);
     };
-  }, [shelves, roomWidth, roomDepth]);
+  }, [shelves, openings, roomWidth, roomDepth]);
 
   const zoomBtn = "flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-50 active:scale-95 dark:border-gray-100/10 dark:bg-zinc-800 dark:text-gray-100";
 
