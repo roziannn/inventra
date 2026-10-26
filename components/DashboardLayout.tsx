@@ -29,6 +29,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Sulphur_Point } from "next/font/google";
 import { searchData } from "@/lib/search-data";
+import { MENU_ICONS } from "@/lib/menu-icons";
+import { sidebarFor, useSettings } from "@/lib/settings-store";
 import toast from "react-hot-toast";
 
 const sulphurPoint = Sulphur_Point({
@@ -38,10 +40,22 @@ const sulphurPoint = Sulphur_Point({
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const getActiveSubMenu = React.useCallback((currentPath: string) => {
-    if (currentPath.startsWith("/labeling")) return "Labeling";
-    return null;
-  }, []);
+  const { menus, roles, activeRoleId } = useSettings();
+  const activeRole = roles.find((r) => r.id === activeRoleId);
+  const sidebarItems = React.useMemo(
+    () =>
+      sidebarFor(menus, activeRole).map(({ menu, subs }) => ({
+        name: menu.name,
+        icon: MENU_ICONS[menu.icon] ?? MENU_ICONS.folder,
+        href: menu.href,
+        subItems: subs.length ? subs.map((x) => ({ name: x.name, href: x.href })) : undefined,
+      })),
+    [menus, activeRole],
+  );
+  const getActiveSubMenu = React.useCallback(
+    (currentPath: string) => sidebarItems.find((item) => item.subItems && (currentPath === item.href || currentPath.startsWith(`${item.href}/`)))?.name ?? null,
+    [sidebarItems],
+  );
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -100,26 +114,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       return nextTheme;
     });
   };
-
-  const sidebarItems = [
-    { name: "Dashboard", icon: IconLayoutDashboard, href: "/" },
-    { name: "Inventory", icon: IconPackage, href: "/inventory" },
-    { name: "Assets", icon: IconBoxSeam, href: "/assets" },
-    { name: "Storage", icon: IconBuildingWarehouse, href: "/storage" },
-    { name: "Vendors", icon: IconBuildingSkyscraper, href: "/vendors" },
-    { name: "Users", icon: IconUsers, href: "/users" },
-    {
-      name: "Labeling",
-      icon: IconTags,
-      href: "/labeling",
-      subItems: [
-        { name: "Print Label", href: "/labeling/print" },
-        { name: "QR Code", href: "/labeling/qr" },
-      ],
-    },
-    { name: "Reports", icon: IconFileAnalytics, href: "/reports" },
-    { name: "Audit Trail", icon: IconHistory, href: "/audit-trail" },
-  ];
 
   // Keep the active submenu open immediately when navigating between child routes.
   useEffect(() => {
@@ -336,7 +330,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <div className="w-8 h-8 bg-white/5 rounded-full flex items-center justify-center text-white font-bold text-xs">AD</div>
                   <div className="overflow-hidden">
                     <p className="text-sm font-bold text-white truncate">Admin User</p>
-                    <p className="text-xs text-violet-100/40 truncate">Manager</p>
+                    <p className="text-xs text-violet-100/40 truncate">{activeRole?.name ?? "Super Admin"}</p>
                   </div>
                 </div>
               </div>
