@@ -22,6 +22,7 @@ interface ShelfViewerProps {
   editable: boolean;
   onSelect: (id: string | null) => void;
   onMove: (id: string, x: number, z: number) => void;
+  onBlocked?: () => void;
 }
 
 export const SHELF_W = 1.6;
@@ -38,12 +39,21 @@ export function clampToRoom(x: number, z: number, rotated: boolean, roomWidth: n
   };
 }
 
-export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId, editable, onSelect, onMove }: ShelfViewerProps) {
+export function shelfsOverlap(a: { x: number; z: number; rotated: boolean }, b: { x: number; z: number; rotated: boolean }) {
+  const aw = (a.rotated ? SHELF_D : SHELF_W) / 2;
+  const ad = (a.rotated ? SHELF_W : SHELF_D) / 2;
+  const bw = (b.rotated ? SHELF_D : SHELF_W) / 2;
+  const bd = (b.rotated ? SHELF_W : SHELF_D) / 2;
+  return Math.abs(a.x - b.x) < aw + bw && Math.abs(a.z - b.z) < ad + bd;
+}
+
+export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId, editable, onSelect, onMove, onBlocked }: ShelfViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const selectedRef = useRef(selectedId);
   const editableRef = useRef(editable);
   const onSelectRef = useRef(onSelect);
   const onMoveRef = useRef(onMove);
+  const onBlockedRef = useRef(onBlocked);
   const yawRef = useRef(0);
   const pitchRef = useRef(1.0);
   const zoomRef = useRef(1);
@@ -56,6 +66,7 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
     editableRef.current = editable;
     onSelectRef.current = onSelect;
     onMoveRef.current = onMove;
+    onBlockedRef.current = onBlocked;
   });
 
   useEffect(() => {
@@ -108,9 +119,11 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
     const boardMat = new THREE.MeshStandardMaterial({ color: 0xa78bfa });
     const selectedMat = new THREE.MeshStandardMaterial({ color: 0x7c3aed, emissive: 0x4c1d95 });
     const boxMat = new THREE.MeshStandardMaterial({ color: 0xd4a373 });
+    const dangerMat = new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0x991b1b });
+    const dangerFloorMat = new THREE.MeshBasicMaterial({ color: 0xef4444, transparent: true, opacity: 0.55, depthWrite: false });
     const hitMat = new THREE.MeshBasicMaterial({ visible: false });
 
-    const groups: { id: string; group: THREE.Group; boards: THREE.Mesh[]; rotated: boolean }[] = [];
+    const groups: { id: string; group: THREE.Group; boards: THREE.Mesh[]; rotated: boolean; danger: THREE.Mesh }[] = [];
 
     shelves.forEach((shelf) => {
       const group = new THREE.Group();
@@ -146,8 +159,13 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
       hit.position.y = SHELF_H / 2;
       group.add(hit);
 
+      const danger = new THREE.Mesh(box(SHELF_W + 0.2, 0.01, SHELF_D + 0.2), dangerFloorMat);
+      danger.position.y = 0.015;
+      danger.visible = false;
+      group.add(danger);
+
       scene.add(group);
-      groups.push({ id: shelf.id, group, boards, rotated: shelf.rotated });
+      groups.push({ id: shelf.id, group, boards, rotated: shelf.rotated, danger });
     });
 
     const baseRadius = Math.max(6, Math.max(roomWidth, roomDepth) * 0.95);
@@ -189,6 +207,7 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
     let dragged: (typeof groups)[number] | null = null;
     const offset = new THREE.Vector3();
     let moved = 0;
+    const startPos = new THREE.Vector3();
     let lastX = 0;
     let lastY = 0;
 
@@ -200,6 +219,7 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
       const picked = pickShelf();
       if (picked && editableRef.current) {
         dragged = picked;
+        startPos.copy(picked.group.position);
         onSelectRef.current(picked.id);
         if (raycaster.ray.intersectPlane(plane, point)) offset.copy(picked.group.position).sub(point);
       } else {
@@ -226,7 +246,16 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
     };
     const onUp = (e: PointerEvent) => {
       if (dragged) {
-        if (moved > 3) onMoveRef.current(dragged.id, dragged.group.position.x, dragged.group.position.z);
+        if (moved > 3) {
+          const d = dragged;
+          const blocked = groups.some((o) => o !== d && shelfsOverlap({ x: d.group.position.x, z: d.group.position.z, rotated: d.rotated }, { x: o.group.position.x, z: o.group.position.z, rotated: o.rotated }));
+          if (blocked) {
+            d.group.position.copy(startPos);
+            onBlockedRef.current?.();
+          } else {
+            onMoveRef.current(d.id, d.group.position.x, d.group.position.z);
+          }
+        }
       } else if (orbiting && moved <= 5 && e.target === dom) {
         setRay(e);
         onSelectRef.current(pickShelf()?.id ?? null);
@@ -245,9 +274,11 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
 
     let raf = 0;
     const animate = () => {
-      groups.forEach(({ id, boards }) => {
-        const mat = id === selectedRef.current ? selectedMat : boardMat;
+      groups.forEach(({ id, boards, group, rotated, danger }) => {
+        const colliding = groups.some((o) => o.id !== id && shelfsOverlap({ x: group.position.x, z: group.position.z, rotated }, { x: o.group.position.x, z: o.group.position.z, rotated: o.rotated }));
+        const mat = colliding ? dangerMat : id === selectedRef.current ? selectedMat : boardMat;
         boards.forEach((b) => (b.material = mat));
+        danger.visible = colliding;
       });
       dom.style.cursor = editableRef.current ? (dragged ? "grabbing" : "move") : "grab";
       updateCamera();
@@ -266,7 +297,7 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
       geoms.forEach((g) => g.dispose());
       grid.geometry.dispose();
       (grid.material as THREE.Material).dispose();
-      [frameMat, boardMat, selectedMat, boxMat, hitMat, floorMat, wallMat].forEach((m) => m.dispose());
+      [frameMat, boardMat, selectedMat, dangerMat, dangerFloorMat, boxMat, hitMat, floorMat, wallMat].forEach((m) => m.dispose());
       renderer.dispose();
       container.removeChild(dom);
     };

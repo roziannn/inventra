@@ -6,7 +6,8 @@ import { notFound } from "next/navigation";
 import DashboardLayout from "@/components/DashboardLayout";
 import Breadcrumb from "@/components/Breadcrumb";
 import Button from "@/components/Button";
-import { clampToRoom, type ShelfData } from "@/components/ShelfViewer";
+import { clampToRoom, shelfsOverlap, type ShelfData } from "@/components/ShelfViewer";
+import toast from "react-hot-toast";
 import { rooms } from "@/lib/storage-data";
 import { IconPlus, IconRotate, IconTrash, IconTool, IconCheck } from "@tabler/icons-react";
 
@@ -14,6 +15,16 @@ const ShelfViewer = dynamic(() => import("@/components/ShelfViewer"), {
   ssr: false,
   loading: () => <div className="h-[calc(100vh-13rem)] min-h-[28rem] w-full animate-pulse rounded-xl bg-gray-100 dark:bg-white/5" />,
 });
+
+function findFreeSpot(shelves: ShelfData[], width: number, depth: number) {
+  for (let z = -depth / 2; z <= depth / 2; z += 0.5) {
+    for (let x = -width / 2; x <= width / 2; x += 0.5) {
+      const c = clampToRoom(x, z, false, width, depth);
+      if (!shelves.some((o) => shelfsOverlap({ ...c, rotated: false }, o))) return c;
+    }
+  }
+  return null;
+}
 
 export default function RoomDetailPage({ params }: { params: Promise<{ roomId: string }> }) {
   const { roomId } = use(params);
@@ -30,16 +41,26 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
   const update = (id: string, patch: Partial<ShelfData>) => setShelves((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
 
   const addShelf = () => {
+    const spot = findFreeSpot(shelves, room.width, room.depth);
+    if (!spot) {
+      toast.error("Tidak ada ruang kosong untuk rak baru");
+      return;
+    }
     const id = `RK-${Date.now()}`;
     const name = newName.trim() || `Rak ${shelves.length + 1}`;
-    setShelves((prev) => [...prev, { id, name, levels: newLevels, usedPercent: 0, x: 0, z: 0, rotated: false }]);
+    setShelves((prev) => [...prev, { id, name, levels: newLevels, usedPercent: 0, x: spot.x, z: spot.z, rotated: false }]);
     setSelectedShelf(id);
     setNewName("");
   };
 
   const rotate = (s: ShelfData) => {
     const rotated = !s.rotated;
-    update(s.id, { rotated, ...clampToRoom(s.x, s.z, rotated, room.width, room.depth) });
+    const pos = clampToRoom(s.x, s.z, rotated, room.width, room.depth);
+    if (shelves.some((o) => o.id !== s.id && shelfsOverlap({ ...pos, rotated }, o))) {
+      toast.error("Tidak bisa diputar, rak akan menabrak rak lain");
+      return;
+    }
+    update(s.id, { rotated, ...pos });
   };
 
   const remove = (id: string) => {
@@ -75,6 +96,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
               editable={editMode}
               onSelect={setSelectedShelf}
               onMove={(id, x, z) => update(id, { x, z })}
+              onBlocked={() => toast.error("Rak menabrak rak lain, posisi dikembalikan")}
             />
             <p className="mt-2 text-[11px] text-gray-400">
               {editMode ? "Drag rak untuk menggeser, drag area kosong untuk memutar kamera." : "Drag untuk memutar kamera, klik rak untuk melihat detail."}
