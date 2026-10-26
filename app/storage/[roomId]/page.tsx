@@ -7,12 +7,14 @@ import toast from "react-hot-toast";
 import DashboardLayout from "@/components/DashboardLayout";
 import Breadcrumb from "@/components/Breadcrumb";
 import Button from "@/components/Button";
+import ShelfContents from "@/components/ShelfContents";
 import RoomBuilderPanel from "@/components/RoomBuilderPanel";
 import { ColorField, Slider, inputClass } from "@/components/BuilderFields";
 import { blockedByDoor, clampToRoom, shelfsOverlap, SHELF_TYPES, type ShelfData, type ShelfType, type ViewerMode } from "@/components/ShelfViewer";
 import { OPENING_KINDS, clampOffset, openingFits, openingsCollide, wallLength, WALL_IDS, type Opening, type OpeningKind } from "@/lib/room-openings";
-import { rooms } from "@/lib/storage-data";
-import { IconPlus, IconRotate, IconTrash, IconTool, IconBuildingWarehouse, IconEye, IconArrowBackUp, IconArrowForwardUp, IconCopy, IconMagnet } from "@tabler/icons-react";
+import { itemCatalog, rooms } from "@/lib/storage-data";
+import { fillPercent, levelSlots } from "@/lib/shelf-model";
+import { IconPlus, IconRotate, IconTrash, IconTool, IconBuildingWarehouse, IconEye, IconArrowBackUp, IconArrowForwardUp, IconCopy } from "@tabler/icons-react";
 
 const ShelfViewer = dynamic(() => import("@/components/ShelfViewer"), {
   ssr: false,
@@ -63,6 +65,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
   const room = rooms.find((r) => r.id === roomId);
   const [history, setHistory] = useState<{ past: Layout[]; present: Layout; future: Layout[] }>({ past: [], present: { shelves: room?.shelves ?? [], openings: room?.openings ?? [] }, future: [] });
   const [selectedShelf, setSelectedShelf] = useState<string | null>(null);
+  const [selectedLevel, setSelectedLevel] = useState<number | null>(null);
   const [selectedOpening, setSelectedOpening] = useState<string | null>(null);
   const batchKey = useRef<string | null>(null);
   const shelves = history.present.shelves;
@@ -72,10 +75,10 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
   const [mode, setMode] = useState<ViewerMode>("view");
   const editMode = mode === "rak";
   const [showAdd, setShowAdd] = useState(false);
-  const [snap, setSnap] = useState(true);
   const [size, setSize] = useState({ width: room?.width ?? 10, depth: room?.depth ?? 6 });
   const [sizeDraft, setSizeDraft] = useState({ width: String(room?.width ?? 10), depth: String(room?.depth ?? 6) });
   const nextId = useRef(0);
+  const roomCode = (room?.id.replace(/\D/g, "").slice(-2) ?? "01").padStart(2, "0");
   const [draft, setDraft] = useState({ name: "", levels: 4, type: "standard" as ShelfType, ...pick("standard") });
 
   function pick(type: ShelfType) {
@@ -145,7 +148,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
     nextId.current += 1;
     const id = `RK-new-${nextId.current}`;
     const name = draft.name.trim() || `Rak ${shelves.length + 1}`;
-    setShelves((prev) => [...prev, { id, name, levels: draft.levels, usedPercent: 0, ...spot, ...place, height: draft.height, color: draft.color }]);
+    setShelves((prev) => [...prev, { id, name, levels: draft.levels, items: [], ...spot, ...place, height: draft.height, color: draft.color }]);
     setSelectedShelf(id);
     setDraft((d) => ({ ...d, name: "" }));
     setShowAdd(false);
@@ -193,8 +196,25 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
     }
     nextId.current += 1;
     const id = `RK-new-${nextId.current}`;
-    setShelves((prev) => [...prev, { ...s, id, name: `${s.name} (salinan)`, x: spot.x, z: spot.z }]);
+    setShelves((prev) => [...prev, { ...s, id, name: `${s.name} (salinan)`, items: [], x: spot.x, z: spot.z }]);
     setSelectedShelf(id);
+  };
+
+  const addItem = (shelf: ShelfData, level: number, item: { name: string; sku: string }, qty: number) => {
+    if (shelf.items.filter((i) => i.level === level).length >= levelSlots(shelf)) {
+      toast.error(`Tingkat ${level + 1} sudah penuh`);
+      return;
+    }
+    nextId.current += 1;
+    const entry = { id: `${shelf.id}-new-${nextId.current}`, level, name: item.name, sku: item.sku, qty };
+    setShelves((prev) => prev.map((s) => (s.id === shelf.id ? { ...s, items: [...s.items, entry] } : s)));
+  };
+
+  const setTag = (shelfId: string, level: number, text: string) =>
+    setShelves((prev) => prev.map((s) => (s.id === shelfId ? { ...s, tags: { ...s.tags, [level]: text } } : s)), `${shelfId}:tag:${level}`);
+
+  const removeItem = (shelfId: string, itemId: string) => {
+    setShelves((prev) => prev.map((s) => (s.id === shelfId ? { ...s, items: s.items.filter((i) => i.id !== itemId) } : s)));
   };
 
   const addOpening = (kind: OpeningKind) => {
@@ -389,27 +409,20 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
               openings={openings}
               roomWidth={size.width}
               roomDepth={size.depth}
+              roomCode={roomCode}
               selectedId={activeId}
               selectedOpeningId={activeOpeningId}
               mode={mode}
-              snap={snap}
-              onSelect={setSelectedShelf}
+              selectedLevel={activeId ? selectedLevel : null}
+              onSelect={(id, level) => {
+                setSelectedShelf(id);
+                setSelectedLevel(level ?? null);
+              }}
               onSelectOpening={setSelectedOpening}
               onMoveOpening={(id, wall, offset) => updateOpening(id, { wall, offset })}
               onMove={(id, x, z) => update(id, { x, z })}
               onBlocked={() => toast.error("Rak menabrak rak lain atau menghalangi pintu, posisi dikembalikan")}
             />
-            {editMode && (
-              <button
-                onClick={() => setSnap((v) => !v)}
-                className={`absolute right-3 top-3 flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-bold shadow-sm ${
-                  snap ? "border-violet-600 bg-violet-600 text-white" : "border-gray-200 bg-white text-gray-600 dark:border-gray-100/10 dark:bg-zinc-800 dark:text-gray-200"
-                }`}
-                title="Tempel ke grid dan tepi rak lain saat digeser"
-              >
-                <IconMagnet size={14} /> Snap {snap ? "On" : "Off"}
-              </button>
-            )}
             <p className="pointer-events-none absolute left-3 top-3 rounded-md bg-white/80 px-2 py-1 text-[11px] text-gray-500 dark:bg-zinc-900/70">
               {mode === "rak"
                 ? "Drag rak untuk menggeser · Delete hapus · Ctrl+Z undo · Ctrl+D duplikat"
@@ -470,11 +483,14 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
               </div>
             )}
 
-            {shelves.map((s) => {
+            {shelves.map((s, shelfIndex) => {
               const isSelected = s.id === activeId;
               return (
                 <div key={s.id} className={`rounded-lg border transition-all ${isSelected ? "border-violet-600 bg-violet-50/60 dark:bg-violet-500/12" : "border-gray-200 dark:border-gray-100/10"}`}>
-                  <button onClick={() => setSelectedShelf(isSelected ? null : s.id)} className="flex w-full items-center gap-2 px-2.5 py-2 text-left">
+                  <button onClick={() => {
+                      setSelectedShelf(isSelected ? null : s.id);
+                      setSelectedLevel(isSelected ? null : 0);
+                    }} className="flex w-full items-center gap-2 px-2.5 py-2 text-left">
                     <span className="h-3 w-3 shrink-0 rounded-full border border-black/10" style={{ backgroundColor: s.color }} />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-xs font-bold text-gray-900">{s.name}</span>
@@ -482,8 +498,25 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
                         {SHELF_TYPES[s.type].label} · {s.length.toFixed(1)} x {s.height.toFixed(1)} m
                       </span>
                     </span>
-                    <span className="text-[11px] font-semibold text-gray-600">{s.usedPercent}%</span>
+                    <span className="text-[11px] font-semibold text-gray-600">{fillPercent(s)}%</span>
                   </button>
+
+                  {isSelected && (
+                    <div className="border-t border-violet-200 p-2.5 dark:border-violet-500/20">
+                      <ShelfContents
+                        shelf={s}
+                        shelfIndex={shelfIndex}
+                        roomCode={roomCode}
+                        level={selectedLevel !== null && selectedLevel < s.levels ? selectedLevel : null}
+                        onLevel={setSelectedLevel}
+                        catalog={itemCatalog}
+                        editable={editMode}
+                        onAdd={(level, item, qty) => addItem(s, level, item, qty)}
+                        onRemove={(itemId) => removeItem(s.id, itemId)}
+                        onTag={(level, text) => setTag(s.id, level, text)}
+                      />
+                    </div>
+                  )}
 
                   {isSelected && editMode && (
                     <div className="flex flex-col gap-2 border-t border-violet-200 p-2.5 dark:border-violet-500/20">

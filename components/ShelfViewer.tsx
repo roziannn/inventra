@@ -5,26 +5,10 @@ import * as THREE from "three";
 import { IconPlus, IconMinus } from "@tabler/icons-react";
 import { OPENING_KINDS, clampOffset, doorClearances, openingsCollide, wallLength, type Opening, type Rect, type WallId } from "@/lib/room-openings";
 
-export type ShelfType = "standard" | "pallet";
+import { SHELF_TYPES, itemsAtLevel, levelSlots, levelTag, type ShelfData } from "@/lib/shelf-model";
 
-export const SHELF_TYPES: Record<ShelfType, { label: string; depth: number; length: number; height: number; color: string }> = {
-  standard: { label: "Rak Standar", depth: 0.7, length: 1.6, height: 2.2, color: "#a78bfa" },
-  pallet: { label: "Rak Pallet (Heavy Duty)", depth: 0.9, length: 3.6, height: 3, color: "#f97316" },
-};
-
-export interface ShelfData {
-  id: string;
-  name: string;
-  levels: number;
-  usedPercent: number;
-  x: number;
-  z: number;
-  rotated: boolean;
-  type: ShelfType;
-  length: number;
-  height: number;
-  color: string;
-}
+export { SHELF_TYPES, defaultLevelTag, fillPercent, itemsAtLevel, levelSlots, levelTag } from "@/lib/shelf-model";
+export type { ShelfData, ShelfItem, ShelfType } from "@/lib/shelf-model";
 
 export type ShelfPlace = Pick<ShelfData, "x" | "z" | "rotated" | "length" | "type">;
 
@@ -35,11 +19,12 @@ interface ShelfViewerProps {
   openings: Opening[];
   roomWidth: number;
   roomDepth: number;
+  roomCode: string;
   selectedId: string | null;
   selectedOpeningId: string | null;
   mode: ViewerMode;
-  snap?: boolean;
-  onSelect: (id: string | null) => void;
+  selectedLevel: number | null;
+  onSelect: (id: string | null, level?: number | null) => void;
   onSelectOpening: (id: string | null) => void;
   onMove: (id: string, x: number, z: number) => void;
   onMoveOpening: (id: string, wall: WallId, offset: number) => void;
@@ -79,35 +64,14 @@ export function blockedByDoor(s: ShelfPlace, openings: Opening[], roomWidth: num
   return doorClearances(openings, roomWidth, roomDepth).some((r) => hitsRect(s, r));
 }
 
-const SNAP_GRID = 0.5;
-const SNAP_NEAR = 0.2;
-
-// snap one axis: edge-to-edge/aligned with other shelves when close, otherwise the shelf's min edge to the grid
-function snapAxis(c: number, h: number, others: { c: number; h: number }[]) {
-  let best: number | null = null;
-  let bestD = SNAP_NEAR;
-  for (const o of others) {
-    for (const mine of [c - h, c + h]) {
-      for (const theirs of [o.c - o.h, o.c + o.h]) {
-        const d = Math.abs(mine - theirs);
-        if (d < bestD) {
-          bestD = d;
-          best = c + (theirs - mine);
-        }
-      }
-    }
-  }
-  return best ?? Math.round((c - h) / SNAP_GRID) * SNAP_GRID + h;
-}
-
-export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, selectedId, selectedOpeningId, mode, snap = false, onSelect, onSelectOpening, onMove, onMoveOpening, onBlocked }: ShelfViewerProps) {
+export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, roomCode, selectedId, selectedOpeningId, selectedLevel, mode, onSelect, onSelectOpening, onMove, onMoveOpening, onBlocked }: ShelfViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const selectedRef = useRef(selectedId);
   const modeRef = useRef(mode);
   const selectedOpeningRef = useRef(selectedOpeningId);
   const onSelectOpeningRef = useRef(onSelectOpening);
   const onMoveOpeningRef = useRef(onMoveOpening);
-  const snapRef = useRef(snap);
+  const selectedLevelRef = useRef(selectedLevel);
   const onSelectRef = useRef(onSelect);
   const onMoveRef = useRef(onMove);
   const onBlockedRef = useRef(onBlocked);
@@ -124,7 +88,7 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, s
     selectedOpeningRef.current = selectedOpeningId;
     onSelectOpeningRef.current = onSelectOpening;
     onMoveOpeningRef.current = onMoveOpening;
-    snapRef.current = snap;
+    selectedLevelRef.current = selectedLevel;
     onSelectRef.current = onSelect;
     onMoveRef.current = onMove;
     onBlockedRef.current = onBlocked;
@@ -172,12 +136,49 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, s
     const beamMats: THREE.MeshStandardMaterial[] = [];
     const boxMat = new THREE.MeshStandardMaterial({ color: 0xd4a373 });
     const dangerFloorMat = new THREE.MeshBasicMaterial({ color: 0xef4444, transparent: true, opacity: 0.55, depthWrite: false });
+    const bandMat = new THREE.MeshBasicMaterial({ color: 0x7c3aed, transparent: true, opacity: 0.22, depthWrite: false });
     const hitMat = new THREE.MeshBasicMaterial({ visible: false });
 
-    const groups: { id: string; group: THREE.Group; shelf: ShelfData; beamMat: THREE.MeshStandardMaterial; danger: THREE.Mesh; sel: THREE.Mesh }[] = [];
+    const groups: { id: string; group: THREE.Group; shelf: ShelfData; beamMat: THREE.MeshStandardMaterial; danger: THREE.Mesh; sel: THREE.Mesh; band: THREE.Mesh }[] = [];
     const placeOf = (g: (typeof groups)[number]): ShelfPlace => ({ x: g.group.position.x, z: g.group.position.z, rotated: g.shelf.rotated, length: g.shelf.length, type: g.shelf.type });
 
-    shelves.forEach((shelf) => {
+    // purple location tag, drawn on a canvas so the code is readable in 3D
+    const tagGeo = new THREE.PlaneGeometry(0.52, 0.228);
+    const textures: THREE.Texture[] = [];
+    const tagMats: THREE.Material[] = [];
+    const makeTag = (text: string) => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 256;
+      canvas.height = 112;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.fillStyle = "#b9a3f0";
+        ctx.beginPath();
+        ctx.roundRect(4, 4, 248, 104, 14);
+        ctx.fill();
+        ctx.strokeStyle = "#8b6fd8";
+        ctx.lineWidth = 6;
+        ctx.stroke();
+        let size = 54;
+        ctx.font = `700 ${size}px sans-serif`;
+        while (ctx.measureText(text).width > 220 && size > 18) {
+          size -= 2;
+          ctx.font = `700 ${size}px sans-serif`;
+        }
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(text, 128, 58);
+      }
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      textures.push(tex);
+      const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, toneMapped: false });
+      tagMats.push(mat);
+      return mat;
+    };
+
+    shelves.forEach((shelf, shelfIndex) => {
       const group = new THREE.Group();
       group.position.set(shelf.x, 0, shelf.z);
       group.rotation.y = shelf.rotated ? Math.PI / 2 : 0;
@@ -194,18 +195,21 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, s
         group.add(m);
         return m;
       };
+      const addTag = (text: string, x: number, y: number, z: number) => {
+        const m = new THREE.Mesh(tagGeo, makeTag(text));
+        m.position.set(x, y, z);
+        group.add(m);
+      };
 
-      const filledRatio = shelf.usedPercent / 100;
       if (shelf.type === "standard") {
         for (const sx of [-1, 1]) for (const sz of [-1, 1]) add(0.06, H, 0.06, frameMat, (sx * W) / 2, H / 2, (sz * D) / 2);
         const step = H / shelf.levels;
-        const perLevel = Math.max(1, Math.floor(W / 0.55));
-        const filled = Math.round(filledRatio * shelf.levels * perLevel);
-        let n = 0;
+        const perLevel = levelSlots(shelf);
         for (let l = 0; l < shelf.levels; l++) {
           add(W, 0.05, D, beamMat, 0, l * step + 0.03, 0);
-          for (let b = 0; b < perLevel; b++) {
-            if (n++ >= filled) continue;
+          addTag(levelTag(roomCode, shelfIndex, shelf, l), -W / 2 + 0.38, l * step + 0.08, D / 2 + 0.012);
+          const count = Math.min(perLevel, itemsAtLevel(shelf, l).length);
+          for (let b = 0; b < count; b++) {
             add(0.4, step * 0.6, 0.45, boxMat, (b - (perLevel - 1) / 2) * (W / perLevel), l * step + 0.05 + (step * 0.6) / 2, 0);
           }
         }
@@ -231,16 +235,16 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, s
           }
         }
         const step = (H - 0.3) / shelf.levels;
-        const filled = Math.round(filledRatio * shelf.levels * bays);
-        let n = 0;
         for (let l = 0; l < shelf.levels; l++) {
+          const stocked = itemsAtLevel(shelf, l).length;
           const y = 0.25 + l * step;
           add(W, 0.12, 0.05, beamMat, 0, y, -zf);
           add(W, 0.12, 0.05, beamMat, 0, y, zf);
+          addTag(levelTag(roomCode, shelfIndex, shelf, l), -W / 2 + 0.5, y, zf + 0.03);
           for (let b = 0; b < bays; b++) {
             const cx = -W / 2 + (b + 0.5) * bayW;
             add(bayW - 0.12, 0.03, D - 0.12, woodMat, cx, y + 0.04, 0);
-            if (n++ >= filled) continue;
+            if (b >= stocked) continue;
             const bh = Math.max(0.2, Math.min(step - 0.3, 0.9));
             add(bayW * 0.8, bh, D * 0.8, boxMat, cx, y + 0.055 + bh / 2, 0);
           }
@@ -259,8 +263,12 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, s
       sel.visible = false;
       group.add(sel);
 
+      const band = new THREE.Mesh(box(W + 0.08, H / shelf.levels, D + 0.08), bandMat);
+      band.visible = false;
+      group.add(band);
+
       scene.add(group);
-      groups.push({ id: shelf.id, group, shelf, beamMat, danger, sel });
+      groups.push({ id: shelf.id, group, shelf, beamMat, danger, sel, band });
     });
 
     // walls with door/window cut-outs; rebuilt cheaply while an opening is being dragged
@@ -280,6 +288,9 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, s
     const buildWalls = (ops: Opening[]) => {
       wallGroup.clear();
       wallGeoms.forEach((g) => g.dispose());
+      tagGeo.dispose();
+      textures.forEach((t) => t.dispose());
+      tagMats.forEach((m) => m.dispose());
       wallGeoms = [];
       builtSelected = selectedOpeningRef.current;
 
@@ -386,7 +397,11 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, s
       const hit = raycaster.intersectObjects(groups.map((g) => g.group), true)[0];
       let obj: THREE.Object3D | null = hit?.object ?? null;
       while (obj && !obj.userData.id) obj = obj.parent;
-      return groups.find((g) => g.group === obj) ?? null;
+      const g = groups.find((x) => x.group === obj);
+      if (!g || !hit) return null;
+      const localY = g.group.worldToLocal(hit.point.clone()).y;
+      const level = Math.max(0, Math.min(g.shelf.levels - 1, Math.floor(localY / (g.shelf.height / g.shelf.levels))));
+      return { g, level };
     };
 
     let orbiting = false;
@@ -429,10 +444,10 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, s
       }
       const picked = pickShelf();
       if (picked && modeRef.current === "rak") {
-        dragged = picked;
-        startPos.copy(picked.group.position);
-        onSelectRef.current(picked.id);
-        if (raycaster.ray.intersectPlane(plane, point)) offset.copy(picked.group.position).sub(point);
+        dragged = picked.g;
+        startPos.copy(picked.g.group.position);
+        onSelectRef.current(picked.g.id, picked.level);
+        if (raycaster.ray.intersectPlane(plane, point)) offset.copy(picked.g.group.position).sub(point);
       } else {
         orbiting = true;
       }
@@ -469,15 +484,8 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, s
         moved += Math.abs(dx) + Math.abs(dy);
         setRay(e);
         if (raycaster.ray.intersectPlane(plane, point)) {
-          let nx = point.x + offset.x;
-          let nz = point.z + offset.z;
-          if (snapRef.current) {
-            const self = dragged;
-            const { hx, hz } = halfExtents(self.shelf);
-            const others = groups.filter((o) => o !== self).map((o) => ({ ...halfExtents(o.shelf), x: o.group.position.x, z: o.group.position.z }));
-            nx = snapAxis(nx, hx, others.map((o) => ({ c: o.x, h: o.hx })));
-            nz = snapAxis(nz, hz, others.map((o) => ({ c: o.z, h: o.hz })));
-          }
+          const nx = point.x + offset.x;
+          const nz = point.z + offset.z;
           const c = clampToRoom(nx, nz, dragged.shelf, roomWidth, roomDepth);
           dragged.group.position.set(c.x, 0, c.z);
         }
@@ -504,7 +512,10 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, s
       } else if (orbiting && moved <= 5 && e.target === dom) {
         setRay(e);
         if (modeRef.current === "ruangan") onSelectOpeningRef.current(null);
-        else onSelectRef.current(pickShelf()?.id ?? null);
+        else {
+          const picked = pickShelf();
+          onSelectRef.current(picked?.g.id ?? null, picked?.level ?? null);
+        }
       }
       dragged = null;
       draggedOpening = null;
@@ -527,6 +538,9 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, s
         g.beamMat.emissive.setHex(colliding ? 0x991b1b : g.id === selectedRef.current ? 0x333333 : 0x000000);
         g.danger.visible = colliding;
         g.sel.visible = !colliding && g.id === selectedRef.current;
+        const lvl = selectedLevelRef.current;
+        g.band.visible = g.id === selectedRef.current && lvl !== null && lvl < g.shelf.levels;
+        if (g.band.visible && lvl !== null) g.band.position.y = ((lvl + 0.5) * g.shelf.height) / g.shelf.levels;
       });
       if (builtSelected !== selectedOpeningRef.current) buildWalls(liveOpenings);
       dom.style.cursor = dragged || draggedOpening ? "grabbing" : modeRef.current === "view" ? "grab" : "move";
@@ -547,11 +561,11 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, s
       wallGeoms.forEach((g) => g.dispose());
       grid.geometry.dispose();
       (grid.material as THREE.Material).dispose();
-      [...beamMats, frameMat, blueMat, woodMat, selectedFloorMat, dangerFloorMat, boxMat, hitMat, floorMat, wallMat, doorLeafMat, doorFrameMat, windowFrameMat, glassMat, selectedFrameMat, clearanceMat].forEach((m) => m.dispose());
+      [...beamMats, frameMat, blueMat, woodMat, selectedFloorMat, dangerFloorMat, boxMat, bandMat, hitMat, floorMat, wallMat, doorLeafMat, doorFrameMat, windowFrameMat, glassMat, selectedFrameMat, clearanceMat].forEach((m) => m.dispose());
       renderer.dispose();
       container.removeChild(dom);
     };
-  }, [shelves, openings, roomWidth, roomDepth]);
+  }, [shelves, openings, roomWidth, roomDepth, roomCode]);
 
   const zoomBtn = "flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-50 active:scale-95 dark:border-gray-100/10 dark:bg-zinc-800 dark:text-gray-100";
 
