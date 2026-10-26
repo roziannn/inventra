@@ -7,24 +7,38 @@ import toast from "react-hot-toast";
 import DashboardLayout from "@/components/DashboardLayout";
 import Breadcrumb from "@/components/Breadcrumb";
 import Button from "@/components/Button";
-import { clampToRoom, shelfsOverlap, SHELF_TYPES, type ShelfData, type ShelfType } from "@/components/ShelfViewer";
+import RoomBuilderPanel from "@/components/RoomBuilderPanel";
+import { ColorField, Slider, inputClass } from "@/components/BuilderFields";
+import { blockedByDoor, clampToRoom, shelfsOverlap, SHELF_TYPES, type ShelfData, type ShelfType, type ViewerMode } from "@/components/ShelfViewer";
+import { OPENING_KINDS, clampOffset, openingFits, openingsCollide, wallLength, WALL_IDS, type Opening, type OpeningKind } from "@/lib/room-openings";
 import { rooms } from "@/lib/storage-data";
-import { IconPlus, IconRotate, IconTrash, IconTool, IconCheck, IconArrowBackUp, IconArrowForwardUp, IconCopy, IconMagnet } from "@tabler/icons-react";
+import { IconPlus, IconRotate, IconTrash, IconTool, IconBuildingWarehouse, IconEye, IconArrowBackUp, IconArrowForwardUp, IconCopy, IconMagnet } from "@tabler/icons-react";
 
 const ShelfViewer = dynamic(() => import("@/components/ShelfViewer"), {
   ssr: false,
   loading: () => <div className="h-full w-full animate-pulse rounded-xl bg-gray-100 dark:bg-white/5" />,
 });
 
-function findFreeSpot(draft: Pick<ShelfData, "rotated" | "length" | "type">, shelves: ShelfData[], width: number, depth: number) {
+function findFreeSpot(draft: Pick<ShelfData, "rotated" | "length" | "type">, shelves: ShelfData[], openings: Opening[], width: number, depth: number) {
   for (let z = -depth / 2; z <= depth / 2; z += 0.5) {
     for (let x = -width / 2; x <= width / 2; x += 0.5) {
       const c = clampToRoom(x, z, draft, width, depth);
-      if (!shelves.some((o) => shelfsOverlap({ ...draft, ...c }, o))) return c;
+      if (!shelves.some((o) => shelfsOverlap({ ...draft, ...c }, o)) && !blockedByDoor({ ...draft, ...c }, openings, width, depth)) return c;
     }
   }
   return null;
 }
+
+interface Layout {
+  shelves: ShelfData[];
+  openings: Opening[];
+}
+
+const MODES: { id: ViewerMode; label: string; icon: typeof IconEye }[] = [
+  { id: "view", label: "Lihat", icon: IconEye },
+  { id: "rak", label: "Rak Builder", icon: IconTool },
+  { id: "ruangan", label: "Ruangan Builder", icon: IconBuildingWarehouse },
+];
 
 const MIN_ROOM = 3;
 const MAX_ROOM = 50;
@@ -32,25 +46,6 @@ const CONTINUOUS_FIELDS = ["name", "color", "length", "height", "levels"];
 const MAX_HISTORY = 100;
 
 const typeOptions = Object.keys(SHELF_TYPES) as ShelfType[];
-const inputClass = "w-full rounded-lg border border-gray-200 bg-transparent px-3 py-2 text-xs focus:border-violet-600 focus:outline-none dark:border-gray-100/10";
-
-function Slider({ label, value, min, max, onChange }: { label: string; value: number; min: number; max: number; onChange: (v: number) => void }) {
-  return (
-    <label className="flex min-w-0 flex-1 flex-col gap-1 text-[11px] text-gray-500">
-      <span className="flex justify-between">
-        {label} <b className="text-gray-900">{value.toFixed(1)} m</b>
-      </span>
-      <input type="range" min={min} max={max} step={0.1} value={value} onChange={(e) => onChange(Number(e.target.value))} className="accent-violet-600" />
-    </label>
-  );
-}
-
-function ColorField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  return (
-    <input type="color" aria-label="Warna" title="Warna" value={value} onChange={(e) => onChange(e.target.value)} className="h-8 w-10 shrink-0 cursor-pointer rounded-md border border-gray-200 bg-transparent dark:border-gray-100/10" />
-  );
-}
-
 function TypeSelect({ value, onChange }: { value: ShelfType; onChange: (t: ShelfType) => void }) {
   return (
     <select className={`${inputClass} flex-1`} value={value} onChange={(e) => onChange(e.target.value as ShelfType)}>
@@ -66,12 +61,16 @@ function TypeSelect({ value, onChange }: { value: ShelfType; onChange: (t: Shelf
 export default function RoomDetailPage({ params }: { params: Promise<{ roomId: string }> }) {
   const { roomId } = use(params);
   const room = rooms.find((r) => r.id === roomId);
-  const [history, setHistory] = useState<{ past: ShelfData[][]; present: ShelfData[]; future: ShelfData[][] }>({ past: [], present: room?.shelves ?? [], future: [] });
+  const [history, setHistory] = useState<{ past: Layout[]; present: Layout; future: Layout[] }>({ past: [], present: { shelves: room?.shelves ?? [], openings: room?.openings ?? [] }, future: [] });
   const [selectedShelf, setSelectedShelf] = useState<string | null>(null);
+  const [selectedOpening, setSelectedOpening] = useState<string | null>(null);
   const batchKey = useRef<string | null>(null);
-  const shelves = history.present;
+  const shelves = history.present.shelves;
+  const openings = history.present.openings;
   const activeId = shelves.some((s) => s.id === selectedShelf) ? selectedShelf : null;
-  const [editMode, setEditMode] = useState(false);
+  const activeOpeningId = openings.some((o) => o.id === selectedOpening) ? selectedOpening : null;
+  const [mode, setMode] = useState<ViewerMode>("view");
+  const editMode = mode === "rak";
   const [showAdd, setShowAdd] = useState(false);
   const [snap, setSnap] = useState(true);
   const [size, setSize] = useState({ width: room?.width ?? 10, depth: room?.depth ?? 6 });
@@ -87,7 +86,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
   if (!room) notFound();
 
   // every change goes through here so it lands on the undo stack; slider/color/name tweaks on one shelf merge into one step
-  const setShelves = (fn: (prev: ShelfData[]) => ShelfData[], key: string | null = null) => {
+  const setLayout = (fn: (prev: Layout) => Layout, key: string | null = null) => {
     const merge = key !== null && batchKey.current === key;
     batchKey.current = key;
     setHistory((h) => {
@@ -96,6 +95,16 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
       return { past: merge ? h.past : [...h.past, h.present].slice(-MAX_HISTORY), present: next, future: [] };
     });
   };
+  const setShelves = (fn: (prev: ShelfData[]) => ShelfData[], key: string | null = null) =>
+    setLayout((l) => {
+      const next = fn(l.shelves);
+      return next === l.shelves ? l : { ...l, shelves: next };
+    }, key);
+  const setOpenings = (fn: (prev: Opening[]) => Opening[], key: string | null = null) =>
+    setLayout((l) => {
+      const next = fn(l.openings);
+      return next === l.openings ? l : { ...l, openings: next };
+    }, key);
   const endBatch = () => {
     batchKey.current = null;
   };
@@ -119,7 +128,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
     const next = { ...s, ...patch };
     const limit = next.rotated ? size.depth : size.width;
     const pos = clampToRoom(next.x, next.z, next, size.width, size.depth);
-    if (next.length > limit - 0.1 || shelves.some((o) => o.id !== s.id && shelfsOverlap({ ...next, ...pos }, o))) {
+    if (next.length > limit - 0.1 || shelves.some((o) => o.id !== s.id && shelfsOverlap({ ...next, ...pos }, o)) || blockedByDoor({ ...next, ...pos }, openings, size.width, size.depth)) {
       toast.error(errorMessage);
       return;
     }
@@ -128,7 +137,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
 
   const addShelf = () => {
     const place = { rotated: false, length: draft.length, type: draft.type };
-    const spot = findFreeSpot(place, shelves, size.width, size.depth);
+    const spot = findFreeSpot(place, shelves, openings, size.width, size.depth);
     if (!spot) {
       toast.error("Tidak ada ruang kosong untuk rak baru");
       return;
@@ -175,9 +184,9 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
     ];
     const fits = (c: { x: number; z: number }) => {
       const cl = clampToRoom(c.x, c.z, s, size.width, size.depth);
-      return Math.abs(cl.x - c.x) < 1e-6 && Math.abs(cl.z - c.z) < 1e-6 && !shelves.some((o) => shelfsOverlap({ ...s, ...c }, o));
+      return Math.abs(cl.x - c.x) < 1e-6 && Math.abs(cl.z - c.z) < 1e-6 && !shelves.some((o) => shelfsOverlap({ ...s, ...c }, o)) && !blockedByDoor({ ...s, ...c }, openings, size.width, size.depth);
     };
-    const spot = candidates.find(fits) ?? findFreeSpot(s, shelves, size.width, size.depth);
+    const spot = candidates.find(fits) ?? findFreeSpot(s, shelves, openings, size.width, size.depth);
     if (!spot) {
       toast.error("Tidak ada ruang kosong untuk menduplikat rak");
       return;
@@ -188,12 +197,71 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
     setSelectedShelf(id);
   };
 
+  const addOpening = (kind: OpeningKind) => {
+    const spec = OPENING_KINDS[kind];
+    const walls = kind === "door" ? WALL_IDS : [...WALL_IDS].reverse();
+    for (const wall of walls) {
+      const len = wallLength(wall, size.width, size.depth);
+      const width = Math.min(spec.width, len - 0.2);
+      if (width < spec.min) continue;
+      const half = len / 2 - width / 2 - 0.1;
+      for (let step = 0; step <= half * 2 + 1e-6; step += 0.25) {
+        for (const off of step === 0 ? [0] : [step / 2, -step / 2]) {
+          if (Math.abs(off) > half) continue;
+          nextId.current += 1;
+          const candidate: Opening = { id: `OP-new-${nextId.current}`, kind, wall, offset: Math.round(off * 4) / 4, width };
+          if (openings.some((o) => openingsCollide(candidate, o))) continue;
+          setOpenings((prev) => [...prev, candidate]);
+          setSelectedOpening(candidate.id);
+          return;
+        }
+      }
+    }
+    toast.error(`Tidak ada ruang di dinding untuk ${spec.label.toLowerCase()} baru`);
+  };
+
+  const updateOpening = (id: string, patch: Partial<Opening>) => {
+    const current = openings.find((o) => o.id === id);
+    if (!current) return;
+    const merged = { ...current, ...patch };
+    const next = { ...merged, offset: clampOffset(merged.offset, merged.width, merged.wall, size.width, size.depth) };
+    if (!openingFits(next, size.width, size.depth) || openings.some((o) => openingsCollide(next, o))) {
+      toast.error("Tidak muat di dinding itu atau menabrak pintu/jendela lain");
+      return;
+    }
+    const continuous = "offset" in patch || "width" in patch;
+    setOpenings((prev) => prev.map((o) => (o.id === id ? next : o)), continuous ? `${id}:opening` : null);
+  };
+
+  const removeOpening = (id: string) => {
+    const spec = openings.find((o) => o.id === id);
+    setOpenings((prev) => prev.filter((o) => o.id !== id));
+    setSelectedOpening(null);
+    toast((t) => (
+      <span className="flex items-center gap-3 text-xs">
+        {spec ? OPENING_KINDS[spec.kind].label : "Objek"} dihapus
+        <button
+          className="font-bold text-violet-600"
+          onClick={() => {
+            undo();
+            toast.dismiss(t.id);
+          }}
+        >
+          Urungkan
+        </button>
+      </span>
+    ));
+  };
+
   const removeRef = useRef(remove);
   const undoRef = useRef(undo);
   const redoRef = useRef(redo);
   const duplicateRef = useRef(duplicate);
   const shelvesRef = useRef(shelves);
   const activeRef = useRef(activeId);
+  const modeRef = useRef(mode);
+  const activeOpeningRef = useRef(activeOpeningId);
+  const removeOpeningRef = useRef(removeOpening);
   useEffect(() => {
     removeRef.current = remove;
     undoRef.current = undo;
@@ -201,20 +269,26 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
     duplicateRef.current = duplicate;
     shelvesRef.current = shelves;
     activeRef.current = activeId;
+    modeRef.current = mode;
+    activeOpeningRef.current = activeOpeningId;
+    removeOpeningRef.current = removeOpening;
   });
 
   // keyboard: Delete removes the selected shelf, Ctrl/Cmd+Z undo, Ctrl/Cmd+Shift+Z or Ctrl+Y redo
   useEffect(() => {
-    if (!editMode) return;
+    if (mode === "view") return;
     const onKey = (e: KeyboardEvent) => {
       const el = e.target as HTMLElement;
       if (el.tagName === "TEXTAREA" || el.tagName === "SELECT" || (el.tagName === "INPUT" && !["range", "color", "checkbox"].includes((el as HTMLInputElement).type))) return;
       const mod = e.ctrlKey || e.metaKey;
       const k = e.key.toLowerCase();
-      if ((e.key === "Delete" || e.key === "Backspace") && activeRef.current) {
+      if ((e.key === "Delete" || e.key === "Backspace") && modeRef.current === "ruangan" && activeOpeningRef.current) {
+        e.preventDefault();
+        removeOpeningRef.current(activeOpeningRef.current);
+      } else if ((e.key === "Delete" || e.key === "Backspace") && modeRef.current === "rak" && activeRef.current) {
         e.preventDefault();
         removeRef.current(activeRef.current);
-      } else if (mod && k === "d" && activeRef.current) {
+      } else if (mod && k === "d" && modeRef.current === "rak" && activeRef.current) {
         e.preventDefault();
         const target = shelvesRef.current.find((x) => x.id === activeRef.current);
         if (target) duplicateRef.current(target);
@@ -229,7 +303,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [editMode]);
+  }, [mode]);
 
   const applySize = () => {
     const width = Number(sizeDraft.width.replace(",", "."));
@@ -249,6 +323,19 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
       reset();
       return;
     }
+    if (!openings.every((o) => openingFits(o, width, depth))) {
+      toast.error("Ukuran terlalu kecil, ada pintu atau jendela yang tidak muat di dindingnya.");
+      reset();
+      return;
+    }
+    // keep every opening inside its wall and every shelf out of the (possibly moved) door areas
+    const movedOpenings = openings.map((o) => ({ ...o, offset: clampOffset(o.offset, o.width, o.wall, width, depth) }));
+    if (shelves.some((sh) => blockedByDoor(sh, movedOpenings, width, depth))) {
+      toast.error("Ukuran ini membuat rak menghalangi area pintu. Geser rak dulu.");
+      reset();
+      return;
+    }
+    if (movedOpenings.some((o, i) => o.offset !== openings[i].offset)) setOpenings(() => movedOpenings);
     setSize({ width, depth });
     setSizeDraft({ width: String(width), depth: String(depth) });
   };
@@ -266,8 +353,8 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
               {room.location} · {size.width} x {size.depth} m
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            {editMode && (
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {mode !== "view" && (
               <>
                 <Button variant="page-secondary" onClick={undo} disabled={!history.past.length} title="Undo (Ctrl+Z)" aria-label="Undo">
                   <IconArrowBackUp size={16} />
@@ -277,9 +364,21 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
                 </Button>
               </>
             )}
-            <Button variant={editMode ? "page-primary" : "page-secondary"} onClick={() => setEditMode((v) => !v)}>
-              {editMode ? <IconCheck size={16} /> : <IconTool size={16} />} {editMode ? "Selesai" : "Rak Builder"}
-            </Button>
+            <div className="flex rounded-xl bg-gray-100 p-1 dark:bg-white/8" role="tablist" aria-label="Mode">
+              {MODES.map(({ id, label, icon: Icon }) => (
+                <button
+                  key={id}
+                  role="tab"
+                  aria-selected={mode === id}
+                  onClick={() => setMode(id)}
+                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
+                    mode === id ? "bg-white text-violet-700 shadow-sm dark:bg-zinc-800 dark:text-violet-300" : "text-gray-500 hover:text-gray-800 dark:hover:text-gray-100"
+                  }`}
+                >
+                  <Icon size={14} /> <span className="hidden sm:inline">{label}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -287,14 +386,18 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
           <div className="relative h-96 min-w-0 lg:h-full lg:flex-1">
             <ShelfViewer
               shelves={shelves}
+              openings={openings}
               roomWidth={size.width}
               roomDepth={size.depth}
               selectedId={activeId}
-              editable={editMode}
+              selectedOpeningId={activeOpeningId}
+              mode={mode}
               snap={snap}
               onSelect={setSelectedShelf}
+              onSelectOpening={setSelectedOpening}
+              onMoveOpening={(id, wall, offset) => updateOpening(id, { wall, offset })}
               onMove={(id, x, z) => update(id, { x, z })}
-              onBlocked={() => toast.error("Rak menabrak rak lain, posisi dikembalikan")}
+              onBlocked={() => toast.error("Rak menabrak rak lain atau menghalangi pintu, posisi dikembalikan")}
             />
             {editMode && (
               <button
@@ -308,36 +411,32 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
               </button>
             )}
             <p className="pointer-events-none absolute left-3 top-3 rounded-md bg-white/80 px-2 py-1 text-[11px] text-gray-500 dark:bg-zinc-900/70">
-              {editMode ? "Drag rak untuk menggeser · Delete hapus · Ctrl+Z undo · Ctrl+D duplikat" : "Drag untuk memutar · scroll untuk zoom · klik rak untuk detail"}
+              {mode === "rak"
+                ? "Drag rak untuk menggeser · Delete hapus · Ctrl+Z undo · Ctrl+D duplikat"
+                : mode === "ruangan"
+                  ? "Drag pintu/jendela di dinding untuk memindah · Delete hapus · Ctrl+Z undo"
+                  : "Drag untuk memutar · scroll untuk zoom · klik rak untuk detail"}
             </p>
           </div>
 
           <aside onPointerUp={endBatch} onBlurCapture={endBatch} className="flex min-h-0 flex-col gap-2 overflow-y-auto rounded-xl border border-gray-200 bg-white p-3 lg:w-80 dark:border-gray-100/10 dark:bg-white/6">
-            {editMode && (
-              <div className="flex flex-col gap-2 rounded-lg bg-gray-50 p-2.5 dark:bg-white/5">
-                <p className="text-xs font-bold text-gray-900">Ukuran Ruangan</p>
-                <div className="flex gap-2">
-                  {(["width", "depth"] as const).map((key) => (
-                    <label key={key} className="flex min-w-0 flex-1 flex-col gap-1 text-[11px] text-gray-500">
-                      {key === "width" ? "Lebar" : "Panjang"} (m)
-                      <input
-                        type="number"
-                        inputMode="decimal"
-                        min={MIN_ROOM}
-                        max={MAX_ROOM}
-                        step={0.5}
-                        className={inputClass}
-                        value={sizeDraft[key]}
-                        onChange={(e) => setSizeDraft((d) => ({ ...d, [key]: e.target.value }))}
-                        onBlur={applySize}
-                        onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-                      />
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
-
+            {mode === "ruangan" ? (
+              <RoomBuilderPanel
+                size={size}
+                sizeDraft={sizeDraft}
+                minSize={MIN_ROOM}
+                maxSize={MAX_ROOM}
+                onSizeDraftChange={(key, value) => setSizeDraft((d) => ({ ...d, [key]: value }))}
+                onApplySize={applySize}
+                openings={openings}
+                selectedId={activeOpeningId}
+                onSelect={setSelectedOpening}
+                onAdd={addOpening}
+                onUpdate={updateOpening}
+                onRemove={removeOpening}
+              />
+            ) : (
+              <>
             <div className="flex items-center justify-between">
               <p className="text-xs font-bold text-gray-900">Rak ({shelves.length})</p>
               {editMode && (
@@ -425,6 +524,8 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
               );
             })}
             {shelves.length === 0 && <p className="text-[11px] text-gray-400">Belum ada rak. Aktifkan Rak Builder untuk menambah.</p>}
+              </>
+            )}
           </aside>
         </div>
       </div>
