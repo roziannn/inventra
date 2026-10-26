@@ -4,6 +4,13 @@ import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { IconPlus, IconMinus } from "@tabler/icons-react";
 
+export type ShelfType = "standard" | "pallet";
+
+export const SHELF_TYPES: Record<ShelfType, { label: string; depth: number; length: number; height: number; color: string }> = {
+  standard: { label: "Rak Standar", depth: 0.7, length: 1.6, height: 2.2, color: "#a78bfa" },
+  pallet: { label: "Rak Pallet (Heavy Duty)", depth: 0.9, length: 3.6, height: 3, color: "#f97316" },
+};
+
 export interface ShelfData {
   id: string;
   name: string;
@@ -12,7 +19,13 @@ export interface ShelfData {
   x: number;
   z: number;
   rotated: boolean;
+  type: ShelfType;
+  length: number;
+  height: number;
+  color: string;
 }
+
+export type ShelfPlace = Pick<ShelfData, "x" | "z" | "rotated" | "length" | "type">;
 
 interface ShelfViewerProps {
   shelves: ShelfData[];
@@ -25,26 +38,26 @@ interface ShelfViewerProps {
   onBlocked?: () => void;
 }
 
-export const SHELF_W = 1.6;
-export const SHELF_D = 0.7;
-const SHELF_H = 2.2;
 const WALL_H = 0.5;
 
-export function clampToRoom(x: number, z: number, rotated: boolean, roomWidth: number, roomDepth: number) {
-  const hw = (rotated ? SHELF_D : SHELF_W) / 2;
-  const hd = (rotated ? SHELF_W : SHELF_D) / 2;
+function halfExtents(s: Pick<ShelfData, "rotated" | "length" | "type">) {
+  const hl = s.length / 2;
+  const hd = SHELF_TYPES[s.type].depth / 2;
+  return { hx: s.rotated ? hd : hl, hz: s.rotated ? hl : hd };
+}
+
+export function clampToRoom(x: number, z: number, s: Pick<ShelfData, "rotated" | "length" | "type">, roomWidth: number, roomDepth: number) {
+  const { hx, hz } = halfExtents(s);
   return {
-    x: Math.max(-roomWidth / 2 + hw, Math.min(roomWidth / 2 - hw, x)),
-    z: Math.max(-roomDepth / 2 + hd, Math.min(roomDepth / 2 - hd, z)),
+    x: Math.max(-roomWidth / 2 + hx, Math.min(roomWidth / 2 - hx, x)),
+    z: Math.max(-roomDepth / 2 + hz, Math.min(roomDepth / 2 - hz, z)),
   };
 }
 
-export function shelfsOverlap(a: { x: number; z: number; rotated: boolean }, b: { x: number; z: number; rotated: boolean }) {
-  const aw = (a.rotated ? SHELF_D : SHELF_W) / 2;
-  const ad = (a.rotated ? SHELF_W : SHELF_D) / 2;
-  const bw = (b.rotated ? SHELF_D : SHELF_W) / 2;
-  const bd = (b.rotated ? SHELF_W : SHELF_D) / 2;
-  return Math.abs(a.x - b.x) < aw + bw && Math.abs(a.z - b.z) < ad + bd;
+export function shelfsOverlap(a: ShelfPlace, b: ShelfPlace) {
+  const ea = halfExtents(a);
+  const eb = halfExtents(b);
+  return Math.abs(a.x - b.x) < ea.hx + eb.hx && Math.abs(a.z - b.z) < ea.hz + eb.hz;
 }
 
 export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId, editable, onSelect, onMove, onBlocked }: ShelfViewerProps) {
@@ -116,63 +129,113 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
     scene.add(grid);
 
     const frameMat = new THREE.MeshStandardMaterial({ color: 0x52525b });
-    const boardMat = new THREE.MeshStandardMaterial({ color: 0xa78bfa });
-    const selectedMat = new THREE.MeshStandardMaterial({ color: 0x7c3aed, emissive: 0x4c1d95 });
+    const blueMat = new THREE.MeshStandardMaterial({ color: 0x1e40af });
+    const woodMat = new THREE.MeshStandardMaterial({ color: 0xc99a5b });
+    const selectedFloorMat = new THREE.MeshBasicMaterial({ color: 0x7c3aed, transparent: true, opacity: 0.35, depthWrite: false });
+    const beamMats: THREE.MeshStandardMaterial[] = [];
     const boxMat = new THREE.MeshStandardMaterial({ color: 0xd4a373 });
-    const dangerMat = new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0x991b1b });
     const dangerFloorMat = new THREE.MeshBasicMaterial({ color: 0xef4444, transparent: true, opacity: 0.55, depthWrite: false });
     const hitMat = new THREE.MeshBasicMaterial({ visible: false });
 
-    const groups: { id: string; group: THREE.Group; boards: THREE.Mesh[]; rotated: boolean; danger: THREE.Mesh }[] = [];
+    const groups: { id: string; group: THREE.Group; shelf: ShelfData; beamMat: THREE.MeshStandardMaterial; danger: THREE.Mesh; sel: THREE.Mesh }[] = [];
+    const placeOf = (g: (typeof groups)[number]): ShelfPlace => ({ x: g.group.position.x, z: g.group.position.z, rotated: g.shelf.rotated, length: g.shelf.length, type: g.shelf.type });
 
     shelves.forEach((shelf) => {
       const group = new THREE.Group();
       group.position.set(shelf.x, 0, shelf.z);
       group.rotation.y = shelf.rotated ? Math.PI / 2 : 0;
       group.userData.id = shelf.id;
-      const boards: THREE.Mesh[] = [];
 
-      for (const sx of [-1, 1]) {
-        for (const sz of [-1, 1]) {
-          const post = new THREE.Mesh(box(0.06, SHELF_H, 0.06), frameMat);
-          post.position.set((sx * SHELF_W) / 2, SHELF_H / 2, (sz * SHELF_D) / 2);
-          group.add(post);
+      const W = shelf.length;
+      const H = shelf.height;
+      const D = SHELF_TYPES[shelf.type].depth;
+      const beamMat = new THREE.MeshStandardMaterial({ color: shelf.color });
+      beamMats.push(beamMat);
+      const add = (w: number, h: number, d: number, mat: THREE.Material, x: number, y: number, z: number) => {
+        const m = new THREE.Mesh(box(w, h, d), mat);
+        m.position.set(x, y, z);
+        group.add(m);
+        return m;
+      };
+
+      const filledRatio = shelf.usedPercent / 100;
+      if (shelf.type === "standard") {
+        for (const sx of [-1, 1]) for (const sz of [-1, 1]) add(0.06, H, 0.06, frameMat, (sx * W) / 2, H / 2, (sz * D) / 2);
+        const step = H / shelf.levels;
+        const perLevel = Math.max(1, Math.floor(W / 0.55));
+        const filled = Math.round(filledRatio * shelf.levels * perLevel);
+        let n = 0;
+        for (let l = 0; l < shelf.levels; l++) {
+          add(W, 0.05, D, beamMat, 0, l * step + 0.03, 0);
+          for (let b = 0; b < perLevel; b++) {
+            if (n++ >= filled) continue;
+            add(0.4, step * 0.6, 0.45, boxMat, (b - (perLevel - 1) / 2) * (W / perLevel), l * step + 0.05 + (step * 0.6) / 2, 0);
+          }
+        }
+      } else {
+        // heavy duty pallet racking: blue braced upright frames, colored beams, wooden decks
+        const bays = Math.max(1, Math.round(W / 1.8));
+        const bayW = W / bays;
+        const zf = D / 2 - 0.04;
+        for (let i = 0; i <= bays; i++) {
+          const x = -W / 2 + i * bayW;
+          add(0.07, H, 0.07, blueMat, x, H / 2, -zf);
+          add(0.07, H, 0.07, blueMat, x, H / 2, zf);
+          const seg = 0.5;
+          const segs = Math.max(1, Math.round(H / seg));
+          const sh = H / segs;
+          for (let k = 0; k < segs; k++) {
+            const y0 = k * sh;
+            const dz = (k % 2 === 0 ? 1 : -1) * 2 * zf;
+            const len = Math.hypot(sh, dz);
+            const diag = add(0.03, len, 0.03, blueMat, x, y0 + sh / 2, 0);
+            diag.rotation.x = Math.atan2(dz, sh);
+            add(0.03, 0.03, 2 * zf, blueMat, x, y0, 0);
+          }
+        }
+        const step = (H - 0.3) / shelf.levels;
+        const filled = Math.round(filledRatio * shelf.levels * bays);
+        let n = 0;
+        for (let l = 0; l < shelf.levels; l++) {
+          const y = 0.25 + l * step;
+          add(W, 0.12, 0.05, beamMat, 0, y, -zf);
+          add(W, 0.12, 0.05, beamMat, 0, y, zf);
+          for (let b = 0; b < bays; b++) {
+            const cx = -W / 2 + (b + 0.5) * bayW;
+            add(bayW - 0.12, 0.03, D - 0.12, woodMat, cx, y + 0.04, 0);
+            if (n++ >= filled) continue;
+            const bh = Math.max(0.2, Math.min(step - 0.3, 0.9));
+            add(bayW * 0.8, bh, D * 0.8, boxMat, cx, y + 0.055 + bh / 2, 0);
+          }
         }
       }
 
-      const step = SHELF_H / shelf.levels;
-      const filled = Math.round((shelf.usedPercent / 100) * shelf.levels * 3);
-      let boxCount = 0;
-      for (let l = 0; l < shelf.levels; l++) {
-        const board = new THREE.Mesh(box(SHELF_W, 0.05, SHELF_D), boardMat);
-        board.position.y = l * step + 0.03;
-        group.add(board);
-        boards.push(board);
-        for (let b = 0; b < 3; b++) {
-          if (boxCount++ >= filled) continue;
-          const item = new THREE.Mesh(box(0.4, step * 0.6, 0.45), boxMat);
-          item.position.set((b - 1) * 0.5, l * step + 0.05 + (step * 0.6) / 2, 0);
-          group.add(item);
-        }
-      }
-      const hit = new THREE.Mesh(box(SHELF_W, SHELF_H, SHELF_D), hitMat);
-      hit.position.y = SHELF_H / 2;
-      group.add(hit);
+      const hit = add(W, H, D, hitMat, 0, H / 2, 0);
+      hit.userData.hit = true;
 
-      const danger = new THREE.Mesh(box(SHELF_W + 0.2, 0.01, SHELF_D + 0.2), dangerFloorMat);
+      const danger = new THREE.Mesh(box(W + 0.2, 0.01, D + 0.2), dangerFloorMat);
       danger.position.y = 0.015;
       danger.visible = false;
       group.add(danger);
+      const sel = new THREE.Mesh(box(W + 0.2, 0.01, D + 0.2), selectedFloorMat);
+      sel.position.y = 0.012;
+      sel.visible = false;
+      group.add(sel);
 
       scene.add(group);
-      groups.push({ id: shelf.id, group, boards, rotated: shelf.rotated, danger });
+      groups.push({ id: shelf.id, group, shelf, beamMat, danger, sel });
     });
 
-    const baseRadius = Math.max(6, Math.max(roomWidth, roomDepth) * 0.95);
+    const fitRadius = () => {
+      const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+      const forWidth = (roomWidth / 2 + 0.5) / (t * camera.aspect);
+      const forDepth = (roomDepth / 2 + 1.5) / t;
+      return Math.max(6, Math.max(forWidth, forDepth * 0.8) * 1.05);
+    };
     const target = new THREE.Vector3(0, 0.5, 0);
     const updateCamera = () => {
       const yaw = yawRef.current;
-      const radius = baseRadius * zoomRef.current;
+      const radius = fitRadius() * zoomRef.current;
       const pitch = pitchRef.current;
       camera.position.set(radius * Math.sin(yaw) * Math.cos(pitch), target.y + radius * Math.sin(pitch), radius * Math.cos(yaw) * Math.cos(pitch));
       camera.lookAt(target);
@@ -235,7 +298,7 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
         moved += Math.abs(dx) + Math.abs(dy);
         setRay(e);
         if (raycaster.ray.intersectPlane(plane, point)) {
-          const c = clampToRoom(point.x + offset.x, point.z + offset.z, dragged.rotated, roomWidth, roomDepth);
+          const c = clampToRoom(point.x + offset.x, point.z + offset.z, dragged.shelf, roomWidth, roomDepth);
           dragged.group.position.set(c.x, 0, c.z);
         }
       } else if (orbiting) {
@@ -248,7 +311,7 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
       if (dragged) {
         if (moved > 3) {
           const d = dragged;
-          const blocked = groups.some((o) => o !== d && shelfsOverlap({ x: d.group.position.x, z: d.group.position.z, rotated: d.rotated }, { x: o.group.position.x, z: o.group.position.z, rotated: o.rotated }));
+          const blocked = groups.some((o) => o !== d && shelfsOverlap(placeOf(d), placeOf(o)));
           if (blocked) {
             d.group.position.copy(startPos);
             onBlockedRef.current?.();
@@ -274,11 +337,12 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
 
     let raf = 0;
     const animate = () => {
-      groups.forEach(({ id, boards, group, rotated, danger }) => {
-        const colliding = groups.some((o) => o.id !== id && shelfsOverlap({ x: group.position.x, z: group.position.z, rotated }, { x: o.group.position.x, z: o.group.position.z, rotated: o.rotated }));
-        const mat = colliding ? dangerMat : id === selectedRef.current ? selectedMat : boardMat;
-        boards.forEach((b) => (b.material = mat));
-        danger.visible = colliding;
+      groups.forEach((g) => {
+        const colliding = groups.some((o) => o !== g && shelfsOverlap(placeOf(g), placeOf(o)));
+        g.beamMat.color.set(colliding ? 0xef4444 : g.shelf.color);
+        g.beamMat.emissive.setHex(colliding ? 0x991b1b : g.id === selectedRef.current ? 0x333333 : 0x000000);
+        g.danger.visible = colliding;
+        g.sel.visible = !colliding && g.id === selectedRef.current;
       });
       dom.style.cursor = editableRef.current ? (dragged ? "grabbing" : "move") : "grab";
       updateCamera();
@@ -297,7 +361,7 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
       geoms.forEach((g) => g.dispose());
       grid.geometry.dispose();
       (grid.material as THREE.Material).dispose();
-      [frameMat, boardMat, selectedMat, dangerMat, dangerFloorMat, boxMat, hitMat, floorMat, wallMat].forEach((m) => m.dispose());
+      [...beamMats, frameMat, blueMat, woodMat, selectedFloorMat, dangerFloorMat, boxMat, hitMat, floorMat, wallMat].forEach((m) => m.dispose());
       renderer.dispose();
       container.removeChild(dom);
     };
@@ -307,7 +371,7 @@ export default function ShelfViewer({ shelves, roomWidth, roomDepth, selectedId,
 
   return (
     <div className="relative">
-      <div ref={containerRef} className="h-[calc(100vh-13rem)] min-h-[28rem] w-full rounded-xl bg-gray-50 dark:bg-white/5" />
+      <div ref={containerRef} className="h-[calc(100vh-15rem)] min-h-[28rem] w-full rounded-xl bg-gray-50 dark:bg-white/5" />
       <div className="absolute bottom-3 right-3 flex flex-col gap-2">
         <button type="button" aria-label="Zoom in" className={zoomBtn} onClick={() => zoomBy(0.8)}>
           <IconPlus size={16} />
