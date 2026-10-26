@@ -136,7 +136,8 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
     const beamMats: THREE.MeshStandardMaterial[] = [];
     const boxMat = new THREE.MeshStandardMaterial({ color: 0xd4a373 });
     const dangerFloorMat = new THREE.MeshBasicMaterial({ color: 0xef4444, transparent: true, opacity: 0.55, depthWrite: false });
-    const bandMat = new THREE.MeshBasicMaterial({ color: 0x7c3aed, transparent: true, opacity: 0.22, depthWrite: false });
+    const bandMat = new THREE.MeshBasicMaterial({ color: 0x06b6d4, transparent: true, opacity: 0.32, depthWrite: false });
+    const bandEdgeMat = new THREE.LineBasicMaterial({ color: 0x0e7490, depthTest: false, transparent: true });
     const hitMat = new THREE.MeshBasicMaterial({ visible: false });
 
     const groups: { id: string; group: THREE.Group; shelf: ShelfData; beamMat: THREE.MeshStandardMaterial; danger: THREE.Mesh; sel: THREE.Mesh; band: THREE.Mesh }[] = [];
@@ -263,7 +264,12 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
       sel.visible = false;
       group.add(sel);
 
-      const band = new THREE.Mesh(box(W + 0.08, H / shelf.levels, D + 0.08), bandMat);
+      const bandGeo = box(W + 0.08, H / shelf.levels, D + 0.08);
+      const band = new THREE.Mesh(bandGeo, bandMat);
+      const bandEdges = new THREE.LineSegments(new THREE.EdgesGeometry(bandGeo), bandEdgeMat);
+      geoms.push(bandEdges.geometry);
+      bandEdges.renderOrder = 10;
+      band.add(bandEdges);
       band.visible = false;
       group.add(band);
 
@@ -561,7 +567,7 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
       wallGeoms.forEach((g) => g.dispose());
       grid.geometry.dispose();
       (grid.material as THREE.Material).dispose();
-      [...beamMats, frameMat, blueMat, woodMat, selectedFloorMat, dangerFloorMat, boxMat, bandMat, hitMat, floorMat, wallMat, doorLeafMat, doorFrameMat, windowFrameMat, glassMat, selectedFrameMat, clearanceMat].forEach((m) => m.dispose());
+      [...beamMats, frameMat, blueMat, woodMat, selectedFloorMat, dangerFloorMat, boxMat, bandMat, bandEdgeMat, hitMat, floorMat, wallMat, doorLeafMat, doorFrameMat, windowFrameMat, glassMat, selectedFrameMat, clearanceMat].forEach((m) => m.dispose());
       renderer.dispose();
       container.removeChild(dom);
     };
