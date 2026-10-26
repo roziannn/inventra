@@ -1,7 +1,8 @@
-export type ShelfType = "standard" | "pallet";
+export type ShelfType = "standard" | "angle" | "pallet";
 
 export const SHELF_TYPES: Record<ShelfType, { label: string; depth: number; length: number; height: number; color: string }> = {
   standard: { label: "Rak Standar", depth: 0.7, length: 1.6, height: 2.2, color: "#a78bfa" },
+  angle: { label: "Rak Besi Siku (Boltless)", depth: 0.5, length: 3, height: 2, color: "#e5e7eb" },
   pallet: { label: "Rak Pallet (Heavy Duty)", depth: 0.9, length: 3.6, height: 3, color: "#f97316" },
 };
 
@@ -26,6 +27,10 @@ export interface ShelfData {
   length: number;
   height: number;
   color: string;
+  /** closed panels around the shelf */
+  coverTop?: boolean;
+  coverBack?: boolean;
+  coverSides?: boolean;
   /** custom tag text per level (key = level index); empty means the auto code is used */
   tags?: Record<number, string>;
 }

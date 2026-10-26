@@ -64,6 +64,7 @@ export const rooms: Room[] = [
     ],
     shelves: [
       { id: "RK-201", name: "Rak 1", levels: 5, items: seedItems("RK-201", 5, 20, "standard", 1.6), x: -2, z: 0, rotated: false, type: "standard", length: 1.6, height: 2.2, color: "#a78bfa" },
+      { id: "RK-203", name: "Rak Besi 1", levels: 4, items: seedItems("RK-203", 4, 50, "angle", 3), x: 0, z: -2, rotated: false, type: "angle", length: 3, height: 2, color: "#e5e7eb", coverTop: true },
       { id: "RK-202", name: "Rak 2", levels: 5, items: seedItems("RK-202", 5, 55, "standard", 1.6), x: 2, z: 0, rotated: false, type: "standard", length: 1.6, height: 2.2, color: "#a78bfa" },
     ],
   },
