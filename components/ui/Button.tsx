@@ -8,7 +8,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
 }
 
-const baseClassName = "inline-flex items-center justify-center gap-2 font-bold transition-all disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none";
+const baseClassName = "inline-flex items-center justify-center gap-2 font-bold transition-all disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none dark:disabled:border-white/5 dark:disabled:bg-white/6 dark:disabled:text-gray-500";
 
 const variantClassNames: Record<ButtonVariant, string> = {
   "page-primary": "rounded-lg bg-zinc-900 px-4 py-2 text-xs text-white shadow-md hover:bg-zinc-800 active:scale-95 dark:bg-white dark:text-zinc-900 dark:hover:bg-gray-100",
