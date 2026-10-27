@@ -79,6 +79,29 @@ Kunci `localStorage`: `theme`, `inventra:storage-rooms:v1`, `inventra:containers
 
 `localStorage` tidak ada di server. Pakai `useHydrated()` (`lib/use-hydrated.ts`) sebelum menampilkan sesuatu yang bergantung pada data browser, dan tampilkan skeleton selagi `false`. Jangan memanggil `setState` di dalam `useEffect` hanya untuk menyalin data browser; gunakan store atau `useHydrated` + `useMemo`.
 
+## Menu, role, dan hak akses
+
+Menu dan role disimpan di `lib/settings/settings-store.ts` dan diatur lewat **Settings > Menu** dan **Settings > Role**. Hak akses ada di empat tingkat per menu:
+
+| Hak | Efek |
+| --- | --- |
+| **Lihat** | Menu muncul di sidebar dan halamannya bisa dibuka. Tanpa hak ini, URL langsung menampilkan `AccessDenied` (dijaga di `DashboardLayout`) |
+| **Tambah** | Tombol tambah/buat tampil |
+| **Ubah** | Tombol ubah, kolom Aksi, dan fitur edit (mis. builder Storage) tampil |
+| **Hapus** | Tombol hapus tampil |
+
+Di halaman, pakai `usePermissions` dengan path menu halaman itu:
+
+```tsx
+const perm = usePermissions("/inventory");
+{perm.create && <Button>Tambah barang</Button>}
+...(perm.edit ? [{ header: "Aksi", accessor: ... }] : [])
+```
+
+`lib/settings/permissions.ts` mencari menu pemilik sebuah URL (kecocokan paling spesifik), lalu membaca hak role aktif. Halaman yang tidak ada di menu (notifikasi, profil) dan menu inti Settings selalu terbuka. Super Admin selalu punya semua hak. Role aktif bisa diganti lewat **Pakai role ini** di Settings > Role untuk melihat tampilan tiap role.
+
+Catatan: penjagaan ini hanya di sisi tampilan. Backend tetap wajib memeriksa hak yang sama di setiap API.
+
 ## Tema (light/dark)
 
 - Kelas `dark` dipasang di `<html>`. Skrip kecil di `app/layout.tsx` menerapkannya **sebelum render pertama**, jadi tidak ada kedipan.

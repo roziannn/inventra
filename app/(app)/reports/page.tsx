@@ -4,6 +4,7 @@
 import React, { useState } from "react";
 import DataTable from "@/components/ui/DataTable";
 import { useInitialLoading } from "@/lib/use-initial-loading";
+import { usePermissions } from "@/lib/settings/permissions";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import PageHeader from "@/components/ui/PageHeader";
@@ -465,6 +466,7 @@ export default function ReportsPage() {
   };
 
   const loading = useInitialLoading();
+  const perm = usePermissions("/reports");
 
   const columns = [
     {
@@ -528,16 +530,23 @@ export default function ReportsPage() {
             <IconEye size={16} />
           </button>
 
-          <button
-            onClick={() => handleEditClick(item)}
-            className="p-1.5 text-gray-400 hover:text-violet-600 dark:hover:text-violet-300 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/12 transition-all"
-          >
-            <IconEdit size={16} />
-          </button>
+          {perm.edit && (
+            <button
+              onClick={() => handleEditClick(item)}
+              className="p-1.5 text-gray-400 hover:text-violet-600 dark:hover:text-violet-300 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/12 transition-all"
+            >
+              <IconEdit size={16} />
+            </button>
+          )}
 
-          <button onClick={() => handleDeleteClick(item)} className="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-300 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/12 transition-all">
-            <IconTrash size={16} />
-          </button>
+          {perm.delete && (
+            <button
+              onClick={() => handleDeleteClick(item)}
+              className="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-300 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/12 transition-all"
+            >
+              <IconTrash size={16} />
+            </button>
+          )}
         </div>
       ),
     },
@@ -598,7 +607,7 @@ export default function ReportsPage() {
                   <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
                     <IconBookmark size={18} className="text-blue-500" /> Solusi & Penanganan
                   </h3>
-                  <button className="text-xs font-bold text-violet-500 hover:text-violet-500 transition-colors">Tambah solusi</button>
+                  {perm.edit && <button className="text-xs font-bold text-violet-500 hover:text-violet-500 transition-colors">Tambah solusi</button>}
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
@@ -628,15 +637,17 @@ export default function ReportsPage() {
                             <td className="px-6 py-4 text-gray-400 text-xs font-medium">{formatDateTimeShort(sol.date)}</td>
                             <td className="px-6 py-4">
                               <div className="flex justify-center">
-                                <button
-                                  onClick={() => toggleReference(sol.id)}
-                                  className={`p-2 rounded-lg transition-all flex items-center gap-2 text-xs font-bold ${
-                                    sol.isReference ? "text-blue-600 bg-blue-50 ring-1 ring-blue-200" : "text-gray-300 hover:text-blue-600 hover:bg-blue-50"
-                                  }`}
-                                >
-                                  <IconBookmark size={16} stroke={sol.isReference ? 3 : 2} />
-                                  {sol.isReference ? "Hapus ref" : "Jadikan ref"}
-                                </button>
+                                {perm.edit && (
+                                  <button
+                                    onClick={() => toggleReference(sol.id)}
+                                    className={`p-2 rounded-lg transition-all flex items-center gap-2 text-xs font-bold ${
+                                      sol.isReference ? "text-blue-600 bg-blue-50 ring-1 ring-blue-200" : "text-gray-300 hover:text-blue-600 hover:bg-blue-50"
+                                    }`}
+                                  >
+                                    <IconBookmark size={16} stroke={sol.isReference ? 3 : 2} />
+                                    {sol.isReference ? "Hapus ref" : "Jadikan ref"}
+                                  </button>
+                                )}
                               </div>
                             </td>
                           </tr>
@@ -674,22 +685,24 @@ export default function ReportsPage() {
                     <p className="text-xs text-gray-400 text-center py-4 italic">Belum ada diskusi.</p>
                   )}
                 </div>
-                <div className="relative mt-2">
-                  <input
-                    type="text"
-                    value={commentInput}
-                    onChange={(e) => setCommentInput(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && handleAddComment()}
-                    placeholder="Tulis balasan..."
-                    className="w-full pl-4 pr-12 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all"
-                  />
-                  <button
-                    onClick={handleAddComment}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-zinc-900 text-white rounded-lg flex items-center justify-center hover:bg-zinc-800 transition-all shadow-md active:scale-95"
-                  >
-                    <IconSend size={14} stroke={2.5} />
-                  </button>
-                </div>
+                {perm.edit && (
+                  <div className="relative mt-2">
+                    <input
+                      type="text"
+                      value={commentInput}
+                      onChange={(e) => setCommentInput(e.target.value)}
+                      onKeyPress={(e) => e.key === "Enter" && handleAddComment()}
+                      placeholder="Tulis balasan..."
+                      className="w-full pl-4 pr-12 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all"
+                    />
+                    <button
+                      onClick={handleAddComment}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-zinc-900 text-white rounded-lg flex items-center justify-center hover:bg-zinc-800 transition-all shadow-md active:scale-95"
+                    >
+                      <IconSend size={14} stroke={2.5} />
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="bg-zinc-900 rounded-2xl p-6 text-white space-y-4 shadow-xl">
@@ -698,13 +711,15 @@ export default function ReportsPage() {
                   <button className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border border-white/10">
                     Gunakan Referensi Solusi
                   </button>
-                  <button
-                    onClick={handleMarkAsComplete}
-                    disabled={selectedReport.status === "Resolved"}
-                    className="w-full py-3 bg-violet-500 hover:bg-violet-600 disabled:bg-gray-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg active:translate-y-0.5"
-                  >
-                    <IconCheck size={16} stroke={3} /> {selectedReport.status === "Resolved" ? "Laporan Selesai" : "Mark as Complete"}
-                  </button>
+                  {perm.edit && (
+                    <button
+                      onClick={handleMarkAsComplete}
+                      disabled={selectedReport.status === "Resolved"}
+                      className="w-full py-3 bg-violet-500 hover:bg-violet-600 disabled:bg-gray-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg active:translate-y-0.5"
+                    >
+                      <IconCheck size={16} stroke={3} /> {selectedReport.status === "Resolved" ? "Laporan Selesai" : "Mark as Complete"}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -725,9 +740,11 @@ export default function ReportsPage() {
               <Button variant="page-secondary" onClick={() => setIsExportModalOpen(true)}>
                 <IconFileExport size={16} stroke={3} /> Export Data
               </Button>
-              <Button variant="page-primary" onClick={() => setIsModalOpen(true)}>
-                <IconPlus size={16} stroke={3} /> Buat laporan baru
-              </Button>
+              {perm.create && (
+                <Button variant="page-primary" onClick={() => setIsModalOpen(true)}>
+                  <IconPlus size={16} stroke={3} /> Buat laporan baru
+                </Button>
+              )}
             </>
           }
         />

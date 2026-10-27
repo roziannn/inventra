@@ -12,6 +12,7 @@ import Button from "@/components/ui/Button";
 import PageHeader from "@/components/ui/PageHeader";
 import FormLabel from "@/components/ui/FormLabel";
 import { IconBuildingWarehouse, IconLayoutRows, IconPlus, IconPencil, IconTrash, IconDoor, IconBox, IconRuler2, IconPackages, IconLayoutGrid, IconSearch, IconFilter } from "@tabler/icons-react";
+import { usePermissions } from "@/lib/settings/permissions";
 import { addRoom, removeRoom, updateRoom, useHydrated, useRooms } from "@/lib/storage/room-store";
 import { addLocationGroup, toggleLocationGroup, useLocationGroups } from "@/lib/storage/location-store";
 import type { Room } from "@/lib/storage/storage-data";
@@ -24,6 +25,7 @@ const ALL_LOCATIONS = "Semua lokasi";
 const emptyForm: FormState = { name: "", location: "", width: "10", depth: "6" };
 
 export default function StoragePage() {
+  const perm = usePermissions("/storage");
   const rooms = useRooms();
   const hydrated = useHydrated();
   const [formOpen, setFormOpen] = useState(false);
@@ -104,18 +106,22 @@ export default function StoragePage() {
           description="Kelola ruangan dan rak penyimpanan barang."
           actions={
             <>
-              <Button variant="page-secondary" onClick={() => setGroupsOpen(true)}>
-                <IconLayoutGrid size={16} /> Location Group
-              </Button>
+              {perm.edit && (
+                <Button variant="page-secondary" onClick={() => setGroupsOpen(true)}>
+                  <IconLayoutGrid size={16} /> Location Group
+                </Button>
+              )}
               <Link
                 href="/storage/wadah"
                 className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-xs font-bold text-gray-700 shadow-sm transition-all hover:bg-gray-50 active:scale-95 dark:border-gray-100/10 dark:bg-white/6 dark:text-gray-100 dark:hover:bg-white/10"
               >
                 <IconPackages size={16} /> Jenis Wadah
               </Link>
-              <Button variant="page-primary" onClick={openCreate}>
-                <IconPlus size={16} stroke={3} /> Tambah Ruangan
-              </Button>
+              {perm.create && (
+                <Button variant="page-primary" onClick={openCreate}>
+                  <IconPlus size={16} stroke={3} /> Tambah Ruangan
+                </Button>
+              )}
             </>
           }
         />
@@ -163,9 +169,11 @@ export default function StoragePage() {
             title="Belum ada ruangan"
             description="Buat ruangan pertama, lalu susun rak, pintu, dan jendelanya di 3D."
             action={
-              <Button variant="page-primary" onClick={openCreate}>
-                <IconPlus size={16} stroke={3} /> Tambah Ruangan
-              </Button>
+              perm.create ? (
+                <Button variant="page-primary" onClick={openCreate}>
+                  <IconPlus size={16} stroke={3} /> Tambah Ruangan
+                </Button>
+              ) : undefined
             }
           />
         ) : filteredRooms.length === 0 ? (
@@ -201,22 +209,26 @@ export default function StoragePage() {
                     </div>
                   </Link>
                   <div className="absolute right-3 top-3 flex gap-1">
-                    <button
-                      onClick={() => openEdit(room)}
-                      aria-label={`Ubah ${room.name}`}
-                      title="Ubah nama dan lokasi"
-                      className="rounded-lg p-2 text-gray-400 transition-all hover:bg-violet-50 hover:text-violet-600"
-                    >
-                      <IconPencil size={16} />
-                    </button>
-                    <button
-                      onClick={() => setDeleting(room)}
-                      aria-label={`Hapus ${room.name}`}
-                      title="Hapus ruangan"
-                      className="rounded-lg p-2 text-gray-400 transition-all hover:bg-red-50 hover:text-red-600"
-                    >
-                      <IconTrash size={16} />
-                    </button>
+                    {perm.edit && (
+                      <button
+                        onClick={() => openEdit(room)}
+                        aria-label={`Ubah ${room.name}`}
+                        title="Ubah nama dan lokasi"
+                        className="rounded-lg p-2 text-gray-400 transition-all hover:bg-violet-50 hover:text-violet-600"
+                      >
+                        <IconPencil size={16} />
+                      </button>
+                    )}
+                    {perm.delete && (
+                      <button
+                        onClick={() => setDeleting(room)}
+                        aria-label={`Hapus ${room.name}`}
+                        title="Hapus ruangan"
+                        className="rounded-lg p-2 text-gray-400 transition-all hover:bg-red-50 hover:text-red-600"
+                      >
+                        <IconTrash size={16} />
+                      </button>
+                    )}
                   </div>
                 </div>
               );

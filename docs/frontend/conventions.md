@@ -28,6 +28,7 @@
 - **Halaman:** rata kiri dan lebar penuh. Jangan memakai `mx-auto max-w-*` di pembungkus halaman.
 - **Judul halaman** lewat `PageHeader`. **Breadcrumb** otomatis dari header.
 - **Kursor:** semua yang bisa diklik menampilkan pointer. Aturan global di `globals.css` mencakup `button`, `a[href]`, `select`, checkbox/radio/range, `role="button|tab|switch"`; tombol nonaktif memakai `not-allowed`. Jangan memasang `onClick` pada `div`/`span`/`tr` biasa; pakai `<button>`, `<a>`, atau `DataTable onRowClick`. Bila terpaksa, beri `role="button"`, `tabIndex={0}`, dan penangan keyboard.
+- **Hak akses:** tombol tambah, ubah, dan hapus selalu dibungkus pengecekan `usePermissions`, bukan hanya disembunyikan lewat CSS.
 - **Aksi destruktif** lewat `ConfirmDialog`.
 - **Umpan balik:** `toast.success` untuk berhasil, `toast.error` dengan alasan dan langkah berikutnya untuk gagal.
 - **Keadaan kosong, memuat, dan error** selalu ada: `EmptyState`, skeleton, `error.tsx`.
@@ -52,6 +53,7 @@
 - [ ] Tidak ada `any`, `console.log`, atau kode mati
 - [ ] Halaman dengan tabel: `loading` terhubung, kolom satu baris, keadaan kosong ada
 - [ ] Aksi hapus memakai `ConfirmDialog`
+- [ ] Tombol tambah, ubah, dan hapus mengikuti `usePermissions`
 - [ ] Label sentence case, teks Indonesia konsisten
 - [ ] Terlihat benar di light dan dark, di lebar 375, 768, dan 1440
 - [ ] Pustaka berat tidak ikut bundle awal

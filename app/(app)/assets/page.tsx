@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import DataTable from "@/components/ui/DataTable";
 import Badge, { type BadgeTone } from "@/components/ui/Badge";
 import { useInitialLoading } from "@/lib/use-initial-loading";
+import { usePermissions } from "@/lib/settings/permissions";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import PageHeader from "@/components/ui/PageHeader";
@@ -121,6 +122,7 @@ export default function AssetsPage() {
   };
 
   const loading = useInitialLoading();
+  const perm = usePermissions("/assets");
 
   const columns = [
     {
@@ -157,17 +159,21 @@ export default function AssetsPage() {
         );
       },
     },
-    {
-      header: "Aksi",
-      accessor: (item: Asset) => (
-        <button
-          onClick={() => handleEditClick(item)}
-          className="p-1.5 text-gray-400 hover:text-violet-600 dark:hover:text-violet-300 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/12 transition-all"
-        >
-          <IconEdit size={18} />
-        </button>
-      ),
-    },
+    ...(perm.edit
+      ? [
+          {
+            header: "Aksi",
+            accessor: (item: Asset) => (
+              <button
+                onClick={() => handleEditClick(item)}
+                className="p-1.5 text-gray-400 hover:text-violet-600 dark:hover:text-violet-300 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/12 transition-all"
+              >
+                <IconEdit size={18} />
+              </button>
+            ),
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -178,12 +184,16 @@ export default function AssetsPage() {
           description="Daftar aset tetap dan inventaris perusahaan Anda."
           actions={
             <>
-              <Button variant="page-secondary" onClick={() => setIsCategoryModalOpen(true)}>
-                <IconLayoutGrid size={16} /> Asset Group
-              </Button>
-              <Button variant="page-primary" onClick={() => setIsModalOpen(true)}>
-                <IconPlus size={16} stroke={3} /> Tambah aset
-              </Button>
+              {perm.edit && (
+                <Button variant="page-secondary" onClick={() => setIsCategoryModalOpen(true)}>
+                  <IconLayoutGrid size={16} /> Asset Group
+                </Button>
+              )}
+              {perm.create && (
+                <Button variant="page-primary" onClick={() => setIsModalOpen(true)}>
+                  <IconPlus size={16} stroke={3} /> Tambah aset
+                </Button>
+              )}
             </>
           }
         />

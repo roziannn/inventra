@@ -4,6 +4,7 @@ import React, { useState, useMemo } from "react";
 import DataTable from "@/components/ui/DataTable";
 import Badge from "@/components/ui/Badge";
 import { useInitialLoading } from "@/lib/use-initial-loading";
+import { usePermissions } from "@/lib/settings/permissions";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import PageHeader from "@/components/ui/PageHeader";
@@ -129,6 +130,7 @@ export default function InventoryPage() {
   };
 
   const loading = useInitialLoading();
+  const perm = usePermissions("/inventory");
 
   const columns = [
     {
@@ -165,17 +167,21 @@ export default function InventoryPage() {
         );
       },
     },
-    {
-      header: "Aksi",
-      accessor: (item: InventoryItem) => (
-        <button
-          onClick={() => handleEditClick(item)}
-          className="p-1.5 text-gray-400 hover:text-violet-600 dark:hover:text-violet-300 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/12 transition-all"
-        >
-          <IconEdit size={18} />
-        </button>
-      ),
-    },
+    ...(perm.edit
+      ? [
+          {
+            header: "Aksi",
+            accessor: (item: InventoryItem) => (
+              <button
+                onClick={() => handleEditClick(item)}
+                className="p-1.5 text-gray-400 hover:text-violet-600 dark:hover:text-violet-300 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/12 transition-all"
+              >
+                <IconEdit size={18} />
+              </button>
+            ),
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -186,12 +192,16 @@ export default function InventoryPage() {
           description="Kelola stok barang dan kategori inventaris Anda."
           actions={
             <>
-              <Button variant="page-secondary" onClick={() => setIsCategoryModalOpen(true)}>
-                <IconLayoutGrid size={16} /> Inventory Group
-              </Button>
-              <Button variant="page-primary" onClick={() => setIsModalOpen(true)}>
-                <IconPlus size={16} stroke={3} /> Tambah barang
-              </Button>
+              {perm.edit && (
+                <Button variant="page-secondary" onClick={() => setIsCategoryModalOpen(true)}>
+                  <IconLayoutGrid size={16} /> Inventory Group
+                </Button>
+              )}
+              {perm.create && (
+                <Button variant="page-primary" onClick={() => setIsModalOpen(true)}>
+                  <IconPlus size={16} stroke={3} /> Tambah barang
+                </Button>
+              )}
             </>
           }
         />
