@@ -1,10 +1,8 @@
 /* eslint-disable react-hooks/set-state-in-effect */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
 import {
-  IconLayoutDashboard,
   IconPackage,
   IconBoxSeam,
   IconUsers,
@@ -14,14 +12,11 @@ import {
   IconChevronLeft,
   IconMenu2,
   IconBell,
-  IconHistory,
   IconArrowRight,
   IconBuildingSkyscraper,
   IconChevronDown,
-  IconTags,
   IconUser,
   IconSettings,
-  IconBuildingWarehouse,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -38,6 +33,18 @@ const sulphurPoint = Sulphur_Point({
   subsets: ["latin"],
   weight: ["400", "700"],
 });
+
+interface SearchResult {
+  id: string;
+  type: string;
+  href: string;
+  icon: React.ComponentType<{ size?: number }>;
+  title?: string;
+  name?: string;
+  sku?: string;
+  serial?: string;
+  email?: string;
+}
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -61,7 +68,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filteredResults, setFilteredResults] = useState<any[]>([]);
+  const [filteredResults, setFilteredResults] = useState<SearchResult[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [openSubMenu, setOpenSubMenu] = useState<string | null>(() => getActiveSubMenu(pathname));
   const router = useRouter();
@@ -90,7 +97,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // Handle Search logic
   useEffect(() => {
     if (searchQuery.trim().length > 1) {
-      const results: any[] = [];
+      const results: SearchResult[] = [];
 
       // Search in Inventory
       searchData.inventory.forEach((item) => {
@@ -262,7 +269,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* --- Sidebar Footer: User Profile --- */}
         <div className="mt-auto p-4 relative" ref={profileRef}>
-          <button onClick={() => setIsProfileOpen(!isProfileOpen)} className={`w-full flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-all group ${isCollapsed ? "justify-center" : ""}`}>
+          <button
+            onClick={() => setIsProfileOpen(!isProfileOpen)}
+            className={`w-full flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-all group ${isCollapsed ? "justify-center" : ""}`}
+          >
             <div className="w-9 h-9 bg-violet-500 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-lg">AD</div>
             {!isCollapsed && (
               <div className="flex-1 text-left overflow-hidden">
@@ -331,57 +341,57 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </div>
           <div className="relative w-40 sm:w-64 lg:w-96 group" ref={searchRef}>
-              <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-violet-500" size={18} />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => searchQuery.trim().length > 1 && setShowSuggestions(true)}
-                placeholder="Cari assets, inventory, reports etc"
-                className="w-full pl-10 pr-4 py-2 bg-muted/60 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition-all"
-              />
+            <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-violet-500" size={18} />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => searchQuery.trim().length > 1 && setShowSuggestions(true)}
+              placeholder="Cari assets, inventory, reports etc"
+              className="w-full pl-10 pr-4 py-2 bg-muted/60 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition-all"
+            />
 
-              {/* Suggestions Dropdown */}
-              {showSuggestions && filteredResults.length > 0 && (
-                <div className="absolute top-full left-0 w-full mt-2 bg-card rounded-xl shadow-2xl border border-border overflow-hidden z-[200]">
-                  <div className="p-2 border-b border-border/60 bg-muted">
-                    <p className="text-xs font-bold text-gray-400 dark:text-gray-200 px-2">Hasil pencarian</p>
-                  </div>
-                  <div className="max-h-80 overflow-y-auto custom-scrollbar">
-                    {filteredResults.map((result, idx) => (
-                      <button
-                        key={`${result.type}-${result.id}-${idx}`}
-                        onClick={() => {
-                          router.push(result.href);
-                          setShowSuggestions(false);
-                          setSearchQuery("");
-                        }}
-                        className="w-full flex items-center justify-between p-3 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-colors group text-left border-b border-border last:border-0"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-muted group-hover:bg-violet-100 dark:group-hover:bg-violet-800/50 text-gray-500 group-hover:text-violet-600 dark:group-hover:text-violet-300 flex items-center justify-center transition-colors">
-                            <result.icon size={16} />
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold text-foreground group-hover:text-violet-900 dark:group-hover:text-violet-300 transition-colors">{result.title || result.name}</p>
-                            <p className="text-xs text-gray-400 dark:text-gray-300 font-medium tracking-tight">
-                              {result.type} &bull; {result.id} {result.sku || result.serial || result.email ? `&bull; ${result.sku || result.serial || result.email}` : ""}
-                            </p>
-                          </div>
+            {/* Suggestions Dropdown */}
+            {showSuggestions && filteredResults.length > 0 && (
+              <div className="absolute top-full left-0 w-full mt-2 bg-card rounded-xl shadow-2xl border border-border overflow-hidden z-[200]">
+                <div className="p-2 border-b border-border/60 bg-muted">
+                  <p className="text-xs font-bold text-gray-400 dark:text-gray-200 px-2">Hasil pencarian</p>
+                </div>
+                <div className="max-h-80 overflow-y-auto custom-scrollbar">
+                  {filteredResults.map((result, idx) => (
+                    <button
+                      key={`${result.type}-${result.id}-${idx}`}
+                      onClick={() => {
+                        router.push(result.href);
+                        setShowSuggestions(false);
+                        setSearchQuery("");
+                      }}
+                      className="w-full flex items-center justify-between p-3 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-colors group text-left border-b border-border last:border-0"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-muted group-hover:bg-violet-100 dark:group-hover:bg-violet-800/50 text-gray-500 group-hover:text-violet-600 dark:group-hover:text-violet-300 flex items-center justify-center transition-colors">
+                          <result.icon size={16} />
                         </div>
-                        <IconArrowRight size={14} className="text-gray-300 group-hover:text-violet-500 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
-                      </button>
-                    ))}
-                  </div>
+                        <div>
+                          <p className="text-sm font-bold text-foreground group-hover:text-violet-900 dark:group-hover:text-violet-300 transition-colors">{result.title || result.name}</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-300 font-medium tracking-tight">
+                            {result.type} &bull; {result.id} {result.sku || result.serial || result.email ? `&bull; ${result.sku || result.serial || result.email}` : ""}
+                          </p>
+                        </div>
+                      </div>
+                      <IconArrowRight size={14} className="text-gray-300 group-hover:text-violet-500 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
+                    </button>
+                  ))}
                 </div>
-              )}
+              </div>
+            )}
 
-              {showSuggestions && filteredResults.length === 0 && (
-                <div className="absolute top-full left-0 w-full mt-2 bg-card rounded-xl shadow-2xl border border-border p-6 z-[200] text-center">
-                  <p className="text-sm text-gray-500 dark:text-gray-300 font-medium">Tidak ada hasil ditemukan untuk &quot;{searchQuery}&quot;</p>
-                </div>
-              )}
-            </div>
+            {showSuggestions && filteredResults.length === 0 && (
+              <div className="absolute top-full left-0 w-full mt-2 bg-card rounded-xl shadow-2xl border border-border p-6 z-[200] text-center">
+                <p className="text-sm text-gray-500 dark:text-gray-300 font-medium">Tidak ada hasil ditemukan untuk &quot;{searchQuery}&quot;</p>
+              </div>
+            )}
+          </div>
           <div className="flex items-center justify-end gap-2">
             <ThemeToggle />
             <Link href="/notifications" className="p-2 rounded-lg border border-border bg-muted/60 hover:bg-muted transition-colors text-gray-600 dark:text-gray-200 relative">
@@ -394,7 +404,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
 
         {/* Page Content */}
-        <section ref={contentRef} className="flex-1 overflow-y-auto p-4 lg:p-6 bg-background">{children}</section>
+        <section ref={contentRef} className="flex-1 overflow-y-auto p-4 lg:p-6 bg-background">
+          {children}
+        </section>
 
         {/* Footer */}
         <footer className="h-12 bg-card flex items-center justify-between px-4 lg:px-8 shrink-0 z-80">

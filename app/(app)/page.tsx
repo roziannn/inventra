@@ -1,7 +1,20 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { IconPackage, IconBoxSeam, IconArrowUpRight, IconCircleCheck, IconClock, IconArrowRight, IconTags, IconBuildingSkyscraper, IconChartDonut3, IconChartBar, IconSpeakerphone, IconAlertTriangle } from "@tabler/icons-react";
+import {
+  IconPackage,
+  IconBoxSeam,
+  IconArrowUpRight,
+  IconCircleCheck,
+  IconClock,
+  IconArrowRight,
+  IconTags,
+  IconBuildingSkyscraper,
+  IconChartDonut3,
+  IconChartBar,
+  IconSpeakerphone,
+  IconAlertTriangle,
+} from "@tabler/icons-react";
 import Link from "next/link";
 import { Skeleton, TableSkeleton } from "@/components/ui/Skeleton";
 import { useInitialLoading } from "@/lib/use-initial-loading";
@@ -138,7 +151,10 @@ export default function FullDashboard() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 shrink-0">
           {stats.map((stat, i) => (
-            <div key={i} className="bg-card p-3.5 rounded-lg border border-border shadow-sm flex items-center gap-3.5 hover:shadow-md hover:-translate-y-0.5 transition-all group relative overflow-hidden">
+            <div
+              key={i}
+              className="bg-card p-3.5 rounded-lg border border-border shadow-sm flex items-center gap-3.5 hover:shadow-md hover:-translate-y-0.5 transition-all group relative overflow-hidden"
+            >
               <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-300/60 to-transparent opacity-70" />
               <div className={`${stat.bg} ${stat.color} w-10 h-10 rounded-md flex-shrink-0 flex items-center justify-center transition-transform group-hover:scale-105`}>
                 <stat.icon size={20} stroke={2} />
@@ -210,7 +226,10 @@ export default function FullDashboard() {
                         <p className="text-sm font-bold text-gray-800 dark:text-gray-100 group-hover:text-violet-700 dark:group-hover:text-violet-300 transition-colors">{action.title}</p>
                         <p className="text-xs text-gray-500 dark:text-gray-300 mt-0.5">{action.description}</p>
                       </div>
-                      <IconArrowRight size={16} className="text-gray-300 dark:text-gray-500 group-hover:text-violet-500 dark:group-hover:text-violet-300 transition-all group-hover:translate-x-0.5 shrink-0" />
+                      <IconArrowRight
+                        size={16}
+                        className="text-gray-300 dark:text-gray-500 group-hover:text-violet-500 dark:group-hover:text-violet-300 transition-all group-hover:translate-x-0.5 shrink-0"
+                      />
                     </div>
                   </Link>
                 ))}
@@ -270,30 +289,30 @@ export default function FullDashboard() {
               {tableLoading ? (
                 <TableSkeleton columns={5} rows={5} withHeader />
               ) : (
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-xs text-gray-400">
-                    <th className="text-left py-2">Item</th>
-                    <th className="text-left py-2">SKU</th>
-                    <th className="text-right py-2">Stock</th>
-                    <th className="text-right py-2">Min</th>
-                    <th className="text-right py-2">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {lowStockAlerts.map((row) => (
-                    <tr key={row.sku} className="hover:bg-muted/30 transition-colors">
-                      <td className="py-2 text-sm font-semibold text-gray-800">{row.item}</td>
-                      <td className="py-2 text-xs text-gray-500">{row.sku}</td>
-                      <td className="py-2 text-right text-sm font-bold text-gray-800">{row.stock}</td>
-                      <td className="py-2 text-right text-xs text-gray-500">{row.minStock}</td>
-                      <td className="py-2 text-right">
-                        <span className={`text-xs font-semibold px-2 py-0.5 rounded ${row.level === "Urgent" ? "bg-red-500/10 text-red-600" : "bg-amber-500/10 text-amber-600"}`}>{row.level}</span>
-                      </td>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-xs text-gray-400">
+                      <th className="text-left py-2">Item</th>
+                      <th className="text-left py-2">SKU</th>
+                      <th className="text-right py-2">Stock</th>
+                      <th className="text-right py-2">Min</th>
+                      <th className="text-right py-2">Status</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {lowStockAlerts.map((row) => (
+                      <tr key={row.sku} className="hover:bg-muted/30 transition-colors">
+                        <td className="py-2 text-sm font-semibold text-gray-800">{row.item}</td>
+                        <td className="py-2 text-xs text-gray-500">{row.sku}</td>
+                        <td className="py-2 text-right text-sm font-bold text-gray-800">{row.stock}</td>
+                        <td className="py-2 text-right text-xs text-gray-500">{row.minStock}</td>
+                        <td className="py-2 text-right">
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded ${row.level === "Urgent" ? "bg-red-500/10 text-red-600" : "bg-amber-500/10 text-amber-600"}`}>{row.level}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               )}
             </div>
           </div>

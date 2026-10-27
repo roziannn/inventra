@@ -3,15 +3,30 @@
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 import Modal from "@/components/ui/Modal";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import { fieldClass } from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import PageHeader from "@/components/ui/PageHeader";
 import FormLabel from "@/components/ui/FormLabel";
 import { TableSkeleton } from "@/components/ui/Skeleton";
 import { useHydrated } from "@/lib/use-hydrated";
 import { MENU_ICONS } from "@/lib/settings/menu-icons";
-import { PERMISSION_KEYS, addRole, can, childrenOf, removeRole, setActiveRole, setPermissions, updateRole, useSettings, type MenuItem, type PermissionKey, type Role } from "@/lib/settings/settings-store";
+import {
+  PERMISSION_KEYS,
+  addRole,
+  can,
+  childrenOf,
+  removeRole,
+  setActiveRole,
+  setPermissions,
+  updateRole,
+  useSettings,
+  type MenuItem,
+  type PermissionKey,
+  type Role,
+} from "@/lib/settings/settings-store";
 import { IconCopy, IconLock, IconPencil, IconPlayerPlay, IconPlus, IconShieldLock, IconTrash } from "@tabler/icons-react";
 
-const fieldClass = "w-full rounded-xl border border-gray-200 bg-transparent px-3 py-2.5 text-sm focus:border-violet-600 focus:outline-none";
 const PERMISSION_LABELS: Record<PermissionKey, string> = { view: "Lihat", create: "Tambah", edit: "Ubah", delete: "Hapus" };
 
 type FormState = { name: string; description: string; copyFromId: string };
@@ -81,32 +96,47 @@ export default function RoleSettingsPage() {
     if (!role || readOnly) return;
     const keys = isGroup(menu) ? (["view"] as PermissionKey[]) : PERMISSION_KEYS.filter((k) => !lockedView(menu, k));
     const all = keys.every((k) => can(role, menu.id, k));
-    setPermissions(role.id, keys.map((key) => ({ menuId: menu.id, key, value: !all })));
+    setPermissions(
+      role.id,
+      keys.map((key) => ({ menuId: menu.id, key, value: !all })),
+    );
   };
 
   const toggleColumn = (key: PermissionKey) => {
     if (!role || readOnly) return;
     const targets = rows.filter((m) => !lockedView(m, key) && (key === "view" || !isGroup(m)));
     const all = targets.every((m) => can(role, m.id, key));
-    setPermissions(role.id, targets.map((m) => ({ menuId: m.id, key, value: !all })));
+    setPermissions(
+      role.id,
+      targets.map((m) => ({ menuId: m.id, key, value: !all })),
+    );
   };
 
   const checkbox = (checked: boolean, disabled: boolean, onChange: () => void, label: string) => (
-    <input type="checkbox" aria-label={label} checked={checked} disabled={disabled} onChange={onChange} className="h-4 w-4 cursor-pointer accent-violet-600 disabled:cursor-not-allowed disabled:opacity-50" />
+    <input
+      type="checkbox"
+      aria-label={label}
+      checked={checked}
+      disabled={disabled}
+      onChange={onChange}
+      className="h-4 w-4 cursor-pointer accent-violet-600 disabled:cursor-not-allowed disabled:opacity-50"
+    />
   );
 
   return (
     <>
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Role</h2>
-            <p className="text-xs text-gray-500 font-medium">Atur hak akses tiap role per menu: lihat, tambah, ubah, dan hapus.</p>
-          </div>
-          <Button variant="page-primary" onClick={() => openCreate()}>
-            <IconPlus size={16} stroke={3} /> Tambah Role
-          </Button>
-        </div>
+        <PageHeader
+          title="Role"
+          description="Atur hak akses tiap role per menu: lihat, tambah, ubah, dan hapus."
+          actions={
+            <>
+              <Button variant="page-primary" onClick={() => openCreate()}>
+                <IconPlus size={16} stroke={3} /> Tambah Role
+              </Button>
+            </>
+          }
+        />
 
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
           <div className="flex flex-col gap-2 lg:w-72 lg:shrink-0">
@@ -138,7 +168,15 @@ export default function RoleSettingsPage() {
                   <p className="text-xs text-gray-500">{role.description || "Tanpa deskripsi"}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Button variant="page-outline" onClick={() => { setActiveRole(role.id); toast.success(`Sidebar sekarang mengikuti role ${role.name}`); }} disabled={role.id === activeRoleId} title="Pakai role ini untuk melihat sidebar sesuai hak aksesnya">
+                  <Button
+                    variant="page-outline"
+                    onClick={() => {
+                      setActiveRole(role.id);
+                      toast.success(`Sidebar sekarang mengikuti role ${role.name}`);
+                    }}
+                    disabled={role.id === activeRoleId}
+                    title="Pakai role ini untuk melihat sidebar sesuai hak aksesnya"
+                  >
                     <IconPlayerPlay size={14} /> {role.id === activeRoleId ? "Sedang dipakai" : "Pakai role ini"}
                   </Button>
                   <Button variant="page-outline" onClick={() => openCreate(role.id)}>
@@ -147,13 +185,20 @@ export default function RoleSettingsPage() {
                   <Button variant="page-outline" onClick={() => openEdit(role)} disabled={readOnly}>
                     <IconPencil size={14} /> Ubah
                   </Button>
-                  <Button variant="page-outline" onClick={() => setDeleting(role)} disabled={readOnly || role.id === activeRoleId} title={role.id === activeRoleId ? "Role yang sedang dipakai tidak bisa dihapus" : undefined}>
+                  <Button
+                    variant="page-outline"
+                    onClick={() => setDeleting(role)}
+                    disabled={readOnly || role.id === activeRoleId}
+                    title={role.id === activeRoleId ? "Role yang sedang dipakai tidak bisa dihapus" : undefined}
+                  >
                     <IconTrash size={14} /> Hapus
                   </Button>
                 </div>
               </div>
 
-              {readOnly && <p className="bg-violet-50 px-4 py-2 text-[11px] font-medium text-violet-700 dark:bg-violet-500/12 dark:text-violet-200">Super Admin selalu punya akses penuh dan tidak bisa diubah.</p>}
+              {readOnly && (
+                <p className="bg-violet-50 px-4 py-2 text-[11px] font-medium text-violet-700 dark:bg-violet-500/12 dark:text-violet-200">Super Admin selalu punya akses penuh dan tidak bisa diubah.</p>
+              )}
 
               {!hydrated && <TableSkeleton columns={6} rows={10} withHeader />}
               <div className="overflow-x-auto" hidden={!hydrated}>
@@ -193,17 +238,30 @@ export default function RoleSettingsPage() {
                           </td>
                           {PERMISSION_KEYS.map((key) => (
                             <td key={key} className="px-2 py-2 text-center">
-                              {group && key !== "view" ? <span className="text-gray-300">-</span> : checkbox(can(role, menu.id, key), readOnly || lockedView(menu, key), () => toggleCell(menu, key), `${PERMISSION_LABELS[key]} ${menu.name}`)}
+                              {group && key !== "view" ? (
+                                <span className="text-gray-300">-</span>
+                              ) : (
+                                checkbox(can(role, menu.id, key), readOnly || lockedView(menu, key), () => toggleCell(menu, key), `${PERMISSION_LABELS[key]} ${menu.name}`)
+                              )}
                             </td>
                           ))}
-                          <td className="px-2 py-2 text-center">{checkbox(rowKeys.every((k) => can(role, menu.id, k)), readOnly, () => toggleRow(menu), `Semua akses ${menu.name}`)}</td>
+                          <td className="px-2 py-2 text-center">
+                            {checkbox(
+                              rowKeys.every((k) => can(role, menu.id, k)),
+                              readOnly,
+                              () => toggleRow(menu),
+                              `Semua akses ${menu.name}`,
+                            )}
+                          </td>
                         </tr>
                       );
                     })}
                   </tbody>
                 </table>
               </div>
-              <p className="border-t border-gray-100 px-4 py-2.5 text-[11px] text-gray-400 dark:border-gray-100/10">Hak Lihat menentukan menu yang muncul di sidebar. Menu inti Settings selalu tampil untuk semua role.</p>
+              <p className="border-t border-gray-100 px-4 py-2.5 text-[11px] text-gray-400 dark:border-gray-100/10">
+                Hak Lihat menentukan menu yang muncul di sidebar. Menu inti Settings selalu tampil untuk semua role.
+              </p>
             </div>
           )}
         </div>
@@ -243,23 +301,20 @@ export default function RoleSettingsPage() {
         </form>
       </Modal>
 
-      <Modal isOpen={!!deleting} onClose={() => setDeleting(null)} title="Hapus Role">
-        {deleting && (
-          <div className="flex flex-col gap-4">
-            <p className="text-sm text-gray-600">
+      <ConfirmDialog
+        isOpen={!!deleting}
+        title="Hapus Role"
+        message={
+          deleting && (
+            <>
               Hapus role <b>{deleting.name}</b>? Hak aksesnya ikut terhapus dan tidak bisa dibatalkan.
-            </p>
-            <div className="flex justify-end gap-2">
-              <Button variant="modal-secondary" onClick={() => setDeleting(null)}>
-                Batal
-              </Button>
-              <Button variant="modal-danger" onClick={confirmDelete}>
-                <IconTrash size={16} /> Hapus
-              </Button>
-            </div>
-          </div>
-        )}
-      </Modal>
+            </>
+          )
+        }
+        icon={<IconTrash size={16} />}
+        onConfirm={confirmDelete}
+        onClose={() => setDeleting(null)}
+      />
     </>
   );
 }

@@ -58,10 +58,16 @@ export default function RoomBuilderPanel({ size, sizeDraft, minSize, maxSize, on
       <section className="flex flex-col gap-2">
         <p className="text-xs font-bold text-gray-900">Pintu & Jendela ({openings.length})</p>
         <div className="grid grid-cols-2 gap-2">
-          <button onClick={() => onAdd("door")} className="flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-violet-400 px-2 py-2 text-[11px] font-bold text-violet-700 hover:bg-violet-50 dark:text-violet-300 dark:hover:bg-violet-500/12">
+          <button
+            onClick={() => onAdd("door")}
+            className="flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-violet-400 px-2 py-2 text-[11px] font-bold text-violet-700 hover:bg-violet-50 dark:text-violet-300 dark:hover:bg-violet-500/12"
+          >
             <IconPlus size={14} stroke={3} /> Pintu
           </button>
-          <button onClick={() => onAdd("window")} className="flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-violet-400 px-2 py-2 text-[11px] font-bold text-violet-700 hover:bg-violet-50 dark:text-violet-300 dark:hover:bg-violet-500/12">
+          <button
+            onClick={() => onAdd("window")}
+            className="flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-violet-400 px-2 py-2 text-[11px] font-bold text-violet-700 hover:bg-violet-50 dark:text-violet-300 dark:hover:bg-violet-500/12"
+          >
             <IconPlus size={14} stroke={3} /> Jendela
           </button>
         </div>

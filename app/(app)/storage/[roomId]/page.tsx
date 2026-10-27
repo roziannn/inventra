@@ -170,7 +170,10 @@ function RoomEditor({ room }: { room: Room }) {
     nextId.current += 1;
     const id = `RK-new-${nextId.current}`;
     const name = draft.name.trim() || `Rak ${shelves.length + 1}`;
-    setShelves((prev) => [...prev, { id, name, levels: draft.levels, items: [], ...spot, ...place, height: draft.height, color: draft.color, coverTop: draft.coverTop, coverBack: draft.coverBack, coverSides: draft.coverSides }]);
+    setShelves((prev) => [
+      ...prev,
+      { id, name, levels: draft.levels, items: [], ...spot, ...place, height: draft.height, color: draft.color, coverTop: draft.coverTop, coverBack: draft.coverBack, coverSides: draft.coverSides },
+    ]);
     setSelectedShelf(id);
     setDraft((d) => ({ ...d, name: "" }));
     setShowAdd(false);
@@ -474,7 +477,11 @@ function RoomEditor({ room }: { room: Room }) {
             </p>
           </div>
 
-          <aside onPointerUp={endBatch} onBlurCapture={endBatch} className="flex min-h-0 flex-col gap-2 overflow-y-auto rounded-xl border border-gray-200 bg-white p-3 lg:w-80 dark:border-gray-100/10 dark:bg-white/6">
+          <aside
+            onPointerUp={endBatch}
+            onBlurCapture={endBatch}
+            className="flex min-h-0 flex-col gap-2 overflow-y-auto rounded-xl border border-gray-200 bg-white p-3 lg:w-80 dark:border-gray-100/10 dark:bg-white/6"
+          >
             {mode === "ruangan" ? (
               <RoomBuilderPanel
                 size={size}
@@ -535,117 +542,137 @@ function RoomEditor({ room }: { room: Room }) {
                   </div>
                 )}
 
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-bold text-gray-900">Rak ({shelves.length})</p>
-              {editMode && (
-                <button onClick={() => setShowAdd((v) => !v)} className="flex items-center gap-1 rounded-lg bg-violet-600 px-2.5 py-1.5 text-[11px] font-bold text-white hover:bg-violet-700">
-                  <IconPlus size={14} stroke={3} /> {showAdd ? "Tutup" : "Tambah"}
-                </button>
-              )}
-            </div>
-
-            {editMode && showAdd && (
-              <div className="flex flex-col gap-2 rounded-lg bg-gray-50 p-2.5 dark:bg-white/5">
-                <TypeSelect
-                  value={draft.type}
-                  onChange={(type) => setDraft((d) => ({ ...d, type, ...pick(type), length: Math.min(pick(type).length, maxLength) }))}
-                />
-                <div className="flex gap-2">
-                  <input className={inputClass} placeholder={`Rak ${shelves.length + 1}`} value={draft.name} onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))} />
-                  <ColorField value={draft.color} onChange={(color) => setDraft((d) => ({ ...d, color }))} />
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-bold text-gray-900">Rak ({shelves.length})</p>
+                  {editMode && (
+                    <button onClick={() => setShowAdd((v) => !v)} className="flex items-center gap-1 rounded-lg bg-violet-600 px-2.5 py-1.5 text-[11px] font-bold text-white hover:bg-violet-700">
+                      <IconPlus size={14} stroke={3} /> {showAdd ? "Tutup" : "Tambah"}
+                    </button>
+                  )}
                 </div>
-                <div className="flex gap-3">
-                  <Slider label="Panjang" value={draft.length} min={0.8} max={maxLength} onChange={(length) => setDraft((d) => ({ ...d, length }))} />
-                  <Slider label="Tinggi" value={draft.height} min={1} max={5} onChange={(height) => setDraft((d) => ({ ...d, height }))} />
-                </div>
-                <label className="flex items-center justify-between text-[11px] text-gray-500">
-                  Jumlah tingkat
-                  <input type="number" min={1} max={8} className={`${inputClass} !w-16 !py-1`} value={draft.levels} onChange={(e) => setDraft((d) => ({ ...d, levels: Math.max(1, Math.min(8, Number(e.target.value) || 1)) }))} />
-                </label>
-                <CoverToggles value={draft} onChange={(patch) => setDraft((d) => ({ ...d, ...patch }))} />
-                <Button variant="modal-primary" onClick={addShelf}>
-                  Tambah ke ruangan
-                </Button>
-              </div>
-            )}
 
-            {shelves.map((s, shelfIndex) => {
-              const isSelected = s.id === activeId;
-              return (
-                <div key={s.id} className={`rounded-lg border transition-all ${isSelected ? "border-violet-600 bg-violet-50/60 dark:bg-violet-500/12" : "border-gray-200 dark:border-gray-100/10"}`}>
-                  <button onClick={() => {
-                      setSelectedShelf(isSelected ? null : s.id);
-                      setSelectedLevel(isSelected ? null : 0);
-                    }} className="flex w-full items-center gap-2 px-2.5 py-2 text-left">
-                    <span className="h-3 w-3 shrink-0 rounded-full border border-black/10" style={{ backgroundColor: s.color }} />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-xs font-bold text-gray-900">{s.name}</span>
-                      <span className="block truncate text-[11px] text-gray-500">
-                        {SHELF_TYPES[s.type].label} · {s.length.toFixed(1)} x {s.height.toFixed(1)} m
-                      </span>
-                    </span>
-                    <span className="text-[11px] font-semibold text-gray-600">{fillPercent(s)}%</span>
-                  </button>
-
-                  {isSelected && (
-                    <div className="border-t border-violet-200 p-2.5 dark:border-violet-500/20">
-                      <ShelfContents
-                        shelf={s}
-                        shelfIndex={shelfIndex}
-                        roomCode={roomCode}
-                        level={selectedLevel !== null && selectedLevel < s.levels ? selectedLevel : null}
-                        onLevel={setSelectedLevel}
-                        catalog={itemCatalog}
-                        containers={containers}
-                        editable={editMode}
-                        onAdd={(level, item, qty, containerId) => addItem(s, level, item, qty, containerId)}
-                        onContainer={(itemId, containerId) => setItemContainer(s.id, itemId, containerId)}
-                        onRemove={(itemId) => removeItem(s.id, itemId)}
-                        onTag={(level, text) => setTag(s.id, level, text)}
+                {editMode && showAdd && (
+                  <div className="flex flex-col gap-2 rounded-lg bg-gray-50 p-2.5 dark:bg-white/5">
+                    <TypeSelect value={draft.type} onChange={(type) => setDraft((d) => ({ ...d, type, ...pick(type), length: Math.min(pick(type).length, maxLength) }))} />
+                    <div className="flex gap-2">
+                      <input className={inputClass} placeholder={`Rak ${shelves.length + 1}`} value={draft.name} onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))} />
+                      <ColorField value={draft.color} onChange={(color) => setDraft((d) => ({ ...d, color }))} />
+                    </div>
+                    <div className="flex gap-3">
+                      <Slider label="Panjang" value={draft.length} min={0.8} max={maxLength} onChange={(length) => setDraft((d) => ({ ...d, length }))} />
+                      <Slider label="Tinggi" value={draft.height} min={1} max={5} onChange={(height) => setDraft((d) => ({ ...d, height }))} />
+                    </div>
+                    <label className="flex items-center justify-between text-[11px] text-gray-500">
+                      Jumlah tingkat
+                      <input
+                        type="number"
+                        min={1}
+                        max={8}
+                        className={`${inputClass} !w-16 !py-1`}
+                        value={draft.levels}
+                        onChange={(e) => setDraft((d) => ({ ...d, levels: Math.max(1, Math.min(8, Number(e.target.value) || 1)) }))}
                       />
-                    </div>
-                  )}
+                    </label>
+                    <CoverToggles value={draft} onChange={(patch) => setDraft((d) => ({ ...d, ...patch }))} />
+                    <Button variant="modal-primary" onClick={addShelf}>
+                      Tambah ke ruangan
+                    </Button>
+                  </div>
+                )}
 
-                  {isSelected && editMode && (
-                    <div className="flex flex-col gap-2 border-t border-violet-200 p-2.5 dark:border-violet-500/20">
-                      <TypeSelect value={s.type} onChange={(type) => tryUpdate(s, { type, ...pick(type) })} />
-                      <div className="flex gap-2">
-                        <input className={inputClass} value={s.name} onChange={(e) => update(s.id, { name: e.target.value })} />
-                        <ColorField value={s.color} onChange={(color) => update(s.id, { color })} />
-                      </div>
-                      <div className="flex gap-3">
-                        <Slider label="Panjang" value={s.length} min={0.8} max={maxLength} onChange={(length) => tryUpdate(s, { length }, "Panjang ditolak, rak akan menabrak atau keluar ruangan")} />
-                        <Slider label="Tinggi" value={s.height} min={1} max={5} onChange={(height) => update(s.id, { height })} />
-                      </div>
-                      <label className="flex items-center justify-between text-[11px] text-gray-500">
-                        Jumlah tingkat
-                        <input
-                          type="number"
-                          min={1}
-                          max={8}
-                          className={`${inputClass} !w-16 !py-1`}
-                          value={s.levels}
-                          onChange={(e) => update(s.id, { levels: Math.max(1, Math.min(8, Number(e.target.value) || 1)) })}
-                        />
-                      </label>
-                      <CoverToggles value={s} onChange={(patch) => update(s.id, patch)} />
-                      <div className="flex gap-2">
-                        <Button variant="modal-secondary" className="min-w-0 flex-1 !min-h-8 !px-2 !py-1.5" onClick={() => tryUpdate(s, { rotated: !s.rotated }, "Tidak bisa diputar, rak akan menabrak atau keluar ruangan")}>
-                          <IconRotate size={14} /> Putar
-                        </Button>
-                        <Button variant="modal-secondary" className="min-w-0 flex-1 !min-h-8 !px-2 !py-1.5" onClick={() => duplicate(s)} title="Duplikat (Ctrl+D)">
-                          <IconCopy size={14} /> Duplikat
-                        </Button>
-                        <Button variant="modal-danger" className="min-w-0 flex-1 !min-h-8 !px-2 !py-1.5" onClick={() => remove(s.id)}>
-                          <IconTrash size={14} /> Hapus
-                        </Button>
-                      </div>
+                {shelves.map((s, shelfIndex) => {
+                  const isSelected = s.id === activeId;
+                  return (
+                    <div
+                      key={s.id}
+                      className={`rounded-lg border transition-all ${isSelected ? "border-violet-600 bg-violet-50/60 dark:bg-violet-500/12" : "border-gray-200 dark:border-gray-100/10"}`}
+                    >
+                      <button
+                        onClick={() => {
+                          setSelectedShelf(isSelected ? null : s.id);
+                          setSelectedLevel(isSelected ? null : 0);
+                        }}
+                        className="flex w-full items-center gap-2 px-2.5 py-2 text-left"
+                      >
+                        <span className="h-3 w-3 shrink-0 rounded-full border border-black/10" style={{ backgroundColor: s.color }} />
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-xs font-bold text-gray-900">{s.name}</span>
+                          <span className="block truncate text-[11px] text-gray-500">
+                            {SHELF_TYPES[s.type].label} · {s.length.toFixed(1)} x {s.height.toFixed(1)} m
+                          </span>
+                        </span>
+                        <span className="text-[11px] font-semibold text-gray-600">{fillPercent(s)}%</span>
+                      </button>
+
+                      {isSelected && (
+                        <div className="border-t border-violet-200 p-2.5 dark:border-violet-500/20">
+                          <ShelfContents
+                            shelf={s}
+                            shelfIndex={shelfIndex}
+                            roomCode={roomCode}
+                            level={selectedLevel !== null && selectedLevel < s.levels ? selectedLevel : null}
+                            onLevel={setSelectedLevel}
+                            catalog={itemCatalog}
+                            containers={containers}
+                            editable={editMode}
+                            onAdd={(level, item, qty, containerId) => addItem(s, level, item, qty, containerId)}
+                            onContainer={(itemId, containerId) => setItemContainer(s.id, itemId, containerId)}
+                            onRemove={(itemId) => removeItem(s.id, itemId)}
+                            onTag={(level, text) => setTag(s.id, level, text)}
+                          />
+                        </div>
+                      )}
+
+                      {isSelected && editMode && (
+                        <div className="flex flex-col gap-2 border-t border-violet-200 p-2.5 dark:border-violet-500/20">
+                          <TypeSelect value={s.type} onChange={(type) => tryUpdate(s, { type, ...pick(type) })} />
+                          <div className="flex gap-2">
+                            <input className={inputClass} value={s.name} onChange={(e) => update(s.id, { name: e.target.value })} />
+                            <ColorField value={s.color} onChange={(color) => update(s.id, { color })} />
+                          </div>
+                          <div className="flex gap-3">
+                            <Slider
+                              label="Panjang"
+                              value={s.length}
+                              min={0.8}
+                              max={maxLength}
+                              onChange={(length) => tryUpdate(s, { length }, "Panjang ditolak, rak akan menabrak atau keluar ruangan")}
+                            />
+                            <Slider label="Tinggi" value={s.height} min={1} max={5} onChange={(height) => update(s.id, { height })} />
+                          </div>
+                          <label className="flex items-center justify-between text-[11px] text-gray-500">
+                            Jumlah tingkat
+                            <input
+                              type="number"
+                              min={1}
+                              max={8}
+                              className={`${inputClass} !w-16 !py-1`}
+                              value={s.levels}
+                              onChange={(e) => update(s.id, { levels: Math.max(1, Math.min(8, Number(e.target.value) || 1)) })}
+                            />
+                          </label>
+                          <CoverToggles value={s} onChange={(patch) => update(s.id, patch)} />
+                          <div className="flex gap-2">
+                            <Button
+                              variant="modal-secondary"
+                              className="min-w-0 flex-1 !min-h-8 !px-2 !py-1.5"
+                              onClick={() => tryUpdate(s, { rotated: !s.rotated }, "Tidak bisa diputar, rak akan menabrak atau keluar ruangan")}
+                            >
+                              <IconRotate size={14} /> Putar
+                            </Button>
+                            <Button variant="modal-secondary" className="min-w-0 flex-1 !min-h-8 !px-2 !py-1.5" onClick={() => duplicate(s)} title="Duplikat (Ctrl+D)">
+                              <IconCopy size={14} /> Duplikat
+                            </Button>
+                            <Button variant="modal-danger" className="min-w-0 flex-1 !min-h-8 !px-2 !py-1.5" onClick={() => remove(s.id)}>
+                              <IconTrash size={14} /> Hapus
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              );
-            })}
-            {shelves.length === 0 && <p className="text-[11px] text-gray-400">Belum ada rak. Aktifkan Rak Builder untuk menambah.</p>}
+                  );
+                })}
+                {shelves.length === 0 && <p className="text-[11px] text-gray-400">Belum ada rak. Aktifkan Rak Builder untuk menambah.</p>}
               </>
             )}
           </aside>

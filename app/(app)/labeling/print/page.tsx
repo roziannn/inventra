@@ -1,11 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState, useMemo } from "react";
 import DataTable from "@/components/ui/DataTable";
+import type { LabelSize, PaperSize, PrintData } from "@/types/labeling";
 import { useInitialLoading } from "@/lib/use-initial-loading";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
+import PageHeader from "@/components/ui/PageHeader";
 import { IconPrinter, IconSearch, IconFilter, IconSquare, IconSquareCheckFilled, IconCopy, IconMaximize, IconFileText, IconBarcode } from "@tabler/icons-react";
 
 const dummyItems = Array.from({ length: 20 }, (_, i) => ({
@@ -16,12 +17,14 @@ const dummyItems = Array.from({ length: 20 }, (_, i) => ({
   stock: (i * 7 + 5) % 100,
 }));
 
+type LabelItem = (typeof dummyItems)[number];
+
 export default function PrintLabelPage() {
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [printCopies, setPrintCopies] = useState(1);
-  const [labelSize, setLabelSize] = useState<"S" | "M" | "L" | "XL">("M");
-  const [paperSize, setPaperSize] = useState<"A4" | "A5" | "Letter">("A4");
+  const [labelSize, setLabelSize] = useState<LabelSize>("M");
+  const [paperSize, setPaperSize] = useState<PaperSize>("A4");
 
   // State untuk Search & Filter
   const [searchQuery, setSearchQuery] = useState("");
@@ -56,7 +59,7 @@ export default function PrintLabelPage() {
 
   const handleFinalPrint = (e: React.FormEvent) => {
     e.preventDefault();
-    const printData = {
+    const printData: PrintData = {
       items: dummyItems.filter((item) => selectedItems.includes(item.id)),
       copies: printCopies,
       labelSize: labelSize,
@@ -98,7 +101,7 @@ export default function PrintLabelPage() {
           </button>
         </div>
       ),
-      accessor: (item: any) => (
+      accessor: (item: LabelItem) => (
         <div className="flex justify-center">
           <button onClick={() => toggleSelect(item.id)} className="p-1 rounded hover:bg-violet-50">
             {selectedItems.includes(item.id) ? <IconSquareCheckFilled size={18} className="text-violet-500" /> : <IconSquare size={18} className="text-gray-300" />}
@@ -109,7 +112,7 @@ export default function PrintLabelPage() {
     },
     {
       header: "Nama item",
-      accessor: (item: any) => (
+      accessor: (item: LabelItem) => (
         <div className="min-w-0 max-w-72 py-1 flex items-center gap-2">
           <p className="font-bold text-gray-900 truncate leading-tight">{item.name}</p>
           <span className="shrink-0 text-xs px-1.5 py-0.5 rounded-md bg-gray-50 border border-gray-100 text-gray-500 font-semibold uppercase">{item.id}</span>
@@ -118,7 +121,7 @@ export default function PrintLabelPage() {
     },
     {
       header: "SKU / Barcode",
-      accessor: (item: any) => (
+      accessor: (item: LabelItem) => (
         <div className="flex items-center gap-2 text-gray-600">
           <IconBarcode size={14} className="text-gray-400" />
           <span className="text-sm font-medium tabular-nums">{item.sku}</span>
@@ -127,11 +130,11 @@ export default function PrintLabelPage() {
     },
     {
       header: "Kategori",
-      accessor: (item: any) => <span className="text-sm text-gray-700">{item.category}</span>,
+      accessor: (item: LabelItem) => <span className="text-sm text-gray-700">{item.category}</span>,
     },
     {
       header: "Stok",
-      accessor: (item: any) => (
+      accessor: (item: LabelItem) => (
         <span className={`text-sm font-bold tabular-nums ${item.stock < 10 ? "text-rose-600" : "text-gray-700"}`}>
           {item.stock} <span className="text-xs font-medium text-gray-400 ml-0.5">Unit</span>
         </span>
@@ -142,17 +145,18 @@ export default function PrintLabelPage() {
   return (
     <>
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Print Label</h2>
-            <p className="text-xs text-gray-500 font-medium">Pilih item di bawah untuk mencetak stiker barcode inventaris.</p>
-          </div>
-
-          <Button variant="page-primary" onClick={handleOpenPrintModal}>
-            <IconPrinter size={18} stroke={2.5} />
-            Cetak {selectedItems.length > 0 && `(${selectedItems.length} Label)`}
-          </Button>
-        </div>
+        <PageHeader
+          title="Print Label"
+          description="Pilih item di bawah untuk mencetak stiker barcode inventaris."
+          actions={
+            <>
+              <Button variant="page-primary" onClick={handleOpenPrintModal}>
+                <IconPrinter size={18} stroke={2.5} />
+                Cetak {selectedItems.length > 0 && `(${selectedItems.length} Label)`}
+              </Button>
+            </>
+          }
+        />
 
         {/* Search & Filter Bar */}
         <div className="flex flex-col md:flex-row gap-4 justify-between items-center py-2">
@@ -228,7 +232,7 @@ export default function PrintLabelPage() {
                   </label>
                   <select
                     value={paperSize}
-                    onChange={(e) => setPaperSize(e.target.value as any)}
+                    onChange={(e) => setPaperSize(e.target.value as typeof paperSize)}
                     className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl font-bold text-gray-900 focus:outline-none appearance-none cursor-pointer"
                   >
                     <option value="A4">A4 (Standard Paper)</option>
@@ -246,7 +250,7 @@ export default function PrintLabelPage() {
                       <button
                         key={s.id}
                         type="button"
-                        onClick={() => setLabelSize(s.id as any)}
+                        onClick={() => setLabelSize(s.id as typeof labelSize)}
                         className={`p-3 rounded-xl border text-left transition-all ${labelSize === s.id ? "bg-violet-50 border-violet-500 shadow-sm shadow-violet-200" : "bg-white border-gray-100 hover:border-violet-200"}`}
                       >
                         <p className={`text-xs font-bold ${labelSize === s.id ? "text-violet-700" : "text-gray-700"}`}>

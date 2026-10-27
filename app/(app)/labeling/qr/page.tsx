@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
+import PageHeader from "@/components/ui/PageHeader";
 import React, { useState, useEffect } from "react";
 import { IconQrcode, IconDownload, IconRefresh, IconCopy, IconCheck } from "@tabler/icons-react";
 
@@ -74,12 +75,7 @@ export default function QRCodePage() {
   return (
     <>
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">QR Code Generator</h2>
-            <p className="text-xs text-gray-500">Buat kode QR khusus untuk tracking aset dan inventaris cepat.</p>
-          </div>
-        </div>
+        <PageHeader title="QR Code Generator" description="Buat kode QR khusus untuk tracking aset dan inventaris cepat." />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-2">
           {/* Form Side */}
@@ -157,7 +153,9 @@ export default function QRCodePage() {
               <div className="flex flex-col md:flex-row items-center gap-10">
                 {/* QR Display */}
                 <div className="relative group">
-                  <div className={`p-8 bg-white border-4 border-gray-50 rounded-[2.5rem] shadow-2xl shadow-gray-200/50 transition-all duration-500 ${isLoading ? "opacity-20 scale-95 blur-sm" : "opacity-100 scale-100"}`}>
+                  <div
+                    className={`p-8 bg-white border-4 border-gray-50 rounded-[2.5rem] shadow-2xl shadow-gray-200/50 transition-all duration-500 ${isLoading ? "opacity-20 scale-95 blur-sm" : "opacity-100 scale-100"}`}
+                  >
                     <div className="w-56 h-56 bg-gray-50 flex items-center justify-center rounded-2xl overflow-hidden relative border border-gray-100">
                       {qrImageUrl ? <img src={qrImageUrl} alt="QR Preview" className="w-full h-full object-contain p-2" /> : <IconQrcode size={120} className="text-gray-200" />}
                     </div>

@@ -1,13 +1,29 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState, useMemo } from "react";
 import DataTable from "@/components/ui/DataTable";
+import Badge from "@/components/ui/Badge";
 import { useInitialLoading } from "@/lib/use-initial-loading";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
+import PageHeader from "@/components/ui/PageHeader";
 import FormLabel from "@/components/ui/FormLabel";
-import { IconPlus, IconSearch, IconFilter, IconEdit, IconPackage, IconHash, IconTags, IconDatabase, IconWeight, IconLayoutGrid, IconCircleCheckFilled, IconCircleXFilled, IconCircleCheck, IconCircleX } from "@tabler/icons-react";
+import {
+  IconPlus,
+  IconSearch,
+  IconFilter,
+  IconEdit,
+  IconPackage,
+  IconHash,
+  IconTags,
+  IconDatabase,
+  IconWeight,
+  IconLayoutGrid,
+  IconCircleCheckFilled,
+  IconCircleXFilled,
+  IconCircleCheck,
+  IconCircleX,
+} from "@tabler/icons-react";
 import { toast } from "react-hot-toast";
 
 const initialInventory = [
@@ -24,6 +40,8 @@ const initialCategories = [
   { name: "Furniture", isActive: true },
 ];
 
+type InventoryItem = (typeof initialInventory)[number];
+
 export default function InventoryPage() {
   const [inventory, setInventory] = useState(initialInventory);
   const [categories, setCategories] = useState(initialCategories);
@@ -35,7 +53,7 @@ export default function InventoryPage() {
   const [selectedCategory, setSelectedCategory] = useState("Semua kategori");
 
   const [newCategoryName, setNewCategoryName] = useState("");
-  const [editingItem, setEditingItem] = useState<any>(null);
+  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -62,7 +80,7 @@ export default function InventoryPage() {
     setFormData({ name: "", sku: "", category: "Electronic", stock: "", unit: "Pcs" });
   };
 
-  const handleEditClick = (item: any) => {
+  const handleEditClick = (item: InventoryItem) => {
     setEditingItem(item);
     setFormData({
       name: item.name,
@@ -116,7 +134,7 @@ export default function InventoryPage() {
   const columns = [
     {
       header: "Nama barang",
-      accessor: (item: any) => (
+      accessor: (item: InventoryItem) => (
         <div className="min-w-0 max-w-72 py-1 flex items-center gap-2">
           <p className="font-bold text-gray-900 truncate">{item.name}</p>
           <span className="shrink-0 text-xs px-1.5 py-0.5 rounded-md bg-gray-50 border border-gray-100 text-gray-500 font-semibold">{item.id}</span>
@@ -126,11 +144,11 @@ export default function InventoryPage() {
     { header: "SKU", accessor: "sku" as const },
     {
       header: "Kategori",
-      accessor: (item: any) => <span className="text-sm text-gray-700">{item.category}</span>,
+      accessor: (item: InventoryItem) => <span className="text-sm text-gray-700">{item.category}</span>,
     },
     {
       header: "Stok",
-      accessor: (item: any) => (
+      accessor: (item: InventoryItem) => (
         <div>
           <span className="font-bold text-gray-900">{item.stock}</span>
           <span className="ml-1 text-gray-400 text-xs">{item.unit}</span>
@@ -139,25 +157,22 @@ export default function InventoryPage() {
     },
     {
       header: "Status",
-      accessor: (item: any) => {
+      accessor: (item: InventoryItem) => {
         const isInStock = item.status === "In stock";
         return (
-          <span
-            className={`
-            inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs font-semibold
-            ${isInStock ? "bg-violet-500/10 text-violet-600 border border-violet-500/20" : "bg-rose-500/10 text-rose-600 border border-rose-500/20"}
-          `}
-          >
-            {isInStock ? <IconCircleCheckFilled size={12} stroke={2.5} /> : <IconCircleXFilled size={12} stroke={2.5} />}
+          <Badge tone={isInStock ? "success" : "danger"} icon={isInStock ? <IconCircleCheckFilled size={12} stroke={2.5} /> : <IconCircleXFilled size={12} stroke={2.5} />}>
             {item.status}
-          </span>
+          </Badge>
         );
       },
     },
     {
       header: "Aksi",
-      accessor: (item: any) => (
-        <button onClick={() => handleEditClick(item)} className="p-1.5 text-gray-400 hover:text-violet-600 dark:hover:text-violet-300 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/12 transition-all">
+      accessor: (item: InventoryItem) => (
+        <button
+          onClick={() => handleEditClick(item)}
+          className="p-1.5 text-gray-400 hover:text-violet-600 dark:hover:text-violet-300 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/12 transition-all"
+        >
           <IconEdit size={18} />
         </button>
       ),
@@ -167,20 +182,20 @@ export default function InventoryPage() {
   return (
     <>
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Inventory</h2>
-            <p className="text-xs text-gray-500">Kelola stok barang dan kategori inventaris Anda.</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="page-secondary" onClick={() => setIsCategoryModalOpen(true)}>
-              <IconLayoutGrid size={16} /> Inventory Group
-            </Button>
-            <Button variant="page-primary" onClick={() => setIsModalOpen(true)}>
-              <IconPlus size={16} stroke={3} /> Tambah barang
-            </Button>
-          </div>
-        </div>
+        <PageHeader
+          title="Inventory"
+          description="Kelola stok barang dan kategori inventaris Anda."
+          actions={
+            <>
+              <Button variant="page-secondary" onClick={() => setIsCategoryModalOpen(true)}>
+                <IconLayoutGrid size={16} /> Inventory Group
+              </Button>
+              <Button variant="page-primary" onClick={() => setIsModalOpen(true)}>
+                <IconPlus size={16} stroke={3} /> Tambah barang
+              </Button>
+            </>
+          }
+        />
 
         {/* 3. Search & Filter Bar (Sudah Berfungsi) */}
         <div className="flex flex-col md:flex-row gap-4 justify-between items-center py-2">
@@ -329,7 +344,10 @@ export default function InventoryPage() {
               <FormLabel>List Kategori Terdaftar</FormLabel>
               <div className="grid grid-cols-1 gap-2 max-h-62.5 overflow-y-auto pr-2 scrollbar-hide">
                 {categories.map((cat) => (
-                  <div key={cat.name} className={`flex items-center justify-between p-3.5 border rounded-xl transition-all ${cat.isActive ? "bg-white border-gray-100" : "bg-gray-50/50 border-gray-200 opacity-60"}`}>
+                  <div
+                    key={cat.name}
+                    className={`flex items-center justify-between p-3.5 border rounded-xl transition-all ${cat.isActive ? "bg-white border-gray-100" : "bg-gray-50/50 border-gray-200 opacity-60"}`}
+                  >
                     <div className="flex items-center gap-3">
                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${cat.isActive ? "bg-violet-100 text-violet-700" : "bg-gray-200 text-gray-500"}`}>
                         <IconTags size={16} />

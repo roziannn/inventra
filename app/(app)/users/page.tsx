@@ -1,13 +1,28 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState, useMemo } from "react";
 import DataTable from "@/components/ui/DataTable";
+import Badge from "@/components/ui/Badge";
 import { useInitialLoading } from "@/lib/use-initial-loading";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
+import PageHeader from "@/components/ui/PageHeader";
 import FormLabel from "@/components/ui/FormLabel";
-import { IconPlus, IconSearch, IconEdit, IconFilter, IconUser, IconMail, IconBriefcase, IconShield, IconCircleCheck, IconCircleX, IconShieldCheck, IconCircleCheckFilled, IconCircleXFilled } from "@tabler/icons-react";
+import {
+  IconPlus,
+  IconSearch,
+  IconEdit,
+  IconFilter,
+  IconUser,
+  IconMail,
+  IconBriefcase,
+  IconShield,
+  IconCircleCheck,
+  IconCircleX,
+  IconShieldCheck,
+  IconCircleCheckFilled,
+  IconCircleXFilled,
+} from "@tabler/icons-react";
 import { toast } from "react-hot-toast";
 
 const initialUsers = [
@@ -69,6 +84,8 @@ const initialRoles = [
   { name: "Staff", isActive: true },
 ];
 
+type User = (typeof initialUsers)[number];
+
 export default function UsersPage() {
   const [users, setUsers] = useState(initialUsers);
   const [roles, setRoles] = useState(initialRoles);
@@ -79,7 +96,7 @@ export default function UsersPage() {
   const [selectedRole, setSelectedRole] = useState("Semua role");
 
   const [newRoleName, setNewRoleName] = useState("");
-  const [editingUser, setEditingUser] = useState<any>(null);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -111,7 +128,7 @@ export default function UsersPage() {
     setFormData({ name: "", emailPrefix: "", role: "Staff", status: "Active" });
   };
 
-  const handleEditClick = (user: any) => {
+  const handleEditClick = (user: User) => {
     setEditingUser(user);
     const emailPrefix = user.email.split("@")[0];
     setFormData({
@@ -177,47 +194,47 @@ export default function UsersPage() {
   const columns = [
     {
       header: "Nama",
-      accessor: (item: any) => <span className="block max-w-56 truncate py-1 font-bold text-gray-900">{item.name}</span>,
+      accessor: (item: User) => <span className="block max-w-56 truncate py-1 font-bold text-gray-900">{item.name}</span>,
     },
     {
       header: "Email",
-      accessor: (item: any) => <span className="block max-w-64 truncate text-sm text-gray-600">{item.email}</span>,
+      accessor: (item: User) => <span className="block max-w-64 truncate text-sm text-gray-600">{item.email}</span>,
     },
     {
       header: "Role",
-      accessor: (item: any) => <span className="text-sm text-gray-700 font-medium">{item.role}</span>,
+      accessor: (item: User) => <span className="text-sm text-gray-700 font-medium">{item.role}</span>,
     },
 
     {
       header: "Last active",
-      accessor: (item: any) => <span className="text-sm text-gray-700 font-medium">{item.lastActive}</span>,
+      accessor: (item: User) => <span className="text-sm text-gray-700 font-medium">{item.lastActive}</span>,
     },
     {
       header: "Status",
-      accessor: (item: any) => {
+      accessor: (item: User) => {
         const isActive = item.status === "Active";
         return (
-          <span
-            className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs font-semibold border ${isActive ? "bg-violet-500/10 text-violet-600 border border-violet-500/20" : "bg-rose-500/10 text-rose-600 border border-rose-500/20"}`}
-          >
-            {isActive ? <IconCircleCheckFilled size={12} /> : <IconCircleXFilled size={12} />}
+          <Badge tone={isActive ? "success" : "danger"} icon={isActive ? <IconCircleCheckFilled size={12} /> : <IconCircleXFilled size={12} />}>
             {item.status}
-          </span>
+          </Badge>
         );
       },
     },
     {
       header: "Created by",
-      accessor: (item: any) => <span className="text-sm text-gray-700 font-medium">{item.createdBy}</span>,
+      accessor: (item: User) => <span className="text-sm text-gray-700 font-medium">{item.createdBy}</span>,
     },
     {
       header: "Created at",
-      accessor: (item: any) => <span className="text-sm text-gray-700 font-medium tabular-nums">{formatDate(item.createdAt)}</span>,
+      accessor: (item: User) => <span className="text-sm text-gray-700 font-medium tabular-nums">{formatDate(item.createdAt)}</span>,
     },
     {
       header: "Aksi",
-      accessor: (item: any) => (
-        <button onClick={() => handleEditClick(item)} className="p-1.5 text-gray-400 hover:text-violet-600 dark:hover:text-violet-300 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/12 transition-all active:scale-90">
+      accessor: (item: User) => (
+        <button
+          onClick={() => handleEditClick(item)}
+          className="p-1.5 text-gray-400 hover:text-violet-600 dark:hover:text-violet-300 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/12 transition-all active:scale-90"
+        >
           <IconEdit size={18} />
         </button>
       ),
@@ -227,20 +244,20 @@ export default function UsersPage() {
   return (
     <>
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Users</h2>
-            <p className="text-xs text-gray-500 font-medium">Kelola anggota tim dan hak akses mereka.</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="page-secondary" onClick={() => setIsRoleModalOpen(true)}>
-              <IconShieldCheck size={16} /> Role Group
-            </Button>
-            <Button variant="page-primary" onClick={() => setIsModalOpen(true)}>
-              <IconPlus size={16} stroke={3} /> Tambah user
-            </Button>
-          </div>
-        </div>
+        <PageHeader
+          title="Users"
+          description="Kelola anggota tim dan hak akses mereka."
+          actions={
+            <>
+              <Button variant="page-secondary" onClick={() => setIsRoleModalOpen(true)}>
+                <IconShieldCheck size={16} /> Role Group
+              </Button>
+              <Button variant="page-primary" onClick={() => setIsModalOpen(true)}>
+                <IconPlus size={16} stroke={3} /> Tambah user
+              </Button>
+            </>
+          }
+        />
 
         <div className="flex flex-col md:flex-row gap-4 justify-between items-center py-2">
           <div className="relative w-full md:w-80 group">
@@ -381,7 +398,10 @@ export default function UsersPage() {
               <FormLabel>List Role Terdaftar</FormLabel>
               <div className="grid grid-cols-1 gap-2 max-h-62.5 overflow-y-auto pr-2 scrollbar-hide">
                 {roles.map((role) => (
-                  <div key={role.name} className={`flex items-center justify-between p-3.5 border rounded-xl transition-all ${role.isActive ? "bg-white border-gray-100" : "bg-gray-50/50 border-gray-200 opacity-60"}`}>
+                  <div
+                    key={role.name}
+                    className={`flex items-center justify-between p-3.5 border rounded-xl transition-all ${role.isActive ? "bg-white border-gray-100" : "bg-gray-50/50 border-gray-200 opacity-60"}`}
+                  >
                     <div className="flex items-center gap-3">
                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${role.isActive ? "bg-violet-100 text-violet-700" : "bg-gray-200 text-gray-500"}`}>
                         <IconShield size={16} />

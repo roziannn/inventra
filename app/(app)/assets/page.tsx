@@ -1,11 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState } from "react";
 import DataTable from "@/components/ui/DataTable";
+import Badge, { type BadgeTone } from "@/components/ui/Badge";
 import { useInitialLoading } from "@/lib/use-initial-loading";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
+import PageHeader from "@/components/ui/PageHeader";
 import FormLabel from "@/components/ui/FormLabel";
 import {
   IconPlus,
@@ -42,13 +43,15 @@ const initialCategories = [
   { name: "Machinery", isActive: true },
 ];
 
+type Asset = (typeof initialAssets)[number];
+
 export default function AssetsPage() {
   const [assets, setAssets] = useState(initialAssets);
   const [categories, setCategories] = useState(initialCategories);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
-  const [editingAsset, setEditingAsset] = useState<any>(null);
+  const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -64,7 +67,7 @@ export default function AssetsPage() {
     setFormData({ name: "", serialNumber: "", category: "IT Equipment", assignee: "Unassigned", condition: "Good" });
   };
 
-  const handleEditClick = (asset: any) => {
+  const handleEditClick = (asset: Asset) => {
     setEditingAsset(asset);
     setFormData({
       name: asset.name,
@@ -133,7 +136,7 @@ export default function AssetsPage() {
   const columns = [
     {
       header: "Nama aset",
-      accessor: (item: any) => (
+      accessor: (item: Asset) => (
         <div className="min-w-0 max-w-72 py-1 flex items-center gap-2">
           <p className="font-bold text-gray-900 truncate">{item.name}</p>
           <span className="shrink-0 text-xs px-1.5 py-0.5 rounded-md bg-gray-50 border border-gray-100 text-gray-500 font-semibold">{item.id}</span>
@@ -143,49 +146,35 @@ export default function AssetsPage() {
     { header: "Serial number", accessor: "serialNumber" as const },
     {
       header: "Kategori",
-      accessor: (item: any) => <span className="text-sm text-gray-700">{item.category}</span>,
+      accessor: (item: Asset) => <span className="text-sm text-gray-700">{item.category}</span>,
     },
     {
       header: "PIC / Assignee",
-      accessor: (item: any) => <span className="text-sm font-semibold text-gray-700">{item.assignee}</span>,
+      accessor: (item: Asset) => <span className="text-sm font-semibold text-gray-700">{item.assignee}</span>,
     },
     {
       header: "Kondisi",
-      accessor: (item: any) => {
-        const config: any = {
-          Good: {
-            style: "bg-violet-500/10 text-violet-600 border-violet-500/20",
-            icon: <IconCircleCheckFilled size={12} />,
-          },
-          Maintenance: {
-            style: "bg-amber-500/10 text-amber-600 border-amber-500/20",
-            icon: <IconSettingsFilled size={12} />,
-          },
-          Broken: {
-            style: "bg-rose-500/10 text-rose-600 border-rose-500/20",
-            icon: <IconCircleXFilled size={12} />,
-          },
+      accessor: (item: Asset) => {
+        const config: Record<string, { tone: BadgeTone; icon: React.ReactNode }> = {
+          Good: { tone: "success", icon: <IconCircleCheckFilled size={12} /> },
+          Maintenance: { tone: "warning", icon: <IconSettingsFilled size={12} /> },
+          Broken: { tone: "danger", icon: <IconCircleXFilled size={12} /> },
         };
-
-        const current = config[item.condition] || config.Good;
-
+        const current = config[item.condition] ?? config.Good;
         return (
-          <span
-            className={`
-            inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs font-semibold border
-            ${current.style}
-          `}
-          >
-            {current.icon}
+          <Badge tone={current.tone} icon={current.icon}>
             {item.condition}
-          </span>
+          </Badge>
         );
       },
     },
     {
       header: "Aksi",
-      accessor: (item: any) => (
-        <button onClick={() => handleEditClick(item)} className="p-1.5 text-gray-400 hover:text-violet-600 dark:hover:text-violet-300 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/12 transition-all">
+      accessor: (item: Asset) => (
+        <button
+          onClick={() => handleEditClick(item)}
+          className="p-1.5 text-gray-400 hover:text-violet-600 dark:hover:text-violet-300 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/12 transition-all"
+        >
           <IconEdit size={18} />
         </button>
       ),
@@ -195,26 +184,30 @@ export default function AssetsPage() {
   return (
     <>
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Assets</h2>
-            <p className="text-xs text-gray-500">Daftar aset tetap dan inventaris perusahaan Anda.</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="page-secondary" onClick={() => setIsCategoryModalOpen(true)}>
-              <IconLayoutGrid size={16} /> Asset Group
-            </Button>
-            <Button variant="page-primary" onClick={() => setIsModalOpen(true)}>
-              <IconPlus size={16} stroke={3} /> Tambah aset
-            </Button>
-          </div>
-        </div>
+        <PageHeader
+          title="Assets"
+          description="Daftar aset tetap dan inventaris perusahaan Anda."
+          actions={
+            <>
+              <Button variant="page-secondary" onClick={() => setIsCategoryModalOpen(true)}>
+                <IconLayoutGrid size={16} /> Asset Group
+              </Button>
+              <Button variant="page-primary" onClick={() => setIsModalOpen(true)}>
+                <IconPlus size={16} stroke={3} /> Tambah aset
+              </Button>
+            </>
+          }
+        />
 
         {/* Integrated Search & Filter */}
         <div className="flex flex-col md:flex-row gap-4 justify-between items-center py-2">
           <div className="relative w-full md:w-80 group">
             <IconSearch className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-violet-500 transition-colors" size={18} />
-            <input type="text" placeholder="Cari nama aset atau serial..." className="w-full pl-7 pr-4 py-2 bg-transparent border-b border-gray-200 text-sm focus:outline-none focus:border-violet-400 transition-all" />
+            <input
+              type="text"
+              placeholder="Cari nama aset atau serial..."
+              className="w-full pl-7 pr-4 py-2 bg-transparent border-b border-gray-200 text-sm focus:outline-none focus:border-violet-400 transition-all"
+            />
           </div>
           <div className="flex items-center gap-3 w-full md:w-auto">
             <div className="flex items-center gap-2 text-sm font-medium text-gray-500">
@@ -346,7 +339,10 @@ export default function AssetsPage() {
               <FormLabel>List Kategori Terdaftar</FormLabel>
               <div className="grid grid-cols-1 gap-2 max-h-62.5 overflow-y-auto pr-2 scrollbar-hide">
                 {categories.map((cat) => (
-                  <div key={cat.name} className={`flex items-center justify-between p-3.5 border rounded-xl transition-all ${cat.isActive ? "bg-white border-gray-100" : "bg-gray-50/50 border-gray-200 opacity-60"}`}>
+                  <div
+                    key={cat.name}
+                    className={`flex items-center justify-between p-3.5 border rounded-xl transition-all ${cat.isActive ? "bg-white border-gray-100" : "bg-gray-50/50 border-gray-200 opacity-60"}`}
+                  >
                     <div className="flex items-center gap-3">
                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${cat.isActive ? "bg-violet-100 text-violet-700" : "bg-gray-200 text-gray-500"}`}>
                         <IconTags size={16} />

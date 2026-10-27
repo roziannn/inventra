@@ -3,7 +3,10 @@
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 import Modal from "@/components/ui/Modal";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import { fieldClass } from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import PageHeader from "@/components/ui/PageHeader";
 import FormLabel from "@/components/ui/FormLabel";
 import ContainerPreview from "@/components/storage/ContainerPreview";
 import { addContainerType, removeContainerType, resetContainerTypes, updateContainerType, useContainers } from "@/lib/storage/container-store";
@@ -13,7 +16,6 @@ import { IconPencil, IconPlus, IconRestore, IconTrash } from "@tabler/icons-reac
 
 const MIN_CM = 5;
 const MAX_CM = 120;
-const fieldClass = "w-full rounded-xl border border-gray-200 bg-transparent px-3 py-2.5 text-sm focus:border-violet-600 focus:outline-none";
 const COLOR_PRESETS = ["#d4a373", "#c58f5c", "#e9dcc0", "#3b82f6", "#1d4ed8", "#16a34a", "#dc2626", "#f59e0b", "#6b7280", "#a78bfa"];
 
 type FormState = { name: string; shape: ContainerShape; width: string; height: string; depth: string; color: string };
@@ -73,27 +75,36 @@ export default function ContainerTypesPage() {
   const numberField = (key: "width" | "height" | "depth", label: string) => (
     <div className="flex flex-col gap-1.5">
       <FormLabel htmlFor={`ct-${key}`}>{label} (cm)</FormLabel>
-      <input id={`ct-${key}`} type="number" inputMode="decimal" min={MIN_CM} max={MAX_CM} className={fieldClass} value={form[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} />
+      <input
+        id={`ct-${key}`}
+        type="number"
+        inputMode="decimal"
+        min={MIN_CM}
+        max={MAX_CM}
+        className={fieldClass}
+        value={form[key]}
+        onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+      />
     </div>
   );
 
   return (
     <>
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Jenis Wadah</h2>
-            <p className="text-xs text-gray-500 font-medium">Atur kardus, crate, dan drum yang dipakai untuk menyimpan barang di rak: bentuk, ukuran, dan warna.</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="page-secondary" onClick={() => setResetOpen(true)}>
-              <IconRestore size={16} /> Reset Default
-            </Button>
-            <Button variant="page-primary" onClick={openCreate}>
-              <IconPlus size={16} stroke={3} /> Tambah Wadah
-            </Button>
-          </div>
-        </div>
+        <PageHeader
+          title="Jenis Wadah"
+          description="Atur kardus, crate, dan drum yang dipakai untuk menyimpan barang di rak: bentuk, ukuran, dan warna."
+          actions={
+            <>
+              <Button variant="page-secondary" onClick={() => setResetOpen(true)}>
+                <IconRestore size={16} /> Reset Default
+              </Button>
+              <Button variant="page-primary" onClick={openCreate}>
+                <IconPlus size={16} stroke={3} /> Tambah Wadah
+              </Button>
+            </>
+          }
+        />
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {containers.map((ct) => (
@@ -153,9 +164,23 @@ export default function ContainerTypesPage() {
             <FormLabel>Warna</FormLabel>
             <div className="flex flex-wrap items-center gap-2">
               {COLOR_PRESETS.map((c) => (
-                <button type="button" key={c} onClick={() => setForm((f) => ({ ...f, color: c }))} aria-label={`Warna ${c}`} aria-pressed={form.color === c} className={`h-7 w-7 rounded-full border-2 ${form.color === c ? "border-violet-600" : "border-transparent ring-1 ring-black/10"}`} style={{ backgroundColor: c }} />
+                <button
+                  type="button"
+                  key={c}
+                  onClick={() => setForm((f) => ({ ...f, color: c }))}
+                  aria-label={`Warna ${c}`}
+                  aria-pressed={form.color === c}
+                  className={`h-7 w-7 rounded-full border-2 ${form.color === c ? "border-violet-600" : "border-transparent ring-1 ring-black/10"}`}
+                  style={{ backgroundColor: c }}
+                />
               ))}
-              <input type="color" aria-label="Warna lain" value={form.color} onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))} className="h-8 w-10 cursor-pointer rounded-md border border-gray-200 bg-transparent" />
+              <input
+                type="color"
+                aria-label="Warna lain"
+                value={form.color}
+                onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))}
+                className="h-8 w-10 cursor-pointer rounded-md border border-gray-200 bg-transparent"
+              />
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-2">
@@ -169,51 +194,38 @@ export default function ContainerTypesPage() {
         </form>
       </Modal>
 
-      <Modal isOpen={!!deleting} onClose={() => setDeleting(null)} title="Hapus Wadah">
-        {deleting && (
-          <div className="flex flex-col gap-4">
-            <p className="text-sm text-gray-600">
+      <ConfirmDialog
+        isOpen={!!deleting}
+        title="Hapus Wadah"
+        message={
+          deleting && (
+            <>
               Hapus jenis wadah <b>{deleting.name}</b>? Tindakan ini tidak bisa dibatalkan.
-            </p>
-            <div className="flex justify-end gap-2">
-              <Button variant="modal-secondary" onClick={() => setDeleting(null)}>
-                Batal
-              </Button>
-              <Button
-                variant="modal-danger"
-                onClick={() => {
-                  removeContainerType(deleting.id);
-                  toast.success(`${deleting.name} dihapus`);
-                  setDeleting(null);
-                }}
-              >
-                <IconTrash size={16} /> Hapus
-              </Button>
-            </div>
-          </div>
-        )}
-      </Modal>
+            </>
+          )
+        }
+        icon={<IconTrash size={16} />}
+        onConfirm={() => {
+          if (!deleting) return;
+          removeContainerType(deleting.id);
+          toast.success(`${deleting.name} dihapus`);
+          setDeleting(null);
+        }}
+        onClose={() => setDeleting(null)}
+      />
 
-      <Modal isOpen={resetOpen} onClose={() => setResetOpen(false)} title="Reset ke Default">
-        <div className="flex flex-col gap-4">
-          <p className="text-sm text-gray-600">Daftar wadah dikembalikan ke 5 jenis awal. Wadah buatanmu dihapus, dan barang yang memakainya otomatis memakai wadah pertama.</p>
-          <div className="flex justify-end gap-2">
-            <Button variant="modal-secondary" onClick={() => setResetOpen(false)}>
-              Batal
-            </Button>
-            <Button
-              variant="modal-danger"
-              onClick={() => {
-                resetContainerTypes();
-                setResetOpen(false);
-                toast.success("Wadah dikembalikan ke default");
-              }}
-            >
-              Reset
-            </Button>
-          </div>
-        </div>
-      </Modal>
+      <ConfirmDialog
+        isOpen={resetOpen}
+        title="Reset ke Default"
+        message="Daftar wadah dikembalikan ke 5 jenis awal. Wadah buatanmu dihapus, dan barang yang memakainya otomatis memakai wadah pertama."
+        confirmLabel="Reset"
+        onConfirm={() => {
+          resetContainerTypes();
+          setResetOpen(false);
+          toast.success("Wadah dikembalikan ke default");
+        }}
+        onClose={() => setResetOpen(false)}
+      />
     </>
   );
 }

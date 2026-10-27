@@ -18,19 +18,10 @@ interface SearchableSelectProps {
   required?: boolean;
 }
 
-export default function SearchableSelect({ 
-  options, 
-  value, 
-  onChange, 
-  placeholder, 
-  label,
-  required 
-}: SearchableSelectProps) {
+export default function SearchableSelect({ options, value, onChange, placeholder, label, required }: SearchableSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
-
-  const selectedOption = options.find(opt => opt.label === value);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -42,24 +33,28 @@ export default function SearchableSelect({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filteredOptions = options.filter(opt => 
-    opt.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (opt.sublabel && opt.sublabel.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredOptions = options.filter((opt) => opt.label.toLowerCase().includes(searchTerm.toLowerCase()) || (opt.sublabel && opt.sublabel.toLowerCase().includes(searchTerm.toLowerCase())));
 
   return (
     <div className="space-y-1 relative" ref={containerRef}>
-      {label && <label className="text-xs font-bold text-gray-400">{label}</label>}
-      
-      <div 
+      {label && (
+        <label className="text-xs font-bold text-gray-400">
+          {label}
+          {required && (
+            <span aria-hidden="true" className="ml-0.5 text-rose-500">
+              *
+            </span>
+          )}
+        </label>
+      )}
+
+      <div
         onClick={() => setIsOpen(!isOpen)}
         className={`w-full flex items-center justify-between px-4 py-2.5 bg-gray-50 border transition-all cursor-pointer rounded-xl ${
           isOpen ? "ring-2 ring-violet-500/10 border-violet-300/40 bg-white" : "border-gray-100"
         }`}
       >
-        <span className={`text-sm ${!value ? "text-gray-400" : "text-gray-900 font-medium"}`}>
-          {value || placeholder}
-        </span>
+        <span className={`text-sm ${!value ? "text-gray-400" : "text-gray-900 font-medium"}`}>{value || placeholder}</span>
         <IconChevronDown size={16} className={`text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </div>
 
@@ -68,9 +63,9 @@ export default function SearchableSelect({
           <div className="p-3 border-b border-border/60 bg-muted">
             <div className="relative">
               <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-              <input 
+              <input
                 autoFocus
-                type="text" 
+                type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Cari..."
@@ -78,11 +73,11 @@ export default function SearchableSelect({
               />
             </div>
           </div>
-          
+
           <div className="max-h-60 overflow-y-auto custom-scrollbar">
             {filteredOptions.length > 0 ? (
               filteredOptions.map((opt) => (
-                <div 
+                <div
                   key={opt.id}
                   onClick={() => {
                     onChange(opt.label);
@@ -99,9 +94,7 @@ export default function SearchableSelect({
                 </div>
               ))
             ) : (
-              <div className="px-4 py-8 text-center text-gray-400 text-xs italic">
-                Tidak ada hasil ditemukan
-              </div>
+              <div className="px-4 py-8 text-center text-gray-400 text-xs italic">Tidak ada hasil ditemukan</div>
             )}
           </div>
         </div>

@@ -59,38 +59,38 @@ export default function ProfilePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <FormLabel block>Nama Lengkap</FormLabel>
-                  <input 
-                    type="text" 
-                    defaultValue="Admin User" 
-                    readOnly 
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm text-gray-500 cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all" 
+                  <input
+                    type="text"
+                    defaultValue="Admin User"
+                    readOnly
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm text-gray-500 cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all"
                   />
                 </div>
                 <div>
                   <FormLabel block>Username</FormLabel>
-                  <input 
-                    type="text" 
-                    defaultValue="admin_inventra" 
-                    readOnly 
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm text-gray-500 cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all" 
+                  <input
+                    type="text"
+                    defaultValue="admin_inventra"
+                    readOnly
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm text-gray-500 cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all"
                   />
                 </div>
                 <div>
                   <FormLabel block>Email</FormLabel>
-                  <input 
-                    type="email" 
-                    defaultValue="admin@inventra.com" 
-                    readOnly 
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm text-gray-500 cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all" 
+                  <input
+                    type="email"
+                    defaultValue="admin@inventra.com"
+                    readOnly
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm text-gray-500 cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all"
                   />
                 </div>
                 <div>
                   <FormLabel block>Nomor Telepon</FormLabel>
-                  <input 
-                    type="text" 
-                    defaultValue="+62 812 3456 7890" 
-                    readOnly 
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm text-gray-500 cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all" 
+                  <input
+                    type="text"
+                    defaultValue="+62 812 3456 7890"
+                    readOnly
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm text-gray-500 cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all"
                   />
                 </div>
               </div>
@@ -98,11 +98,9 @@ export default function ProfilePage() {
               <div className="mt-8 pt-4 border-t border-gray-50 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-start gap-2 text-amber-600">
                   <IconShieldCheck size={14} className="mt-0.5 shrink-0" />
-                  <p className="text-xs font-medium leading-relaxed">
-                    Data profil dikelola oleh sistem. Silakan hubungi Administrator IT jika terdapat kesalahan data.
-                  </p>
+                  <p className="text-xs font-medium leading-relaxed">Data profil dikelola oleh sistem. Silakan hubungi Administrator IT jika terdapat kesalahan data.</p>
                 </div>
-                <button 
+                <button
                   onClick={handleRequestChange}
                   className="flex items-center gap-2 px-4 py-2.5 bg-zinc-900 text-white rounded-xl text-sm font-bold shadow-md hover:bg-zinc-800 transition-colors shrink-0"
                 >

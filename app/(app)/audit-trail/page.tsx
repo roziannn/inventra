@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState } from "react";
@@ -6,10 +5,11 @@ import DataTable from "@/components/ui/DataTable";
 import { useInitialLoading } from "@/lib/use-initial-loading";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
+import PageHeader from "@/components/ui/PageHeader";
 import FormLabel from "@/components/ui/FormLabel";
 import { IconSearch, IconFileExport, IconCalendar } from "@tabler/icons-react";
 import { toast } from "react-hot-toast";
-import { auditLogs, filterAuditLogsByRange, formatAuditDateRange, formatAuditDateTime } from "@/lib/audit-trail";
+import { auditLogs, filterAuditLogsByRange, formatAuditDateRange, formatAuditDateTime, type AuditLog } from "@/lib/audit-trail";
 
 export default function AuditTrailPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -22,7 +22,13 @@ export default function AuditTrailPage() {
     const query = searchQuery.toLowerCase().trim();
 
     return auditLogs.filter((log) => {
-      return log.action.toLowerCase().includes(query) || log.target.toLowerCase().includes(query) || log.description.toLowerCase().includes(query) || log.user.toLowerCase().includes(query) || log.id.toLowerCase().includes(query);
+      return (
+        log.action.toLowerCase().includes(query) ||
+        log.target.toLowerCase().includes(query) ||
+        log.description.toLowerCase().includes(query) ||
+        log.user.toLowerCase().includes(query) ||
+        log.id.toLowerCase().includes(query)
+      );
     });
   }, [searchQuery]);
 
@@ -118,7 +124,7 @@ export default function AuditTrailPage() {
             2: { cellWidth: 27 },
             3: { cellWidth: 55, fontSize: 8.25, cellPadding: { top: 2, right: 2, bottom: 2, left: 2 } },
           },
-          didDrawPage: (data) => {
+          didDrawPage: () => {
             // Header
             doc.setDrawColor(0);
             doc.setLineWidth(0.3);
@@ -170,7 +176,7 @@ export default function AuditTrailPage() {
 
     toast.promise(exportPromise, {
       loading: "Mengekspor PDF...",
-      success: (msg: any) => msg,
+      success: (msg) => msg,
       error: "Gagal mengekspor PDF.",
     });
 
@@ -182,7 +188,7 @@ export default function AuditTrailPage() {
   const columns = [
     {
       header: "Aktivitas",
-      accessor: (item: any) => {
+      accessor: (item: AuditLog) => {
         return (
           <div className="flex items-center gap-4">
             <div className="min-w-0 flex items-center gap-2">
@@ -197,32 +203,34 @@ export default function AuditTrailPage() {
 
     {
       header: "Deskripsi",
-      accessor: (item: any) => <span className="text-sm text-gray-700 font-medium truncate block max-w-xs">{item.description}</span>,
+      accessor: (item: AuditLog) => <span className="text-sm text-gray-700 font-medium truncate block max-w-xs">{item.description}</span>,
     },
 
     {
       header: "Oleh",
-      accessor: (item: any) => <span className="text-sm text-gray-700 font-medium">{item.user}</span>,
+      accessor: (item: AuditLog) => <span className="text-sm text-gray-700 font-medium">{item.user}</span>,
     },
 
     {
       header: "Waktu",
-      accessor: (item: any) => <span className="text-sm text-gray-700 font-medium whitespace-nowrap">{formatAuditDateTime(item.date)}</span>,
+      accessor: (item: AuditLog) => <span className="text-sm text-gray-700 font-medium whitespace-nowrap">{formatAuditDateTime(item.date)}</span>,
     },
   ];
 
   return (
     <>
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Audit trail</h2>
-            <p className="text-xs text-gray-500">Log aktivitas sistem untuk pemantauan keamanan dan perubahan data.</p>
-          </div>
-          <Button variant="page-primary" onClick={() => setIsModalOpen(true)}>
-            <IconFileExport size={16} stroke={3} /> Export Logs
-          </Button>
-        </div>
+        <PageHeader
+          title="Audit trail"
+          description="Log aktivitas sistem untuk pemantauan keamanan dan perubahan data."
+          actions={
+            <>
+              <Button variant="page-primary" onClick={() => setIsModalOpen(true)}>
+                <IconFileExport size={16} stroke={3} /> Export Logs
+              </Button>
+            </>
+          }
+        />
 
         <div className="flex py-2">
           <div className="relative w-full md:w-80 group">

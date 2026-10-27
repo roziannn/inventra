@@ -21,14 +21,7 @@ interface DataTableProps<T> {
   loading?: boolean;
 }
 
-export default function DataTable<T extends { id?: string | number }>({ 
-  data, 
-  columns, 
-  pageSize = 10, 
-  density = "normal",
-  bodyCellClassName = "",
-  loading = false,
-}: DataTableProps<T>) {
+export default function DataTable<T extends { id?: string | number }>({ data, columns, pageSize = 10, density = "normal", bodyCellClassName = "", loading = false }: DataTableProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {

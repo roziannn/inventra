@@ -1,22 +1,94 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState, useMemo } from "react";
 import DataTable from "@/components/ui/DataTable";
+import Badge from "@/components/ui/Badge";
 import { useInitialLoading } from "@/lib/use-initial-loading";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
+import PageHeader from "@/components/ui/PageHeader";
 import FormLabel from "@/components/ui/FormLabel";
-import { IconPlus, IconSearch, IconFilter, IconEdit, IconBuildingSkyscraper, IconCircleCheckFilled, IconCircleXFilled, IconUser, IconMail, IconPhone, IconTags, IconLayoutGrid, IconMapPin, IconCircleCheck, IconCircleX } from "@tabler/icons-react";
+import {
+  IconPlus,
+  IconSearch,
+  IconFilter,
+  IconEdit,
+  IconBuildingSkyscraper,
+  IconCircleCheckFilled,
+  IconCircleXFilled,
+  IconUser,
+  IconMail,
+  IconPhone,
+  IconTags,
+  IconLayoutGrid,
+  IconMapPin,
+  IconCircleCheck,
+  IconCircleX,
+} from "@tabler/icons-react";
 import { toast } from "react-hot-toast";
 
 // 1. Data Vendor Riil (5 Data)
 const initialVendors = [
-  { id: "VND-101", name: "PT. Telekomunikasi Indonesia", contactPerson: "Budi Santoso", email: "corp@telkom.co.id", phone: "021-5243500", category: "IT Hardware", status: "Active", address: "Jl. Gatot Subroto No.52, Jakarta", createdBy: "Administrator", createdAt: new Date(2026, 2, 3) },
-  { id: "VND-102", name: "PT. Astra Graphia Tbk", contactPerson: "Siti Aminah", email: "info@astragraphia.co.id", phone: "021-3909191", category: "Office Supplies", status: "Active", address: "Jl. Kramat Raya No.43, Jakarta", createdBy: "Administrator", createdAt: new Date(2026, 2, 5) },
-  { id: "VND-103", name: "PT. Sumber Alfaria Trijaya", contactPerson: "Andi Wijaya", email: "supply@alfamart.co.id", phone: "021-5575596", category: "Logistics", status: "Inactive", address: "Jl. Jalur Sutera Barat No.9, Tangerang", createdBy: "Administrator", createdAt: new Date(2026, 2, 8) },
-  { id: "VND-104", name: "PT. United Tractors Tbk", contactPerson: "Hendra Kurniawan", email: "procurement@unitedtractors.com", phone: "021-2457999", category: "Maintenance", status: "Active", address: "Jl. Raya Bekasi Km.22, Jakarta", createdBy: "Administrator", createdAt: new Date(2026, 2, 10) },
-  { id: "VND-105", name: "PT. Indofood Sukses Makmur", contactPerson: "Rina Permata", email: "vendor@indofood.com", phone: "021-5795882", category: "Logistics", status: "Active", address: "Sudirman Plaza, Indofood Tower, Jakarta", createdBy: "Administrator", createdAt: new Date(2026, 2, 12) },
+  {
+    id: "VND-101",
+    name: "PT. Telekomunikasi Indonesia",
+    contactPerson: "Budi Santoso",
+    email: "corp@telkom.co.id",
+    phone: "021-5243500",
+    category: "IT Hardware",
+    status: "Active",
+    address: "Jl. Gatot Subroto No.52, Jakarta",
+    createdBy: "Administrator",
+    createdAt: new Date(2026, 2, 3),
+  },
+  {
+    id: "VND-102",
+    name: "PT. Astra Graphia Tbk",
+    contactPerson: "Siti Aminah",
+    email: "info@astragraphia.co.id",
+    phone: "021-3909191",
+    category: "Office Supplies",
+    status: "Active",
+    address: "Jl. Kramat Raya No.43, Jakarta",
+    createdBy: "Administrator",
+    createdAt: new Date(2026, 2, 5),
+  },
+  {
+    id: "VND-103",
+    name: "PT. Sumber Alfaria Trijaya",
+    contactPerson: "Andi Wijaya",
+    email: "supply@alfamart.co.id",
+    phone: "021-5575596",
+    category: "Logistics",
+    status: "Inactive",
+    address: "Jl. Jalur Sutera Barat No.9, Tangerang",
+    createdBy: "Administrator",
+    createdAt: new Date(2026, 2, 8),
+  },
+  {
+    id: "VND-104",
+    name: "PT. United Tractors Tbk",
+    contactPerson: "Hendra Kurniawan",
+    email: "procurement@unitedtractors.com",
+    phone: "021-2457999",
+    category: "Maintenance",
+    status: "Active",
+    address: "Jl. Raya Bekasi Km.22, Jakarta",
+    createdBy: "Administrator",
+    createdAt: new Date(2026, 2, 10),
+  },
+  {
+    id: "VND-105",
+    name: "PT. Indofood Sukses Makmur",
+    contactPerson: "Rina Permata",
+    email: "vendor@indofood.com",
+    phone: "021-5795882",
+    category: "Logistics",
+    status: "Active",
+    address: "Sudirman Plaza, Indofood Tower, Jakarta",
+    createdBy: "Administrator",
+    createdAt: new Date(2026, 2, 12),
+  },
 ];
 
 const initialCategories = [
@@ -25,6 +97,8 @@ const initialCategories = [
   { name: "Maintenance", isActive: true },
   { name: "Logistics", isActive: true },
 ];
+
+type Vendor = (typeof initialVendors)[number];
 
 export default function VendorsPage() {
   const [vendors, setVendors] = useState(initialVendors);
@@ -37,7 +111,7 @@ export default function VendorsPage() {
   const [selectedCategory, setSelectedCategory] = useState("Semua kategori");
 
   const [newCategoryName, setNewCategoryName] = useState("");
-  const [editingItem, setEditingItem] = useState<any>(null);
+  const [editingItem, setEditingItem] = useState<Vendor | null>(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -75,7 +149,7 @@ export default function VendorsPage() {
     setFormData({ name: "", contactPerson: "", email: "", phone: "", category: "IT Hardware", address: "", status: "Active" });
   };
 
-  const handleEditClick = (item: any) => {
+  const handleEditClick = (item: Vendor) => {
     setEditingItem(item);
     setFormData({
       name: item.name,
@@ -120,7 +194,7 @@ export default function VendorsPage() {
   const columns = [
     {
       header: "Vendor",
-      accessor: (item: any) => (
+      accessor: (item: Vendor) => (
         <div className="min-w-0 max-w-72 py-1 flex items-center gap-2">
           <p className="font-bold text-gray-900 truncate">{item.name}</p>
           <span className="shrink-0 text-xs px-1.5 py-0.5 rounded-md bg-gray-50 border border-gray-100 text-gray-500 font-semibold uppercase">{item.id}</span>
@@ -129,46 +203,43 @@ export default function VendorsPage() {
     },
     {
       header: "Kontak",
-      accessor: (item: any) => <span className="block max-w-48 truncate text-sm font-medium text-gray-700">{item.contactPerson}</span>,
+      accessor: (item: Vendor) => <span className="block max-w-48 truncate text-sm font-medium text-gray-700">{item.contactPerson}</span>,
     },
     {
       header: "Email",
-      accessor: (item: any) => <span className="block max-w-64 truncate text-sm text-gray-600">{item.email}</span>,
+      accessor: (item: Vendor) => <span className="block max-w-64 truncate text-sm text-gray-600">{item.email}</span>,
     },
     {
       header: "Kategori",
-      accessor: (item: any) => <span className="text-sm text-gray-700">{item.category}</span>,
+      accessor: (item: Vendor) => <span className="text-sm text-gray-700">{item.category}</span>,
     },
     { header: "Telepon", accessor: "phone" as const },
     {
       header: "Created by",
-      accessor: (item: any) => <span className="text-sm text-gray-700 font-medium">{item.createdBy}</span>,
+      accessor: (item: Vendor) => <span className="text-sm text-gray-700 font-medium">{item.createdBy}</span>,
     },
     {
       header: "Created at",
-      accessor: (item: any) => <span className="text-sm text-gray-700 font-medium tabular-nums">{formatDate(item.createdAt)}</span>,
+      accessor: (item: Vendor) => <span className="text-sm text-gray-700 font-medium tabular-nums">{formatDate(item.createdAt)}</span>,
     },
     {
       header: "Status",
-      accessor: (item: any) => {
+      accessor: (item: Vendor) => {
         const isActive = item.status === "Active";
         return (
-          <span
-            className={`
-              inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs font-semibold
-              ${isActive ? "bg-violet-500/10 text-violet-600 border border-violet-500/20" : "bg-rose-500/10 text-rose-600 border border-rose-500/20"}
-            `}
-          >
-            {isActive ? <IconCircleCheckFilled size={12} stroke={2.5} /> : <IconCircleXFilled size={12} stroke={2.5} />}
+          <Badge tone={isActive ? "success" : "danger"} icon={isActive ? <IconCircleCheckFilled size={12} stroke={2.5} /> : <IconCircleXFilled size={12} stroke={2.5} />}>
             {item.status}
-          </span>
+          </Badge>
         );
       },
     },
     {
       header: "Aksi",
-      accessor: (item: any) => (
-        <button onClick={() => handleEditClick(item)} className="p-2 text-gray-400 hover:text-violet-600 dark:hover:text-violet-300 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/12 transition-all">
+      accessor: (item: Vendor) => (
+        <button
+          onClick={() => handleEditClick(item)}
+          className="p-2 text-gray-400 hover:text-violet-600 dark:hover:text-violet-300 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/12 transition-all"
+        >
           <IconEdit size={18} />
         </button>
       ),
@@ -178,20 +249,20 @@ export default function VendorsPage() {
   return (
     <>
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Vendors</h2>
-            <p className="text-xs text-gray-500 font-medium">Kelola data supplier dan rekanan bisnis Anda.</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="page-secondary" onClick={() => setIsCategoryModalOpen(true)}>
-              <IconLayoutGrid size={16} /> Vendor Group
-            </Button>
-            <Button variant="page-primary" onClick={() => setIsModalOpen(true)}>
-              <IconPlus size={16} stroke={3} /> Tambah Vendor
-            </Button>
-          </div>
-        </div>
+        <PageHeader
+          title="Vendors"
+          description="Kelola data supplier dan rekanan bisnis Anda."
+          actions={
+            <>
+              <Button variant="page-secondary" onClick={() => setIsCategoryModalOpen(true)}>
+                <IconLayoutGrid size={16} /> Vendor Group
+              </Button>
+              <Button variant="page-primary" onClick={() => setIsModalOpen(true)}>
+                <IconPlus size={16} stroke={3} /> Tambah Vendor
+              </Button>
+            </>
+          }
+        />
 
         {/* 3. Search & Filter Bar (Berfungsi) */}
         <div className="flex flex-col md:flex-row gap-4 justify-between items-center py-2">
@@ -322,9 +393,7 @@ export default function VendorsPage() {
                     </div>
                     <div>
                       <p className="text-sm text-gray-900">Status Vendor</p>
-                      <p className="text-xs text-gray-500">
-                        Klik toggle untuk mengubah ke {formData.status === "Active" ? "Inactive" : "Active"}
-                      </p>
+                      <p className="text-xs text-gray-500">Klik toggle untuk mengubah ke {formData.status === "Active" ? "Inactive" : "Active"}</p>
                     </div>
                   </div>
                   <button
@@ -376,7 +445,10 @@ export default function VendorsPage() {
               <FormLabel>List Kategori Terdaftar</FormLabel>
               <div className="grid grid-cols-1 gap-2 max-h-62.5 overflow-y-auto pr-2 scrollbar-hide">
                 {categories.map((cat) => (
-                  <div key={cat.name} className={`flex items-center justify-between p-3.5 border rounded-xl transition-all ${cat.isActive ? "bg-white border-gray-100" : "bg-gray-50/50 border-gray-200 opacity-60"}`}>
+                  <div
+                    key={cat.name}
+                    className={`flex items-center justify-between p-3.5 border rounded-xl transition-all ${cat.isActive ? "bg-white border-gray-100" : "bg-gray-50/50 border-gray-200 opacity-60"}`}
+                  >
                     <div className="flex items-center gap-3">
                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${cat.isActive ? "bg-violet-100 text-violet-700" : "bg-gray-200 text-gray-500"}`}>
                         <IconTags size={16} />

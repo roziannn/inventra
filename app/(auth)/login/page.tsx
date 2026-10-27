@@ -101,7 +101,9 @@ export default function LoginPage() {
 
           <form onSubmit={handleLogin} className="mt-10 space-y-5">
             <div className="space-y-2 group">
-              <FormLabel block icon={<IconMail size={14} />}>Alamat Email</FormLabel>
+              <FormLabel block icon={<IconMail size={14} />}>
+                Alamat Email
+              </FormLabel>
               <div className="relative">
                 <input
                   required
@@ -116,7 +118,9 @@ export default function LoginPage() {
 
             <div className="space-y-2 group">
               <div className="flex justify-between items-center">
-                <FormLabel block icon={<IconLock size={14} />}>Kata Sandi</FormLabel>
+                <FormLabel block icon={<IconLock size={14} />}>
+                  Kata Sandi
+                </FormLabel>
                 <button type="button" onClick={() => setIsModalOpen(true)} className="mb-2 cursor-pointer text-sm font-semibold text-violet-500 transition-colors hover:text-violet-400">
                   Lupa Sandi?
                 </button>
@@ -130,7 +134,11 @@ export default function LoginPage() {
                   placeholder="••••••••••••"
                   className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3.5 pl-4 pr-12 text-sm text-gray-900 transition-all focus:border-violet-400 focus:outline-none focus:ring-4 focus:ring-violet-500/10 dark:border-border dark:bg-card dark:text-foreground dark:placeholder:text-gray-500"
                 />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300">
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                >
                   {showPassword ? <IconEyeOff size={20} /> : <IconEye size={20} />}
                 </button>
               </div>
@@ -168,12 +176,19 @@ export default function LoginPage() {
             </div>
             <div>
               <h4 className="font-bold text-gray-900 dark:text-violet-400 text-sm">Hubungi Tim IT Support</h4>
-              <p className="text-sm text-gray-500 dark:text-gray-300 mt-1 leading-relaxed">Jika Anda lupa kata sandi atau akun Anda terkunci, silakan hubungi administrator melalui saluran di bawah.</p>
+              <p className="text-sm text-gray-500 dark:text-gray-300 mt-1 leading-relaxed">
+                Jika Anda lupa kata sandi atau akun Anda terkunci, silakan hubungi administrator melalui saluran di bawah.
+              </p>
             </div>
           </div>
 
           <div className="space-y-3">
-            <a href="https://wa.me/6281234567890" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-4 border border-gray-100 dark:border-border rounded-2xl hover:bg-gray-50 dark:hover:bg-muted/50 transition-all group">
+            <a
+              href="https://wa.me/6281234567890"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-between p-4 border border-gray-100 dark:border-border rounded-2xl hover:bg-gray-50 dark:hover:bg-muted/50 transition-all group"
+            >
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-green-100 dark:bg-green-500/20 rounded-lg flex items-center justify-center text-green-600 dark:text-green-400">
                   <IconBrandWhatsapp size={18} />
@@ -186,7 +201,10 @@ export default function LoginPage() {
               <IconExternalLink size={16} className="text-gray-300 group-hover:text-gray-400" />
             </a>
 
-            <a href="mailto:it.support@company.com" className="flex items-center justify-between p-4 border border-gray-100 dark:border-border rounded-2xl hover:bg-gray-50 dark:hover:bg-muted/50 transition-all group">
+            <a
+              href="mailto:it.support@company.com"
+              className="flex items-center justify-between p-4 border border-gray-100 dark:border-border rounded-2xl hover:bg-gray-50 dark:hover:bg-muted/50 transition-all group"
+            >
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-blue-100 dark:bg-blue-500/20 rounded-lg flex items-center justify-center text-blue-600 dark:text-blue-400">
                   <IconMail size={18} />

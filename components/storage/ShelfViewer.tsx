@@ -6,7 +6,7 @@ import { IconPlus, IconMinus } from "@tabler/icons-react";
 import { SHELF_BUILDERS, type BuildContext } from "@/components/storage/shelf-builders";
 import { OPENING_KINDS, clampOffset, doorClearances, openingsCollide, wallLength, type Opening, type Rect, type WallId } from "@/lib/storage/room-openings";
 
-import { SHELF_TYPES, containerFor, itemsAtLevel, levelTag, type ContainerType, type ShelfData } from "@/lib/storage/shelf-model";
+import { SHELF_TYPES, containerFor, levelTag, type ContainerType, type ShelfData } from "@/lib/storage/shelf-model";
 
 export { SHELF_TYPES, defaultLevelTag, fillPercent, itemsAtLevel, levelSlots, levelTag } from "@/lib/storage/shelf-model";
 export type { ContainerType, ShelfData, ShelfItem, ShelfType } from "@/lib/storage/shelf-model";
@@ -67,7 +67,24 @@ export function blockedByDoor(s: ShelfPlace, openings: Opening[], roomWidth: num
   return doorClearances(openings, roomWidth, roomDepth).some((r) => hitsRect(s, r));
 }
 
-export default function ShelfViewer({ shelves, openings, containers, roomWidth, roomDepth, roomCode, selectedId, selectedOpeningId, selectedLevel, highlights, mode, onSelect, onSelectOpening, onMove, onMoveOpening, onBlocked }: ShelfViewerProps) {
+export default function ShelfViewer({
+  shelves,
+  openings,
+  containers,
+  roomWidth,
+  roomDepth,
+  roomCode,
+  selectedId,
+  selectedOpeningId,
+  selectedLevel,
+  highlights,
+  mode,
+  onSelect,
+  onSelectOpening,
+  onMove,
+  onMoveOpening,
+  onBlocked,
+}: ShelfViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const selectedRef = useRef(selectedId);
   const modeRef = useRef(mode);
@@ -160,7 +177,17 @@ export default function ShelfViewer({ shelves, openings, containers, roomWidth, 
     const bandEdgeMat = new THREE.LineBasicMaterial({ color: 0x5b21b6, depthTest: false, transparent: true });
     const hitMat = new THREE.MeshBasicMaterial({ visible: false });
 
-    const groups: { id: string; group: THREE.Group; shelf: ShelfData; levelMats: THREE.MeshStandardMaterial[]; coverMat: THREE.MeshStandardMaterial; danger: THREE.Mesh; sel: THREE.Mesh; band: THREE.Mesh; hlBands: THREE.Mesh[] }[] = [];
+    const groups: {
+      id: string;
+      group: THREE.Group;
+      shelf: ShelfData;
+      levelMats: THREE.MeshStandardMaterial[];
+      coverMat: THREE.MeshStandardMaterial;
+      danger: THREE.Mesh;
+      sel: THREE.Mesh;
+      band: THREE.Mesh;
+      hlBands: THREE.Mesh[];
+    }[] = [];
     const placeOf = (g: (typeof groups)[number]): ShelfPlace => ({ x: g.group.position.x, z: g.group.position.z, rotated: g.shelf.rotated, length: g.shelf.length, type: g.shelf.type });
 
     // purple location tag, drawn on a canvas so the code is readable in 3D
@@ -628,13 +655,39 @@ export default function ShelfViewer({ shelves, openings, containers, roomWidth, 
       wallGeoms.forEach((g) => g.dispose());
       grid.geometry.dispose();
       (grid.material as THREE.Material).dispose();
-      [...beamMats, ...containerMats.values(), tapeMat, frameMat, chromeMat, metalMat, blueMat, woodMat, selectedFloorMat, dangerFloorMat, boxMat, bandMat, bandEdgeMat, hlMat, hlEdgeMat, hitMat, floorMat, wallMat, doorLeafMat, doorFrameMat, windowFrameMat, glassMat, selectedFrameMat, clearanceMat].forEach((m) => m.dispose());
+      [
+        ...beamMats,
+        ...containerMats.values(),
+        tapeMat,
+        frameMat,
+        chromeMat,
+        metalMat,
+        blueMat,
+        woodMat,
+        selectedFloorMat,
+        dangerFloorMat,
+        boxMat,
+        bandMat,
+        bandEdgeMat,
+        hlMat,
+        hlEdgeMat,
+        hitMat,
+        floorMat,
+        wallMat,
+        doorLeafMat,
+        doorFrameMat,
+        windowFrameMat,
+        glassMat,
+        selectedFrameMat,
+        clearanceMat,
+      ].forEach((m) => m.dispose());
       renderer.dispose();
       container.removeChild(dom);
     };
   }, [shelves, openings, containers, roomWidth, roomDepth, roomCode]);
 
-  const zoomBtn = "flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-50 active:scale-95 dark:border-gray-100/10 dark:bg-zinc-800 dark:text-gray-100";
+  const zoomBtn =
+    "flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-50 active:scale-95 dark:border-gray-100/10 dark:bg-zinc-800 dark:text-gray-100";
 
   return (
     <div className="relative h-full w-full">

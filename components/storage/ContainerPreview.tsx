@@ -44,7 +44,9 @@ export default function ContainerPreview({ container, size = 96 }: { container: 
             <polygon points={pts([p(0, 0, d), p(w, 0, d), p(w, h, d), p(0, h, d)])} fill={left} />
             <polygon points={pts([p(w, 0, 0), p(w, 0, d), p(w, h, d), p(w, h, 0)])} fill={right} />
             <polygon points={pts([p(0, h, 0), p(w, h, 0), p(w, h, d), p(0, h, d)])} fill={top} />
-            {container.shape === "crate" && <polygon points={pts([p(w * 0.08, h, d * 0.08), p(w * 0.92, h, d * 0.08), p(w * 0.92, h, d * 0.92), p(w * 0.08, h, d * 0.92)])} fill={shade(container.color, -60)} />}
+            {container.shape === "crate" && (
+              <polygon points={pts([p(w * 0.08, h, d * 0.08), p(w * 0.92, h, d * 0.08), p(w * 0.92, h, d * 0.92), p(w * 0.08, h, d * 0.92)])} fill={shade(container.color, -60)} />
+            )}
             {container.shape === "box" && <polygon points={pts([p(w * 0.42, h, 0), p(w * 0.58, h, 0), p(w * 0.58, h, d), p(w * 0.42, h, d)])} fill="#f3e8cc" opacity={0.9} />}
           </>
         )}

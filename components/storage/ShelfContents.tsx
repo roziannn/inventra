@@ -47,7 +47,10 @@ export default function ShelfContents({ shelf, shelfIndex, roomCode, level, onLe
               className={`rounded-md border px-2 py-1 text-[11px] font-bold ${level === l ? "border-violet-600 bg-violet-600 text-white" : "border-gray-200 text-gray-600 hover:border-violet-400 dark:border-gray-100/10 dark:text-gray-200"}`}
               title={`Tingkat ${l + 1}: ${count}/${slots} terisi`}
             >
-              T{l + 1} <span className="font-normal opacity-80">{count}/{slots}</span>
+              T{l + 1}{" "}
+              <span className="font-normal opacity-80">
+                {count}/{slots}
+              </span>
             </button>
           );
         })}
@@ -89,7 +92,12 @@ export default function ShelfContents({ shelf, shelfIndex, roomCode, level, onLe
                 <span className="block text-[10px] text-gray-500">{it.sku}</span>
               </span>
               {editable ? (
-                <select aria-label={`Wadah ${it.name}`} className="max-w-24 rounded border border-gray-200 bg-transparent px-1 py-0.5 text-[10px] dark:border-gray-100/10" value={containerFor(containers, it.containerId).id} onChange={(e) => onContainer(it.id, e.target.value)}>
+                <select
+                  aria-label={`Wadah ${it.name}`}
+                  className="max-w-24 rounded border border-gray-200 bg-transparent px-1 py-0.5 text-[10px] dark:border-gray-100/10"
+                  value={containerFor(containers, it.containerId).id}
+                  onChange={(e) => onContainer(it.id, e.target.value)}
+                >
                   {containers.map((ct) => (
                     <option key={ct.id} value={ct.id}>
                       {ct.name}
@@ -128,7 +136,15 @@ export default function ShelfContents({ shelf, shelfIndex, roomCode, level, onLe
                 ))}
               </select>
               <div className="flex gap-2">
-                <input type="number" min={1} max={999} aria-label="Jumlah" className={`${inputClass} !w-20`} value={qty} onChange={(e) => setQty(Math.max(1, Math.min(999, Number(e.target.value) || 1)))} />
+                <input
+                  type="number"
+                  min={1}
+                  max={999}
+                  aria-label="Jumlah"
+                  className={`${inputClass} !w-20`}
+                  value={qty}
+                  onChange={(e) => setQty(Math.max(1, Math.min(999, Number(e.target.value) || 1)))}
+                />
                 <Button
                   variant="modal-primary"
                   className="flex-1 !min-h-8 !py-1.5"

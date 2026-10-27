@@ -6,6 +6,8 @@ import DataTable from "@/components/ui/DataTable";
 import { useInitialLoading } from "@/lib/use-initial-loading";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
+import PageHeader from "@/components/ui/PageHeader";
+import Badge from "@/components/ui/Badge";
 import FormLabel from "@/components/ui/FormLabel";
 import SearchableSelect from "@/components/ui/SearchableSelect";
 import {
@@ -83,15 +85,17 @@ const formatDateTimeShort = (dateStr: string) => {
     .replace(/,/g, "");
 };
 
+type Report = (typeof initialReports)[number];
+
 export default function ReportsPage() {
   const [reports, setReports] = useState(initialReports);
-  const [selectedReport, setSelectedReport] = useState<any>(null);
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [view, setView] = useState<"list" | "detail">("list");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [commentInput, setCommentInput] = useState("");
-  const [editingReport, setEditingReport] = useState<any>(null);
+  const [editingReport, setEditingReport] = useState<Report | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [reportToDelete, setReportToDelete] = useState<any>(null);
+  const [reportToDelete, setReportToDelete] = useState<Report | null>(null);
   const [confirmEmail, setConfirmEmail] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
@@ -127,7 +131,8 @@ export default function ReportsPage() {
     const query = searchQuery.toLowerCase().trim();
 
     return reports.filter((report) => {
-      const matchSearch = report.id.toLowerCase().includes(query) || report.item.toLowerCase().includes(query) || report.reporter.toLowerCase().includes(query) || report.token.toLowerCase().includes(query);
+      const matchSearch =
+        report.id.toLowerCase().includes(query) || report.item.toLowerCase().includes(query) || report.reporter.toLowerCase().includes(query) || report.token.toLowerCase().includes(query);
 
       const matchStatus = statusFilter === "Semua status" || report.status === statusFilter;
 
@@ -242,7 +247,7 @@ export default function ReportsPage() {
             3: { cellWidth: 30 },
             4: { cellWidth: 37 },
           },
-          didDrawPage: (data) => {
+          didDrawPage: () => {
             // Header
             doc.setDrawColor(0);
             doc.setLineWidth(0.3);
@@ -300,21 +305,21 @@ export default function ReportsPage() {
     handleCloseExportModal();
   };
 
-  const handleDeleteClick = (report: any) => {
+  const handleDeleteClick = (report: Report) => {
     setReportToDelete(report);
     setIsDeleteModalOpen(true);
   };
 
   const handleConfirmDelete = (e: React.FormEvent) => {
     e.preventDefault();
-    if (confirmEmail && confirmPassword) {
+    if (reportToDelete && confirmEmail && confirmPassword) {
       setReports(reports.filter((r) => r.id !== reportToDelete.id));
       toast.success(`Laporan ${reportToDelete.id} berhasil dihapus`);
       handleCloseDeleteModal();
     }
   };
 
-  const handleEditClick = (report: any) => {
+  const handleEditClick = (report: Report) => {
     setEditingReport(report);
     setFormData({
       item: report.item,
@@ -383,8 +388,9 @@ export default function ReportsPage() {
   };
 
   const toggleReference = (solId: string) => {
+    if (!selectedReport) return;
     let isNowReference = false;
-    const updatedSolutions = selectedReport.solutions.map((sol: any) => {
+    const updatedSolutions = selectedReport.solutions.map((sol) => {
       if (sol.id === solId) {
         isNowReference = !sol.isReference;
         return { ...sol, isReference: isNowReference };
@@ -415,7 +421,7 @@ export default function ReportsPage() {
     {
       header: "ID / Token",
       className: "w-[220px]",
-      accessor: (item: any) => (
+      accessor: (item: Report) => (
         <div className="max-w-52 flex items-center gap-2 py-1">
           <p className="font-bold truncate">{item.id}</p>
           <span className="shrink-0 text-xs px-1.5 py-0.5 rounded-md bg-gray-50 border border-gray-100 lowercase text-gray-500 font-semibold">{item.token}</span>
@@ -427,49 +433,41 @@ export default function ReportsPage() {
 
     {
       header: "Pelapor",
-      accessor: (item: any) => <span className="text-sm text-gray-700 font-medium">{item.reporter}</span>,
+      accessor: (item: Report) => <span className="text-sm text-gray-700 font-medium">{item.reporter}</span>,
     },
 
     {
       header: "Service",
-      accessor: (item: any) => <span className="text-sm text-gray-700 font-medium">{item.serviceType}</span>,
+      accessor: (item: Report) => <span className="text-sm text-gray-700 font-medium">{item.serviceType}</span>,
     },
     {
       header: "Status",
-      accessor: (item: any) => {
+      accessor: (item: Report) => {
         const isResolved = item.status === "Resolved";
         const isProgress = item.status === "In progress";
-        const isPending = item.status === "Pending";
-
         return (
-          <span
-            className={`
-        inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full 
-        text-xs font-semibold border
-        ${isResolved ? "bg-violet-500/10 text-violet-600 border-violet-500/20" : isProgress ? "bg-blue-500/10 text-blue-600 border-blue-500/20" : "bg-amber-500/10 text-amber-600 border-amber-500/20"}
-      `}
+          <Badge
+            tone={isResolved ? "success" : isProgress ? "info" : "warning"}
+            icon={isResolved ? <IconCircleCheckFilled size={12} /> : isProgress ? <IconLoader size={12} /> : <IconCircleXFilled size={12} />}
           >
-            {isResolved && <IconCircleCheckFilled size={12} />}
-            {isProgress && <IconLoader size={12} />}
-            {isPending && <IconCircleXFilled size={12} />}
             {item.status}
-          </span>
+          </Badge>
         );
       },
     },
     {
       header: "Created by",
-      accessor: (item: any) => <span className="text-sm text-gray-700 font-medium">{item.author}</span>,
+      accessor: (item: Report) => <span className="text-sm text-gray-700 font-medium">{item.author}</span>,
     },
     {
       header: "Created at",
-      accessor: (item: any) => <span className="text-sm text-gray-700 font-medium">{formatDate(item.createdAt)}</span>,
+      accessor: (item: Report) => <span className="text-sm text-gray-700 font-medium">{formatDate(item.createdAt)}</span>,
     },
 
     {
       header: "Aksi",
       className: "text-center w-[120px]",
-      accessor: (item: any) => (
+      accessor: (item: Report) => (
         <div className="flex items-center justify-center gap-1">
           <button
             onClick={() => {
@@ -481,7 +479,10 @@ export default function ReportsPage() {
             <IconEye size={16} />
           </button>
 
-          <button onClick={() => handleEditClick(item)} className="p-1.5 text-gray-400 hover:text-violet-600 dark:hover:text-violet-300 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/12 transition-all">
+          <button
+            onClick={() => handleEditClick(item)}
+            className="p-1.5 text-gray-400 hover:text-violet-600 dark:hover:text-violet-300 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/12 transition-all"
+          >
             <IconEdit size={16} />
           </button>
 
@@ -562,7 +563,7 @@ export default function ReportsPage() {
                     </thead>
                     <tbody className="divide-y divide-gray-50">
                       {selectedReport.solutions.length > 0 ? (
-                        selectedReport.solutions.map((sol: any) => (
+                        selectedReport.solutions.map((sol) => (
                           <tr key={sol.id} className="text-sm group">
                             <td className="px-6 py-4 font-medium text-gray-700">
                               <div className="flex items-center gap-2">
@@ -611,7 +612,7 @@ export default function ReportsPage() {
                 </h4>
                 <div className="space-y-4 max-h-75 overflow-y-auto pr-2 scrollbar-hide">
                   {selectedReport.comments.length > 0 ? (
-                    selectedReport.comments.map((c: any, i: number) => (
+                    selectedReport.comments.map((c, i) => (
                       <div key={i} className="bg-gray-50 p-3 rounded-xl space-y-1 group">
                         <div className="flex justify-between text-xs">
                           <span className="font-bold text-gray-900">{c.user}</span>
@@ -645,7 +646,9 @@ export default function ReportsPage() {
               <div className="bg-zinc-900 rounded-2xl p-6 text-white space-y-4 shadow-xl">
                 <p className="text-xs font-bold text-violet-400">Quick action</p>
                 <div className="space-y-3">
-                  <button className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border border-white/10">Gunakan Referensi Solusi</button>
+                  <button className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border border-white/10">
+                    Gunakan Referensi Solusi
+                  </button>
                   <button
                     onClick={handleMarkAsComplete}
                     disabled={selectedReport.status === "Resolved"}
@@ -665,20 +668,20 @@ export default function ReportsPage() {
   return (
     <>
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Reports</h2>
-            <p className="text-xs text-gray-500">Laporan kerusakan dan perbaikan inventaris.</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="page-secondary" onClick={() => setIsExportModalOpen(true)}>
-              <IconFileExport size={16} stroke={3} /> Export Data
-            </Button>
-            <Button variant="page-primary" onClick={() => setIsModalOpen(true)}>
-              <IconPlus size={16} stroke={3} /> Buat laporan baru
-            </Button>
-          </div>
-        </div>
+        <PageHeader
+          title="Reports"
+          description="Laporan kerusakan dan perbaikan inventaris."
+          actions={
+            <>
+              <Button variant="page-secondary" onClick={() => setIsExportModalOpen(true)}>
+                <IconFileExport size={16} stroke={3} /> Export Data
+              </Button>
+              <Button variant="page-primary" onClick={() => setIsModalOpen(true)}>
+                <IconPlus size={16} stroke={3} /> Buat laporan baru
+              </Button>
+            </>
+          }
+        />
 
         {/* Search & Filter */}
         <div className="flex flex-col md:flex-row gap-4 justify-between items-center py-2">
@@ -697,7 +700,11 @@ export default function ReportsPage() {
               <IconFilter size={16} />
               <span>Status:</span>
             </div>
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="bg-transparent border-b border-gray-200 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:border-violet-400 transition-all">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="bg-transparent border-b border-gray-200 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:border-violet-400 transition-all"
+            >
               <option value="Semua status">Semua status</option>
               <option value="Pending">Pending</option>
               <option value="In progress">In progress</option>
@@ -722,7 +729,14 @@ export default function ReportsPage() {
               />
             </div>
 
-            <SearchableSelect label="Nama Pelapor" options={userOptions} value={formData.reporter} onChange={(val) => setFormData({ ...formData, reporter: val })} placeholder="Pilih pelapor..." required />
+            <SearchableSelect
+              label="Nama Pelapor"
+              options={userOptions}
+              value={formData.reporter}
+              onChange={(val) => setFormData({ ...formData, reporter: val })}
+              placeholder="Pilih pelapor..."
+              required
+            />
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">

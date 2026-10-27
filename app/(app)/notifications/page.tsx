@@ -4,7 +4,9 @@ import React, { useState } from "react";
 import { IconAlertCircle, IconCircleCheckFilled, IconCircleDotFilled, IconFileAnalytics, IconPackage, IconSettings, IconUserPlus } from "@tabler/icons-react";
 import toast from "react-hot-toast";
 import Button from "@/components/ui/Button";
+import PageHeader from "@/components/ui/PageHeader";
 import DataTable from "@/components/ui/DataTable";
+import Badge from "@/components/ui/Badge";
 import { useInitialLoading } from "@/lib/use-initial-loading";
 import Modal from "@/components/ui/Modal";
 
@@ -108,10 +110,9 @@ export default function NotificationsPage() {
     {
       header: "Status",
       accessor: (item: NotificationItem) => (
-        <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs font-semibold ${item.isRead ? "border-gray-200 bg-gray-50 text-gray-600" : "border-violet-200 bg-violet-500/10 text-violet-600"}`}>
-          {item.isRead ? <IconCircleCheckFilled size={12} stroke={2.5} /> : <IconCircleDotFilled size={12} stroke={2.5} />}
+        <Badge tone={item.isRead ? "neutral" : "success"} icon={item.isRead ? <IconCircleCheckFilled size={12} stroke={2.5} /> : <IconCircleDotFilled size={12} stroke={2.5} />}>
           {item.isRead ? "Sudah dibaca" : "Belum dibaca"}
-        </span>
+        </Badge>
       ),
       className: "whitespace-nowrap",
     },
@@ -120,15 +121,17 @@ export default function NotificationsPage() {
   return (
     <>
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Notifikasi</h2>
-            <p className="text-xs text-gray-500">Lihat semua pembaruan dan aktivitas terbaru di Inventra.</p>
-          </div>
-          <Button variant="page-outline" onClick={handleMarkAllRead} className="h-8 self-start sm:self-auto">
-            Tandai semua dibaca
-          </Button>
-        </div>
+        <PageHeader
+          title="Notifikasi"
+          description="Lihat semua pembaruan dan aktivitas terbaru di Inventra."
+          actions={
+            <>
+              <Button variant="page-outline" onClick={handleMarkAllRead} className="h-8 self-start sm:self-auto">
+                Tandai semua dibaca
+              </Button>
+            </>
+          }
+        />
 
         <DataTable loading={loading} data={notifications} columns={columns} pageSize={10} density="dense" bodyCellClassName="!py-3" />
 

@@ -114,7 +114,11 @@ export default function SettingsPage() {
                           placeholder="Masukkan kata sandi lama"
                           className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition-all pr-12"
                         />
-                        <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                        <button
+                          type="button"
+                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        >
                           {showCurrentPassword ? <IconEyeOff size={18} /> : <IconEye size={18} />}
                         </button>
                       </div>
@@ -129,7 +133,11 @@ export default function SettingsPage() {
                             placeholder="Masukkan kata sandi baru"
                             className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition-all pr-12"
                           />
-                          <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                          <button
+                            type="button"
+                            onClick={() => setShowNewPassword(!showNewPassword)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                          >
                             {showNewPassword ? <IconEyeOff size={18} /> : <IconEye size={18} />}
                           </button>
                         </div>

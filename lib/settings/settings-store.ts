@@ -35,7 +35,16 @@ export interface SettingsState {
   activeRoleId: string;
 }
 
-const m = (id: string, name: string, href: string, icon: MenuIconKey, parentId: string | null, order: number, locked = false): MenuItem => ({ id, name, href, icon, parentId, order, active: true, locked: locked || undefined });
+const m = (id: string, name: string, href: string, icon: MenuIconKey, parentId: string | null, order: number, locked = false): MenuItem => ({
+  id,
+  name,
+  href,
+  icon,
+  parentId,
+  order,
+  active: true,
+  locked: locked || undefined,
+});
 
 const seedMenus: MenuItem[] = [
   m("m-dashboard", "Dashboard", "/", "dashboard", null, 0),
@@ -201,8 +210,20 @@ export function moveMenu(id: string, direction: -1 | 1) {
 export function addRole(input: { name: string; description: string; copyFromId?: string }) {
   const s = load();
   const source = s.roles.find((r) => r.id === input.copyFromId);
-  const base = source ? (source.locked ? permissionsFor(s.menus.map((x) => x.id), () => perm(true, true, true, true)) : source.permissions) : {};
-  const role: Role = { id: `role-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`, name: input.name, description: input.description, permissions: JSON.parse(JSON.stringify(base)) };
+  const base = source
+    ? source.locked
+      ? permissionsFor(
+          s.menus.map((x) => x.id),
+          () => perm(true, true, true, true),
+        )
+      : source.permissions
+    : {};
+  const role: Role = {
+    id: `role-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`,
+    name: input.name,
+    description: input.description,
+    permissions: JSON.parse(JSON.stringify(base)),
+  };
   commit({ ...s, roles: [...s.roles, role] });
   return role;
 }

@@ -1,9 +1,10 @@
 "use client";
 
 import React from "react";
+import { compactFieldClass } from "@/components/ui/Input";
 import type { ShelfData } from "@/lib/storage/shelf-model";
 
-export const inputClass = "w-full rounded-lg border border-gray-200 bg-transparent px-3 py-2 text-xs focus:border-violet-600 focus:outline-none dark:border-gray-100/10";
+export const inputClass = compactFieldClass;
 
 export function Slider({ label, value, min, max, onChange }: { label: string; value: number; min: number; max: number; onChange: (v: number) => void }) {
   return (
@@ -18,7 +19,14 @@ export function Slider({ label, value, min, max, onChange }: { label: string; va
 
 export function ColorField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
-    <input type="color" aria-label="Warna" title="Warna" value={value} onChange={(e) => onChange(e.target.value)} className="h-8 w-10 shrink-0 cursor-pointer rounded-md border border-gray-200 bg-transparent dark:border-gray-100/10" />
+    <input
+      type="color"
+      aria-label="Warna"
+      title="Warna"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="h-8 w-10 shrink-0 cursor-pointer rounded-md border border-gray-200 bg-transparent dark:border-gray-100/10"
+    />
   );
 }
 
