@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { IconPackage, IconBoxSeam, IconArrowUpRight, IconCircleCheck, IconClock, IconArrowRight, IconTags, IconBuildingSkyscraper, IconChartDonut3, IconChartBar, IconSpeakerphone, IconAlertTriangle } from "@tabler/icons-react";
 import Link from "next/link";
-import { TableSkeleton } from "@/components/ui/Skeleton";
+import { Skeleton, TableSkeleton } from "@/components/ui/Skeleton";
 import { useInitialLoading } from "@/lib/use-initial-loading";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from "recharts";
+import dynamic from "next/dynamic";
 
 const inventoryStatusData = [
   { status: "Good", total: 2450, color: "#877FC1" },
@@ -43,6 +43,16 @@ const reportStatusData = [
   { status: "Resolved", total: 19, color: "#4ADE80" },
   { status: "Completed", total: 14, color: "#22C55E" },
 ];
+
+// recharts is heavy: load it in its own chunk, after the page shell has rendered
+const chartFallback = () => <Skeleton className="h-full w-full" />;
+const lazyChart = <K extends keyof typeof import("@/components/dashboard/charts")>(name: K) =>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  dynamic(() => import("@/components/dashboard/charts").then((m) => ({ default: m[name] as React.ComponentType<any> })), { ssr: false, loading: chartFallback });
+const InventoryStatusChart = lazyChart("InventoryStatusChart");
+const CategoryReportChart = lazyChart("CategoryReportChart");
+const ServicePieChart = lazyChart("ServicePieChart");
+const ReportStatusChart = lazyChart("ReportStatusChart");
 
 export default function FullDashboard() {
   const tableLoading = useInitialLoading();
@@ -158,31 +168,7 @@ export default function FullDashboard() {
               </button>
             </div>
             <div className="flex-1 p-4 min-h-[240px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={inventoryStatusData} margin={{ left: -20, right: 10, top: 10, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="status" axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 700 }} dy={8} interval={0} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 700 }} />
-                  <Tooltip
-                    cursor={false}
-                    contentStyle={{
-                      borderRadius: "8px",
-                      border: "1px solid rgba(135,127,193,0.25)",
-                      boxShadow: "0 12px 24px -8px rgba(0,0,0,0.3)",
-                      padding: "8px 10px",
-                      background: "#222026",
-                    }}
-                    labelStyle={{ color: "#DBD3F5", fontWeight: 700, marginBottom: 6 }}
-                    itemStyle={{ color: "#F5F6FA", fontWeight: 700, fontSize: "12px" }}
-                    formatter={(value) => [`${value ?? 0} Pcs`, "Total"]}
-                  />
-                  <Bar dataKey="total" radius={[4, 4, 0, 0]} barSize={28}>
-                    {inventoryStatusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <InventoryStatusChart data={inventoryStatusData} />
             </div>
           </div>
 
@@ -240,27 +226,7 @@ export default function FullDashboard() {
               <p className="text-xs text-gray-500">Kategori dengan laporan kerusakan terbanyak</p>
             </div>
             <div className="flex-1 min-h-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={mostReportedByCategory} margin={{ left: 0, right: 10, top: 8, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="category" axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 700 }} interval={0} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 700 }} />
-                  <Tooltip
-                    cursor={false}
-                    contentStyle={{
-                      borderRadius: "8px",
-                      border: "1px solid rgba(135,127,193,0.25)",
-                      boxShadow: "0 12px 24px -8px rgba(0,0,0,0.3)",
-                      padding: "8px 10px",
-                      background: "#222026",
-                    }}
-                    labelStyle={{ color: "#DBD3F5", fontWeight: 700, marginBottom: 6 }}
-                    itemStyle={{ color: "#F5F6FA", fontWeight: 700, fontSize: "12px" }}
-                    formatter={(value) => [`${value ?? 0} Reports`, "Total"]}
-                  />
-                  <Bar dataKey="reports" radius={[4, 4, 0, 0]} barSize={26} fill="#877FC1" />
-                </BarChart>
-              </ResponsiveContainer>
+              <CategoryReportChart data={mostReportedByCategory} />
             </div>
           </div>
 
@@ -276,22 +242,7 @@ export default function FullDashboard() {
             </div>
 
             <div className="h-44 relative">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={serviceBreakdown} dataKey="total" nameKey="name" innerRadius={48} outerRadius={68} paddingAngle={4} stroke="none">
-                    {serviceBreakdown.map((entry) => (
-                      <Cell key={entry.name} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    cursor={false}
-                    contentStyle={{ borderRadius: "8px", border: "1px solid rgba(135,127,193,0.25)", background: "#222026" }}
-                    labelStyle={{ color: "#DBD3F5", fontWeight: 700 }}
-                    itemStyle={{ color: "#F5F6FA", fontWeight: 700, fontSize: "12px" }}
-                    formatter={(value) => [`${value ?? 0} Reports`, "Total"]}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+              <ServicePieChart data={serviceBreakdown} />
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                 <p className="text-xs text-gray-500">Total reports</p>
                 <p className="text-lg font-bold text-gray-900">{totalServiceReports}</p>
@@ -355,25 +306,7 @@ export default function FullDashboard() {
               <p className="text-xs text-gray-500">Pending, in progress, resolved, dan completed</p>
             </div>
             <div className="flex-1 min-h-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={reportStatusData} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="status" axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 700 }} />
-                  <YAxis axisLine={false} tickLine={false} allowDecimals={false} tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 700 }} />
-                  <Tooltip
-                    cursor={false}
-                    contentStyle={{ borderRadius: "8px", border: "1px solid rgba(135,127,193,0.25)", background: "#222026" }}
-                    labelStyle={{ color: "#DBD3F5", fontWeight: 700 }}
-                    itemStyle={{ color: "#F5F6FA", fontWeight: 700, fontSize: "12px" }}
-                    formatter={(value) => [`${value ?? 0} Reports`, "Total"]}
-                  />
-                  <Bar dataKey="total" radius={[6, 6, 0, 0]} barSize={38}>
-                    {reportStatusData.map((entry) => (
-                      <Cell key={entry.status} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <ReportStatusChart data={reportStatusData} />
             </div>
           </div>
         </div>

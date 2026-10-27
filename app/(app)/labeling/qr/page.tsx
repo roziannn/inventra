@@ -2,7 +2,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import QRCode from "qrcode";
 import { IconQrcode, IconDownload, IconRefresh, IconCopy, IconCheck } from "@tabler/icons-react";
 
 export default function QRCodePage() {
@@ -27,6 +26,7 @@ export default function QRCodePage() {
       // Simulate slight delay for UX
       await new Promise((resolve) => setTimeout(resolve, 600));
 
+      const QRCode = (await import("qrcode")).default;
       const url = await QRCode.toDataURL(inputValue, {
         width: qrSize,
         margin: 2,

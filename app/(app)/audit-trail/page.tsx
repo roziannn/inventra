@@ -9,8 +9,6 @@ import Button from "@/components/ui/Button";
 import FormLabel from "@/components/ui/FormLabel";
 import { IconSearch, IconFileExport, IconCalendar } from "@tabler/icons-react";
 import { toast } from "react-hot-toast";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { auditLogs, filterAuditLogsByRange, formatAuditDateRange, formatAuditDateTime } from "@/lib/audit-trail";
 
 export default function AuditTrailPage() {
@@ -43,8 +41,10 @@ export default function AuditTrailPage() {
   const handleExport = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const exportPromise = new Promise((resolve, reject) => {
+    // the PDF libraries are large, so they are only downloaded when an export is requested
+    const exportPromise = (async () => {
       try {
+        const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([import("jspdf"), import("jspdf-autotable")]);
         const exportLogs = filterAuditLogsByRange(auditLogs, startDate, endDate);
         const doc = new jsPDF({
           orientation: "portrait",
@@ -161,12 +161,12 @@ export default function AuditTrailPage() {
         // Use doc.save() which is standard and handles multiple platforms
         doc.save(fileName);
 
-        resolve(`Audit Trail berhasil diunduh.`);
+        return `Audit Trail berhasil diunduh.`;
       } catch (err) {
         console.error(err);
-        reject(err);
+        throw err;
       }
-    });
+    })();
 
     toast.promise(exportPromise, {
       loading: "Mengekspor PDF...",

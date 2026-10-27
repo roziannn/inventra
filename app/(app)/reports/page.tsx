@@ -33,8 +33,6 @@ import {
   IconLoader,
 } from "@tabler/icons-react";
 import { toast } from "react-hot-toast";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 
 const userOptions = [
   { id: "1", label: "Budi Santoso", sublabel: "IT Department" },
@@ -159,8 +157,10 @@ export default function ReportsPage() {
   const handleExport = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const exportPromise = new Promise((resolve, reject) => {
+    // the PDF libraries are large, so they are only downloaded when an export is requested
+    const exportPromise = (async () => {
       try {
+        const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([import("jspdf"), import("jspdf-autotable")]);
         const start = new Date(`${startDate}T00:00:00`);
         const end = new Date(`${endDate}T23:59:59.999`);
 
@@ -284,12 +284,12 @@ export default function ReportsPage() {
         const fileName = `reports-${startDate}-to-${endDate}.pdf`;
         doc.save(fileName);
 
-        resolve(`Data laporan berhasil diunduh.`);
+        return `Data laporan berhasil diunduh.`;
       } catch (err) {
         console.error(err);
-        reject(err);
+        throw err;
       }
-    });
+    })();
 
     toast.promise(exportPromise, {
       loading: "Mengekspor PDF...",
