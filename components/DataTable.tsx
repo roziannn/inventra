@@ -57,7 +57,7 @@ export default function DataTable<T extends { id?: string | number }>({
       <div className="overflow-x-auto rounded-sm">
         <table className="w-full text-left table-auto border-collapse border-0 [&_tr]:border-0 [&_th]:border-0 [&_td]:border-0">
           <thead className="border-0">
-            <tr className="bg-gray-50/60 dark:bg-white/6 text-xs font-bold text-gray-400 uppercase tracking-wide border-0">
+            <tr className="bg-gray-50/60 dark:bg-white/6 text-xs font-bold text-gray-400 border-0">
               {columns.map((col, i) => (
                 <th key={`head-${i}`} className={`${headCellClass} ${col.className || ""} border-0`}>
                   {col.header}
@@ -82,7 +82,7 @@ export default function DataTable<T extends { id?: string | number }>({
                 <td colSpan={columns.length} className="py-20">
                   <div className="flex flex-col items-center justify-center gap-2 opacity-30">
                     <IconInbox size={48} stroke={1.5} />
-                    <p className="text-xs font-bold uppercase tracking-tighter">Data tidak ditemukan</p>
+                    <p className="text-xs font-bold">Data tidak ditemukan</p>
                   </div>
                 </td>
               </tr>

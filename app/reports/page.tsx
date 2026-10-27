@@ -509,28 +509,28 @@ export default function ReportsPage() {
                     <h2 className="text-2xl font-bold text-gray-900">{selectedReport.item}</h2>
                     <p className="text-sm text-gray-500 font-medium">Token ID: {selectedReport.token}</p>
                   </div>
-                  <span className={`text-xs font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${selectedReport.status === "Resolved" ? "bg-violet-100 text-violet-700" : "bg-amber-100 text-amber-700"}`}>
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${selectedReport.status === "Resolved" ? "bg-violet-100 text-violet-700" : "bg-amber-100 text-amber-700"}`}>
                     {selectedReport.status}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-6 py-6 border-y border-gray-50">
                   <div className="space-y-1">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Reporter</p>
+                    <p className="text-xs font-bold text-gray-400">Reporter</p>
                     <div className="flex items-center gap-2">
                       <IconUser size={16} className="text-gray-400" />
                       <span className="text-sm font-bold text-gray-800">{selectedReport.reporter}</span>
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Service Type</p>
+                    <p className="text-xs font-bold text-gray-400">Service type</p>
                     <div className="flex items-center gap-2">
                       {selectedReport.serviceType === "Self service" ? <IconTool size={16} className="text-blue-500" /> : <IconTruck size={16} className="text-purple-500" />}
                       <span className="text-sm font-bold text-gray-800">{selectedReport.serviceType}</span>
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Assign To</p>
+                    <p className="text-xs font-bold text-gray-400">Assign to</p>
                     <span className="text-sm font-bold text-violet-500">{selectedReport.assignee}</span>
                   </div>
                 </div>
@@ -546,11 +546,11 @@ export default function ReportsPage() {
                   <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
                     <IconBookmark size={18} className="text-blue-500" /> Solusi & Penanganan
                   </h3>
-                  <button className="text-xs font-bold text-violet-500 uppercase tracking-widest hover:text-violet-500 transition-colors">Tambah Solusi</button>
+                  <button className="text-xs font-bold text-violet-500 hover:text-violet-500 transition-colors">Tambah solusi</button>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
-                    <thead className="bg-gray-50/50 text-xs font-bold text-gray-400 uppercase tracking-widest">
+                    <thead className="bg-gray-50/50 text-xs font-bold text-gray-400">
                       <tr>
                         <th className="px-6 py-3">Deskripsi Solusi</th>
                         <th className="px-6 py-3">Posted By</th>
@@ -566,8 +566,8 @@ export default function ReportsPage() {
                               <div className="flex items-center gap-2">
                                 {sol.text}
                                 {sol.isReference && (
-                                  <span className="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-black uppercase">
-                                    <IconCheck size={10} stroke={4} /> Verified Ref
+                                  <span className="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-black">
+                                    <IconCheck size={10} stroke={4} /> Verified ref
                                   </span>
                                 )}
                               </div>
@@ -578,12 +578,12 @@ export default function ReportsPage() {
                               <div className="flex justify-center">
                                 <button
                                   onClick={() => toggleReference(sol.id)}
-                                  className={`p-2 rounded-lg transition-all flex items-center gap-2 text-xs font-bold uppercase tracking-tighter ${
+                                  className={`p-2 rounded-lg transition-all flex items-center gap-2 text-xs font-bold ${
                                     sol.isReference ? "text-blue-600 bg-blue-50 ring-1 ring-blue-200" : "text-gray-300 hover:text-blue-600 hover:bg-blue-50"
                                   }`}
                                 >
                                   <IconBookmark size={16} stroke={sol.isReference ? 3 : 2} />
-                                  {sol.isReference ? "Hapus Ref" : "Jadikan Ref"}
+                                  {sol.isReference ? "Hapus ref" : "Jadikan ref"}
                                 </button>
                               </div>
                             </td>
@@ -641,7 +641,7 @@ export default function ReportsPage() {
               </div>
 
               <div className="bg-zinc-900 rounded-2xl p-6 text-white space-y-4 shadow-xl">
-                <p className="text-xs font-bold text-violet-400 uppercase tracking-[0.2em]">Quick Action</p>
+                <p className="text-xs font-bold text-violet-400">Quick action</p>
                 <div className="space-y-3">
                   <button className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border border-white/10">Gunakan Referensi Solusi</button>
                   <button

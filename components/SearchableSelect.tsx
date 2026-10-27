@@ -49,7 +49,7 @@ export default function SearchableSelect({
 
   return (
     <div className="space-y-1 relative" ref={containerRef}>
-      {label && <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">{label}</label>}
+      {label && <label className="text-xs font-bold text-gray-400">{label}</label>}
       
       <div 
         onClick={() => setIsOpen(!isOpen)}

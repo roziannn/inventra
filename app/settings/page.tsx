@@ -108,7 +108,7 @@ export default function SettingsPage() {
                 <form onSubmit={handleUpdatePassword} className="px-6 space-y-6">
                   <div className="grid grid-cols-1 gap-6">
                     <div className="relative">
-                      <label className="block text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Kata Sandi Saat Ini</label>
+                      <label className="block text-sm font-bold text-gray-400 mb-2">Kata sandi saat ini</label>
                       <div className="relative">
                         <input
                           type={showCurrentPassword ? "text" : "password"}
@@ -123,7 +123,7 @@ export default function SettingsPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="relative">
-                        <label className="block text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Kata Sandi Baru</label>
+                        <label className="block text-sm font-bold text-gray-400 mb-2">Kata sandi baru</label>
                         <div className="relative">
                           <input
                             type={showNewPassword ? "text" : "password"}
@@ -136,7 +136,7 @@ export default function SettingsPage() {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Konfirmasi Kata Sandi Baru</label>
+                        <label className="block text-sm font-bold text-gray-400 mb-2">Konfirmasi kata sandi baru</label>
                         <input
                           type={showNewPassword ? "text" : "password"}
                           placeholder="Ulangi kata sandi baru"

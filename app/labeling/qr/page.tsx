@@ -91,7 +91,7 @@ export default function QRCodePage() {
               </h3>
               <form onSubmit={handleGenerate} className="space-y-5">
                 <div className="space-y-2 group">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2 group-focus-within:text-violet-500 transition-colors">Data / ID Asset</label>
+                  <label className="text-xs font-bold text-gray-400 flex items-center gap-2 group-focus-within:text-violet-500 transition-colors">Data / ID asset</label>
                   <div className="relative">
                     <input
                       type="text"
@@ -103,7 +103,7 @@ export default function QRCodePage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">Ukuran (px)</label>
+                  <label className="text-xs font-bold text-gray-400 flex items-center gap-2">Ukuran (px)</label>
                   <div className="relative">
                     <select
                       value={qrSize}
@@ -120,7 +120,7 @@ export default function QRCodePage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Warna QR</label>
+                  <label className="text-xs font-bold text-gray-400">Warna QR</label>
                   <div className="flex gap-3">
                     {colors.map((color) => (
                       <button
@@ -138,13 +138,13 @@ export default function QRCodePage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3.5 bg-zinc-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-zinc-800 shadow-lg shadow-violet-950/20 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-70"
+                  className="w-full py-3.5 bg-zinc-900 text-white rounded-xl font-bold text-xs hover:bg-zinc-800 shadow-lg shadow-violet-950/20 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-70"
                 >
                   {isLoading ? (
                     <IconRefresh size={18} className="animate-spin" />
                   ) : (
                     <>
-                      <IconQrcode size={18} /> Generate Baru
+                      <IconQrcode size={18} /> Generate baru
                     </>
                   )}
                 </button>
@@ -174,19 +174,19 @@ export default function QRCodePage() {
                 <div className="flex flex-col gap-6 w-full max-w-50">
                   <div className="space-y-1 text-center md:text-left">
                     <p className="text-xl font-bold text-gray-900 tracking-tight truncate">{qrValue || "N/A"}</p>
-                    <p className="text-xs text-gray-400 font-bold uppercase tracking-[0.2em]">Preview Label QR</p>
+                    <p className="text-xs text-gray-400 font-bold">Preview label QR</p>
                   </div>
 
                   <div className="flex flex-col gap-3">
                     <button
                       onClick={handleDownload}
-                      className="w-full flex items-center justify-center gap-3 px-6 py-3.5 bg-gray-900 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-black transition-all shadow-lg active:scale-95"
+                      className="w-full flex items-center justify-center gap-3 px-6 py-3.5 bg-gray-900 text-white rounded-xl text-xs font-bold hover:bg-black transition-all shadow-lg active:scale-95"
                     >
                       <IconDownload size={18} /> Download
                     </button>
                     <button
                       onClick={handleCopy}
-                      className="w-full flex items-center justify-center gap-3 px-6 py-3.5 bg-white border border-gray-200 text-gray-700 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-gray-50 transition-all active:scale-95"
+                      className="w-full flex items-center justify-center gap-3 px-6 py-3.5 bg-white border border-gray-200 text-gray-700 rounded-xl text-xs font-bold hover:bg-gray-50 transition-all active:scale-95"
                     >
                       {isCopied ? <IconCheck size={18} className="text-violet-500" /> : <IconCopy size={18} />}
                       {isCopied ? "Copied" : "Copy ID"}

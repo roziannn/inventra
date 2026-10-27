@@ -106,7 +106,7 @@ export default function PrintLabelPage() {
       className: "w-[60px] text-center",
     },
     {
-      header: "Nama Item",
+      header: "Nama item",
       accessor: (item: any) => (
         <div className="min-w-0 py-1 flex items-center gap-2">
           <p className="font-bold text-gray-900 truncate leading-tight">{item.name}</p>
@@ -131,7 +131,7 @@ export default function PrintLabelPage() {
       header: "Stok",
       accessor: (item: any) => (
         <span className={`text-sm font-bold tabular-nums ${item.stock < 10 ? "text-rose-600" : "text-gray-700"}`}>
-          {item.stock} <span className="text-xs font-medium text-gray-400 uppercase ml-0.5">Unit</span>
+          {item.stock} <span className="text-xs font-medium text-gray-400 ml-0.5">Unit</span>
         </span>
       ),
     },
@@ -165,7 +165,7 @@ export default function PrintLabelPage() {
             />
           </div>
           <div className="flex items-center gap-3 w-full md:w-auto">
-            <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest">
+            <div className="flex items-center gap-2 text-xs font-bold text-gray-400">
               <IconFilter size={16} />
               <span>Filter:</span>
             </div>
@@ -192,8 +192,8 @@ export default function PrintLabelPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-6">
                 <div className="space-y-3">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                    <IconCopy size={16} /> Salinan per Item
+                  <label className="text-xs font-bold text-gray-400 flex items-center gap-2">
+                    <IconCopy size={16} /> Salinan per item
                   </label>
                   <div className="flex items-center gap-3">
                     <button
@@ -221,8 +221,8 @@ export default function PrintLabelPage() {
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                    <IconFileText size={16} /> Ukuran Kertas
+                  <label className="text-xs font-bold text-gray-400 flex items-center gap-2">
+                    <IconFileText size={16} /> Ukuran kertas
                   </label>
                   <select
                     value={paperSize}
@@ -236,8 +236,8 @@ export default function PrintLabelPage() {
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                    <IconMaximize size={16} /> Dimensi Label
+                  <label className="text-xs font-bold text-gray-400 flex items-center gap-2">
+                    <IconMaximize size={16} /> Dimensi label
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     {sizes.map((s) => (
@@ -250,7 +250,7 @@ export default function PrintLabelPage() {
                         <p className={`text-xs font-bold ${labelSize === s.id ? "text-violet-700" : "text-gray-700"}`}>
                           {s.name} ({s.id})
                         </p>
-                        <p className="text-xs text-gray-400 font-medium uppercase">{s.desc}</p>
+                        <p className="text-xs text-gray-400 font-medium">{s.desc}</p>
                       </button>
                     ))}
                   </div>
@@ -258,7 +258,7 @@ export default function PrintLabelPage() {
               </div>
 
               <div className="flex flex-col items-center justify-center bg-gray-50 rounded-2xl p-6 border border-dashed border-gray-200 relative overflow-hidden">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">Pratinjau Label</p>
+                <p className="text-xs font-bold text-gray-400 mb-6">Pratinjau label</p>
                 <div className={`bg-white border-2 border-gray-900 rounded-md shadow-2xl flex flex-col p-2 transition-all duration-300 overflow-hidden ${getPreviewSize()}`}>
                   <div className="flex justify-between items-start border-b border-gray-100 pb-1 mb-1">
                     <div className="font-black leading-tight text-gray-900">INVENTRA</div>
