@@ -29,6 +29,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Sulphur_Point } from "next/font/google";
 import { searchData } from "@/lib/search-data";
+import HeaderBreadcrumb from "@/components/HeaderBreadcrumb";
 import { MENU_ICONS } from "@/lib/menu-icons";
 import { sidebarFor, useSettings } from "@/lib/settings-store";
 import toast from "react-hot-toast";
@@ -365,12 +366,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* --- MAIN CONTENT --- */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
         {/* Navbar */}
-        <header className="h-16 bg-card flex items-center justify-between px-4 lg:px-8 shrink-0 z-80 transition-colors duration-300">
-          <div className="flex items-center gap-3">
+        <header className="h-16 bg-card grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 lg:px-8 shrink-0 z-80 transition-colors duration-300">
+          <div className="flex min-w-0 items-center gap-3">
             <button onClick={() => setIsMobileMenuOpen(true)} className="lg:hidden p-2 hover:bg-gray-100 rounded-lg text-gray-600">
               <IconMenu2 size={24} />
             </button>
-            <div className="relative w-48 md:w-64 lg:w-96 group" ref={searchRef}>
+            <div className="hidden min-w-0 overflow-hidden md:block">
+              <HeaderBreadcrumb />
+            </div>
+          </div>
+          <div className="relative w-40 sm:w-64 lg:w-96 group" ref={searchRef}>
               <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-violet-500" size={18} />
               <input
                 type="text"
@@ -422,8 +427,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </div>
               )}
             </div>
-          </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-end gap-2">
             <button onClick={toggleTheme} aria-label="Toggle theme" className="p-2 rounded-lg border border-border bg-muted/60 hover:bg-muted transition-colors text-gray-600 dark:text-gray-200">
               {mounted ? theme === "dark" ? <IconMoon size={18} /> : <IconSun size={18} /> : <span className="block h-[18px] w-[18px]" aria-hidden="true" />}
             </button>

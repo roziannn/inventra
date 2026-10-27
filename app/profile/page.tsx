@@ -16,7 +16,7 @@ export default function ProfilePage() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-4xl mx-auto">
+      <div className="w-full">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Profil Saya</h1>
           <p className="mt-1 text-sm text-gray-500">Informasi pribadi dan detail akun Anda.</p>
