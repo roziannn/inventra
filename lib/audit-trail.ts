@@ -8,16 +8,16 @@ export interface AuditLog {
 }
 
 const auditTemplates = [
-  { action: "Create", target: "Inventory", description: "Menambahkan barang MacBook Pro M3 ke inventaris utama." },
-  { action: "Update", target: "Asset", description: "Memperbarui detail aset Monitor Dell 24 inci di area display." },
+  { action: "Create", target: "Inventory", description: "Menambahkan 20 unit Intel Core i7-14700K dari penerimaan barang vendor." },
+  { action: "Update", target: "Asset", description: "Memperbarui kondisi aset Dell PowerEdge R650 menjadi Maintenance." },
   { action: "Delete", target: "User", description: "Menghapus akun staf gudang yang sudah dinonaktifkan." },
   { action: "Login", target: "System", description: "Masuk ke dashboard Inventra melalui halaman login." },
-  { action: "Update", target: "Vendor", description: "Memperbarui nomor kontak vendor PT Sumber Makmur." },
-  { action: "Create", target: "Report", description: "Membuat laporan stok rendah untuk evaluasi mingguan." },
+  { action: "Update", target: "Vendor", description: "Memperbarui nomor kontak PT Nusantara Komponen Digital." },
+  { action: "Create", target: "Report", description: "Membuat laporan kerusakan SSD NVMe tidak terdeteksi pada ThinkPad T14." },
   { action: "Export", target: "Audit Trail", description: "Mengunduh log audit trail dalam format PDF." },
-  { action: "Update", target: "Settings", description: "Mengubah preferensi notifikasi sistem akun admin." },
-  { action: "Create", target: "Asset", description: "Menambahkan aset baru berupa printer barcode Zebra." },
-  { action: "Delete", target: "Inventory", description: "Menghapus item duplikat dari kategori stationary." },
+  { action: "Update", target: "Storage", description: "Memindahkan 12 unit RTX 4070 ke Rak GPU tingkat 2 di Gudang Komponen." },
+  { action: "Create", target: "Asset", description: "Menambahkan aset baru berupa printer label Zebra ZD421." },
+  { action: "Update", target: "Inventory", description: "Menyesuaikan stok Thermal Grizzly Kryonaut 1g setelah stock opname." },
 ];
 
 const auditUsers = ["Admin User", "Manager User", "Supervisor Gudang", "Staff Inventory"];

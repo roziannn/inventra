@@ -26,22 +26,11 @@ import {
   IconCircleX,
 } from "@tabler/icons-react";
 import { toast } from "react-hot-toast";
+import { assetCategories, demoAssets } from "@/lib/demo/hardware";
 
-const initialAssets = Array.from({ length: 30 }, (_, i) => ({
-  id: `AST-${2000 + i}`,
-  name: i % 2 === 0 ? `MacBook Pro M${(i % 3) + 1}` : `Monitor Dell UltraSharp ${i + 20}"`,
-  category: i % 4 === 0 ? "IT Equipment" : i % 4 === 1 ? "Office Supply" : i % 4 === 2 ? "Vehicle" : "Machinery",
-  serialNumber: `SN-${10000 + i}XYZ`,
-  condition: i % 5 === 0 ? "Maintenance" : "Good",
-  assignee: i % 3 === 0 ? "Budi S." : i % 3 === 1 ? "Siti A." : "Unassigned",
-}));
+const initialAssets = demoAssets;
 
-const initialCategories = [
-  { name: "IT Equipment", isActive: true },
-  { name: "Office Supply", isActive: true },
-  { name: "Vehicle", isActive: true },
-  { name: "Machinery", isActive: true },
-];
+const initialCategories = assetCategories.map((name) => ({ name: name as string, isActive: true }));
 
 type Asset = (typeof initialAssets)[number];
 
@@ -56,7 +45,7 @@ export default function AssetsPage() {
   const [formData, setFormData] = useState({
     name: "",
     serialNumber: "",
-    category: "IT Equipment",
+    category: "Laptop",
     assignee: "Unassigned",
     condition: "Good",
   });
@@ -64,7 +53,7 @@ export default function AssetsPage() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingAsset(null);
-    setFormData({ name: "", serialNumber: "", category: "IT Equipment", assignee: "Unassigned", condition: "Good" });
+    setFormData({ name: "", serialNumber: "", category: "Laptop", assignee: "Unassigned", condition: "Good" });
   };
 
   const handleEditClick = (asset: Asset) => {

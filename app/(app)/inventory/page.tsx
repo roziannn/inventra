@@ -25,20 +25,19 @@ import {
   IconCircleX,
 } from "@tabler/icons-react";
 import { toast } from "react-hot-toast";
+import { hardwareCatalog, hardwareCategories, isLowStock } from "@/lib/demo/hardware";
 
-const initialInventory = [
-  { id: "INV-1001", name: "MacBook Pro M3", category: "Electronic", sku: "LAP-001", stock: 15, unit: "Unit", status: "In stock" },
-  { id: "INV-1002", name: "Kursi Kerja Ergonomis", category: "Furniture", sku: "FUR-024", stock: 8, unit: "Pcs", status: "Low stock" },
-  { id: "INV-1003", name: "Kertas A4 80gr", category: "Stationery", sku: "PAP-010", stock: 120, unit: "Rim", status: "In stock" },
-  { id: "INV-1004", name: "Monitor Dell 24 inch", category: "Electronic", sku: "MON-005", stock: 5, unit: "Unit", status: "Low stock" },
-  { id: "INV-1005", name: "Meja Meeting Kayu", category: "Furniture", sku: "FUR-088", stock: 2, unit: "Unit", status: "Low stock" },
-];
+const initialInventory = hardwareCatalog.map((item) => ({
+  id: item.id,
+  name: item.name,
+  category: item.category as string,
+  sku: item.sku,
+  stock: item.stock,
+  unit: item.unit,
+  status: isLowStock(item) ? "Low stock" : "In stock",
+}));
 
-const initialCategories = [
-  { name: "Electronic", isActive: true },
-  { name: "Stationery", isActive: true },
-  { name: "Furniture", isActive: true },
-];
+const initialCategories = hardwareCategories.map((name) => ({ name: name as string, isActive: true }));
 
 type InventoryItem = (typeof initialInventory)[number];
 
@@ -58,7 +57,7 @@ export default function InventoryPage() {
   const [formData, setFormData] = useState({
     name: "",
     sku: "",
-    category: "Electronic",
+    category: hardwareCategories[0] as string,
     stock: "",
     unit: "Pcs",
   });
@@ -77,7 +76,7 @@ export default function InventoryPage() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingItem(null);
-    setFormData({ name: "", sku: "", category: "Electronic", stock: "", unit: "Pcs" });
+    setFormData({ name: "", sku: "", category: hardwareCategories[0], stock: "", unit: "Pcs" });
   };
 
   const handleEditClick = (item: InventoryItem) => {

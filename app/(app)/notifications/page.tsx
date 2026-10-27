@@ -14,7 +14,7 @@ const dummyNotifications = [
   {
     id: 1,
     title: "Stok Menipis",
-    description: "Item 'Laptop Dell XPS 15' tersisa 2 unit lagi di gudang pusat.",
+    description: "RAM 'Corsair Vengeance DDR5 32GB' tersisa 4 kit, di bawah batas minimum 20 kit.",
     time: "5 menit yang lalu",
     type: "alert",
     icon: IconAlertCircle,
@@ -24,7 +24,7 @@ const dummyNotifications = [
   {
     id: 2,
     title: "Aset Baru Ditugaskan",
-    description: "Aset 'Monitor LG 24\"' telah berhasil ditugaskan kepada Budi Santoso.",
+    description: "Aset 'Dell Latitude 5440' telah berhasil ditugaskan kepada Budi Santoso.",
     time: "1 jam yang lalu",
     type: "inventory",
     icon: IconPackage,
@@ -34,7 +34,7 @@ const dummyNotifications = [
   {
     id: 3,
     title: "Laporan Mingguan Siap",
-    description: "Laporan inventaris mingguan untuk periode 15-21 Maret telah selesai dibuat.",
+    description: "Laporan mutasi stok komponen PC untuk periode 15-21 Maret telah selesai dibuat.",
     time: "3 jam yang lalu",
     type: "report",
     icon: IconFileAnalytics,
@@ -44,7 +44,7 @@ const dummyNotifications = [
   {
     id: 4,
     title: "User Baru Terdaftar",
-    description: "Pengguna baru 'Siti Aminah' telah ditambahkan sebagai Staff Gudang.",
+    description: "Pengguna baru 'Siti Aminah' telah ditambahkan sebagai Staff Gudang Komponen.",
     time: "Kemarin, 14:30",
     type: "user",
     icon: IconUserPlus,

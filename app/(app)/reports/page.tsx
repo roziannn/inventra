@@ -47,29 +47,78 @@ const userOptions = [
 const assigneeOptions = [
   { id: "t1", label: "Teknisi Andi", sublabel: "Internal IT" },
   { id: "t2", label: "Teknisi Budi", sublabel: "Maintenance" },
-  { id: "v1", label: "PT Sejahtera Service", sublabel: "Vendor" },
+  { id: "v1", label: "PT Jaringan Sentosa Network", sublabel: "Vendor" },
   { id: "v2", label: "Dell Support Indonesia", sublabel: "Vendor" },
-  { id: "v3", label: "CV Maju Jaya", sublabel: "Vendor" },
+  { id: "v3", label: "CV Maju Jaya Hardware", sublabel: "Vendor" },
 ];
 
-const initialReports = Array.from({ length: 25 }, (_, i) => ({
-  id: `TRX-${1000 + i}`,
-  item: i % 2 === 0 ? "MacBook Pro M1" : 'Monitor Dell 24"',
-  reporter: i % 2 === 0 ? "Budi Santoso" : "Siti Aminah",
-  author: "Admin System",
-  status: i % 3 === 0 ? "Pending" : i % 3 === 1 ? "In progress" : "Resolved",
-  reportDate: new Date(2026, 2, (i % 28) + 1),
-  token: `TOKEN-${1000 + i}X`,
-  problem: "Layar berkedip saat digunakan lebih dari 2 jam. Kemungkinan overheat pada chipset grafis.",
-  serviceType: i % 2 === 0 ? "Self service" : "By vendor",
-  assignee: i % 2 === 0 ? "Teknisi Andi" : "PT Sejahtera Service",
-  comments: [
-    { user: "Andi", text: "Sudah dicek, butuh ganti thermal paste.", date: "2026-03-20 11:00" },
-    { user: "Admin", text: "Silahkan diproses segera.", date: "2026-03-20 11:30" },
-  ],
-  solutions: [{ id: "SOL-1", text: "Pembersihan debu pada fan dan penggantian thermal paste.", author: "Andi", date: "2026-03-20 14:00", isReference: i === 0 }],
-  createdAt: new Date(2026, 2, (i % 28) + 1),
-}));
+const reportCases = [
+  {
+    item: "Dell Latitude 5440",
+    reporter: "Budi Santoso",
+    problem: "Layar berkedip saat laptop dipakai lebih dari 2 jam. Kemungkinan overheat pada chip grafis.",
+    comment: "Sudah dicek, thermal paste kering dan perlu diganti.",
+    solution: "Pembersihan debu pada fan dan penggantian thermal paste Arctic MX-4.",
+  },
+  {
+    item: "Dell PowerEdge R650 Server",
+    reporter: "Siti Aminah",
+    problem: "Fan CPU berisik dan suhu server naik di atas 80 derajat saat beban penuh.",
+    comment: "Fan modul 3 mulai aus, perlu diganti.",
+    solution: "Penggantian modul fan 3 dan pembersihan heatsink prosesor.",
+  },
+  {
+    item: "Lenovo ThinkPad T14 Gen 4",
+    reporter: "Andi Wijaya",
+    problem: "SSD NVMe tidak terdeteksi setelah laptop dibawa dinas luar kota.",
+    comment: "Slot M.2 longgar, SSD perlu dipasang ulang.",
+    solution: "Pemasangan ulang SSD Samsung 990 Pro dan pengecekan firmware.",
+  },
+  {
+    item: "Dell UltraSharp U2723QE 27 inch",
+    reporter: "Rina Permata",
+    problem: "Muncul garis vertikal pada layar dan warna terlihat pudar di sisi kanan.",
+    comment: "Kabel DisplayPort diganti dulu untuk memastikan bukan masalah sinyal.",
+    solution: "Penggantian kabel DisplayPort 1.4 dan kalibrasi ulang warna.",
+  },
+  {
+    item: "HP Z2 G9 Workstation",
+    reporter: "Dewi Lestari",
+    problem: "Komputer restart sendiri saat rendering 3D. Dicurigai PSU atau RAM bermasalah.",
+    comment: "Tes memtest86 menunjukkan error pada satu modul RAM.",
+    solution: "Penggantian modul RAM Kingston Fury 16GB yang rusak.",
+  },
+  {
+    item: "APC Smart-UPS 1500VA",
+    reporter: "Rizky Ananda",
+    problem: "UPS berbunyi alarm terus-menerus dan daya cadangan hanya bertahan 3 menit.",
+    comment: "Baterai sudah lebih dari 3 tahun, kapasitas turun.",
+    solution: "Penggantian paket baterai dan reset kalibrasi runtime.",
+  },
+];
+
+const initialReports = Array.from({ length: 25 }, (_, i) => {
+  const c = reportCases[i % reportCases.length];
+  const byVendor = i % 2 === 1;
+  return {
+    id: `TRX-${1000 + i}`,
+    item: c.item,
+    reporter: c.reporter,
+    author: "Admin System",
+    status: i % 3 === 0 ? "Pending" : i % 3 === 1 ? "In progress" : "Resolved",
+    reportDate: new Date(2026, 2, (i % 28) + 1),
+    token: `TOKEN-${1000 + i}X`,
+    problem: c.problem,
+    serviceType: byVendor ? "By vendor" : "Self service",
+    assignee: byVendor ? "Dell Support Indonesia" : "Teknisi Andi",
+    comments: [
+      { user: "Andi", text: c.comment, date: "2026-03-20 11:00" },
+      { user: "Admin", text: "Silakan diproses segera.", date: "2026-03-20 11:30" },
+    ],
+    solutions: [{ id: "SOL-1", text: c.solution, author: "Andi", date: "2026-03-20 14:00", isReference: i === 0 }],
+    createdAt: new Date(2026, 2, (i % 28) + 1),
+  };
+});
 
 const formatDateTimeShort = (dateStr: string) => {
   const d = new Date(dateStr);

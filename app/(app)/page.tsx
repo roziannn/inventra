@@ -19,6 +19,7 @@ import Link from "next/link";
 import { Skeleton, TableSkeleton } from "@/components/ui/Skeleton";
 import { useInitialLoading } from "@/lib/use-initial-loading";
 import dynamic from "next/dynamic";
+import { demoAssets, lowStockItems, lowStockLevel, totalStock } from "@/lib/demo/hardware";
 
 const inventoryStatusData = [
   { status: "Good", total: 2450, color: "#877FC1" },
@@ -30,20 +31,18 @@ const inventoryStatusData = [
 ];
 
 const mostReportedByCategory = [
-  { category: "IT Equipment", reports: 24 },
-  { category: "Furniture", reports: 17 },
-  { category: "Office Supply", reports: 13 },
-  { category: "Vehicle", reports: 9 },
-  { category: "Machinery", reports: 7 },
+  { category: "Laptop", reports: 24 },
+  { category: "Monitor", reports: 17 },
+  { category: "Workstation", reports: 13 },
+  { category: "Server", reports: 9 },
+  { category: "Network", reports: 7 },
 ];
 
-const lowStockAlerts = [
-  { item: "RJ45 Connector Cat6", sku: "TEC-RJ45-01", stock: 42, minStock: 120, level: "Low" },
-  { item: "LAN Cable Cat6 2m", sku: "TEC-LAN-02", stock: 18, minStock: 60, level: "Urgent" },
-  { item: "SSD Thermal Pad", sku: "TEC-THM-03", stock: 9, minStock: 30, level: "Urgent" },
-  { item: "Cable Ties 20cm", sku: "TEC-TIE-04", stock: 75, minStock: 150, level: "Low" },
-  { item: "Battery CMOS CR2032", sku: "TEC-BAT-05", stock: 14, minStock: 40, level: "Urgent" },
-];
+// the five items that are furthest below their minimum stock
+const lowStockAlerts = [...lowStockItems]
+  .sort((a, b) => a.stock / a.minStock - b.stock / b.minStock)
+  .slice(0, 5)
+  .map((i) => ({ item: i.name, sku: i.sku, stock: i.stock, minStock: i.minStock, level: lowStockLevel(i) }));
 
 const serviceBreakdown = [
   { name: "Self service", total: 41, color: "#877FC1" },
@@ -97,10 +96,19 @@ export default function FullDashboard() {
   }, []);
 
   const stats = [
-    { label: "Inventory", val: "4,120", sub: "Pcs", delta: "+6.2%", icon: IconPackage, color: "text-violet-600", bg: "bg-violet-50", chip: "bg-violet-500/10 text-violet-600" },
-    { label: "Assets", val: "284", sub: "Units", delta: "+2.1%", icon: IconBoxSeam, color: "text-blue-600", bg: "bg-blue-50", chip: "bg-blue-500/10 text-blue-600" },
-    { label: "Vendors", val: "124", sub: "Partners", delta: "+1.4%", icon: IconBuildingSkyscraper, color: "text-purple-600", bg: "bg-purple-50", chip: "bg-purple-500/10 text-purple-600" },
-    { label: "Low stock", val: "5", sub: "Urgent", delta: "-9.0%", icon: IconAlertTriangle, color: "text-red-600", bg: "bg-red-50", chip: "bg-red-500/10 text-red-600" },
+    {
+      label: "Inventory",
+      val: totalStock.toLocaleString("en-US"),
+      sub: "Pcs",
+      delta: "+6.2%",
+      icon: IconPackage,
+      color: "text-violet-600",
+      bg: "bg-violet-50",
+      chip: "bg-violet-500/10 text-violet-600",
+    },
+    { label: "Assets", val: String(demoAssets.length), sub: "Units", delta: "+2.1%", icon: IconBoxSeam, color: "text-blue-600", bg: "bg-blue-50", chip: "bg-blue-500/10 text-blue-600" },
+    { label: "Vendors", val: "8", sub: "Partners", delta: "+1.4%", icon: IconBuildingSkyscraper, color: "text-purple-600", bg: "bg-purple-50", chip: "bg-purple-500/10 text-purple-600" },
+    { label: "Low stock", val: String(lowStockItems.length), sub: "Items", delta: "-9.0%", icon: IconAlertTriangle, color: "text-red-600", bg: "bg-red-50", chip: "bg-red-500/10 text-red-600" },
   ];
 
   const quickActions = [

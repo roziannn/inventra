@@ -1,16 +1,11 @@
+import { demoAssets, hardwareCatalog } from "@/lib/demo/hardware";
+
 export const searchData = {
-  inventory: [
-    { id: "INV-1000", title: "Item 1 Pro", category: "Electronic", sku: "SKU-8000" },
-    { id: "INV-1001", title: "Standard Item 2", category: "Stationery", sku: "SKU-8001" },
-    { id: "INV-1002", title: "Item 3 Pro", category: "Furniture", sku: "SKU-8002" },
-  ],
-  assets: [
-    { id: "AST-2000", title: "MacBook Pro M1", category: "IT Equipment", serial: "SN-10000XYZ" },
-    { id: "AST-2001", title: "Monitor Dell UltraSharp", category: "Office Supply", serial: "SN-10001XYZ" },
-  ],
+  inventory: hardwareCatalog.map((i) => ({ id: i.id, title: i.name, category: i.category as string, sku: i.sku })),
+  assets: demoAssets.map((a) => ({ id: a.id, title: a.name, category: a.category, serial: a.serialNumber })),
   reports: [
-    { id: "TRX-1000", title: "MacBook Pro M1", reporter: "Budi Santoso", token: "TOKEN-ABC" },
-    { id: "TRX-1001", title: 'Monitor Dell 24"', reporter: "Siti Aminah", token: "TOKEN-DEF" },
+    { id: "TRX-1000", title: "Dell Latitude 5440", reporter: "Budi Santoso", token: "TOKEN-1000X" },
+    { id: "TRX-1001", title: "Dell PowerEdge R650 Server", reporter: "Siti Aminah", token: "TOKEN-1001X" },
   ],
   users: [
     { id: "USR-500", title: "Ahmad", email: "user0@inventra.co.id" },
@@ -18,7 +13,7 @@ export const searchData = {
     { id: "USR-502", title: "John Doe", email: "user2@inventra.co.id" },
   ],
   vendors: [
-    { id: "VND-100", title: "PT. Global Teknologi", email: "contact@globaltek.co.id", category: "IT Hardware" },
-    { id: "VND-101", title: "CV. Alat Tulis Makmur", email: "sales@atkmakmur.com", category: "Office Supplies" },
+    { id: "VND-101", title: "PT. Nusantara Komponen Digital", email: "sales@nusantarakomponen.co.id", category: "Processor & Memory" },
+    { id: "VND-102", title: "PT. Prima Chip Teknologi", email: "order@primachip.co.id", category: "Storage" },
   ],
 };
