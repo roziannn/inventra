@@ -24,6 +24,8 @@ import { Sulphur_Point } from "next/font/google";
 import { searchData } from "@/lib/search-data";
 import HeaderBreadcrumb from "@/components/layout/HeaderBreadcrumb";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import AccessDenied from "@/components/layout/AccessDenied";
+import { findMenuForPath, permissionsFor } from "@/lib/settings/permissions";
 import { useHydrated } from "@/lib/use-hydrated";
 import { MENU_ICONS } from "@/lib/settings/menu-icons";
 import { sidebarFor, useSettings } from "@/lib/settings/settings-store";
@@ -50,6 +52,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const { menus, roles, activeRoleId } = useSettings();
   const activeRole = roles.find((r) => r.id === activeRoleId);
+  const currentMenu = findMenuForPath(menus, pathname);
+  const canOpenPage = permissionsFor(currentMenu, activeRole).view;
   const sidebarItems = React.useMemo(
     () =>
       sidebarFor(menus, activeRole).map(({ menu, subs }) => ({
@@ -405,7 +409,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* Page Content */}
         <section ref={contentRef} className="flex-1 overflow-y-auto p-4 lg:p-6 bg-background">
-          {children}
+          {canOpenPage ? children : <AccessDenied menuName={currentMenu?.name} />}
         </section>
 
         {/* Footer */}

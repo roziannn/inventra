@@ -4,6 +4,7 @@ import React, { useState, useMemo } from "react";
 import DataTable from "@/components/ui/DataTable";
 import Badge from "@/components/ui/Badge";
 import { useInitialLoading } from "@/lib/use-initial-loading";
+import { usePermissions } from "@/lib/settings/permissions";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import PageHeader from "@/components/ui/PageHeader";
@@ -26,77 +27,108 @@ import {
   IconCircleX,
 } from "@tabler/icons-react";
 import { toast } from "react-hot-toast";
+import { vendorCategories } from "@/lib/demo/hardware";
 
-// 1. Data Vendor Riil (5 Data)
 const initialVendors = [
   {
     id: "VND-101",
-    name: "PT. Telekomunikasi Indonesia",
+    name: "PT. Nusantara Komponen Digital",
     contactPerson: "Budi Santoso",
-    email: "corp@telkom.co.id",
+    email: "sales@nusantarakomponen.co.id",
     phone: "021-5243500",
-    category: "IT Hardware",
+    category: "Processor & Memory",
     status: "Active",
-    address: "Jl. Gatot Subroto No.52, Jakarta",
+    address: "Jl. Mangga Dua Raya No.12, Jakarta Utara",
     createdBy: "Administrator",
     createdAt: new Date(2026, 2, 3),
   },
   {
     id: "VND-102",
-    name: "PT. Astra Graphia Tbk",
+    name: "PT. Prima Chip Teknologi",
     contactPerson: "Siti Aminah",
-    email: "info@astragraphia.co.id",
+    email: "order@primachip.co.id",
     phone: "021-3909191",
-    category: "Office Supplies",
+    category: "Storage",
     status: "Active",
-    address: "Jl. Kramat Raya No.43, Jakarta",
+    address: "Jl. Hayam Wuruk No.88, Jakarta Pusat",
     createdBy: "Administrator",
     createdAt: new Date(2026, 2, 5),
   },
   {
     id: "VND-103",
-    name: "PT. Sumber Alfaria Trijaya",
+    name: "CV. Maju Jaya Hardware",
     contactPerson: "Andi Wijaya",
-    email: "supply@alfamart.co.id",
+    email: "cs@majujayahardware.com",
     phone: "021-5575596",
-    category: "Logistics",
-    status: "Inactive",
-    address: "Jl. Jalur Sutera Barat No.9, Tangerang",
+    category: "Peripheral & Monitor",
+    status: "Active",
+    address: "Jl. Glodok Plaza Blok C No.7, Jakarta Barat",
     createdBy: "Administrator",
     createdAt: new Date(2026, 2, 8),
   },
   {
     id: "VND-104",
-    name: "PT. United Tractors Tbk",
+    name: "PT. Jaringan Sentosa Network",
     contactPerson: "Hendra Kurniawan",
-    email: "procurement@unitedtractors.com",
+    email: "procurement@jaringansentosa.co.id",
     phone: "021-2457999",
-    category: "Maintenance",
+    category: "Networking",
     status: "Active",
-    address: "Jl. Raya Bekasi Km.22, Jakarta",
+    address: "Jl. Gatot Subroto Kav.21, Jakarta Selatan",
     createdBy: "Administrator",
     createdAt: new Date(2026, 2, 10),
   },
   {
     id: "VND-105",
-    name: "PT. Indofood Sukses Makmur",
+    name: "PT. Sinar Elektronik Utama",
     contactPerson: "Rina Permata",
-    email: "vendor@indofood.com",
+    email: "vendor@sinarelektronik.co.id",
     phone: "021-5795882",
-    category: "Logistics",
+    category: "Power & UPS",
     status: "Active",
-    address: "Sudirman Plaza, Indofood Tower, Jakarta",
+    address: "Jl. Raya Bekasi Km.22, Jakarta Timur",
     createdBy: "Administrator",
     createdAt: new Date(2026, 2, 12),
   },
+  {
+    id: "VND-106",
+    name: "PT. Dingin Sejuk Cooling Indonesia",
+    contactPerson: "Dewi Lestari",
+    email: "info@dinginsejuk.co.id",
+    phone: "022-7301245",
+    category: "Cooling & Casing",
+    status: "Inactive",
+    address: "Jl. Soekarno-Hatta No.145, Bandung",
+    createdBy: "Administrator",
+    createdAt: new Date(2026, 2, 14),
+  },
+  {
+    id: "VND-107",
+    name: "PT. Global Peripheral Indonesia",
+    contactPerson: "Rizky Ananda",
+    email: "sales@globalperipheral.co.id",
+    phone: "031-5678123",
+    category: "Peripheral & Monitor",
+    status: "Active",
+    address: "Jl. Kembang Jepun No.31, Surabaya",
+    createdBy: "Administrator",
+    createdAt: new Date(2026, 2, 16),
+  },
+  {
+    id: "VND-108",
+    name: "CV. Kabel Nusa Data",
+    contactPerson: "John Pratama",
+    email: "kontak@kabelnusadata.com",
+    phone: "021-6325510",
+    category: "Networking",
+    status: "Active",
+    address: "Jl. Pasar Pagi No.5, Jakarta Barat",
+    createdBy: "Administrator",
+    createdAt: new Date(2026, 2, 18),
+  },
 ];
 
-const initialCategories = [
-  { name: "IT Hardware", isActive: true },
-  { name: "Office Supplies", isActive: true },
-  { name: "Maintenance", isActive: true },
-  { name: "Logistics", isActive: true },
-];
+const initialCategories = vendorCategories.map((name) => ({ name: name as string, isActive: true }));
 
 type Vendor = (typeof initialVendors)[number];
 
@@ -118,7 +150,7 @@ export default function VendorsPage() {
     contactPerson: "",
     email: "",
     phone: "",
-    category: "IT Hardware",
+    category: vendorCategories[0] as string,
     address: "",
     status: "Active",
   });
@@ -146,7 +178,7 @@ export default function VendorsPage() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingItem(null);
-    setFormData({ name: "", contactPerson: "", email: "", phone: "", category: "IT Hardware", address: "", status: "Active" });
+    setFormData({ name: "", contactPerson: "", email: "", phone: "", category: vendorCategories[0] as string, address: "", status: "Active" });
   };
 
   const handleEditClick = (item: Vendor) => {
@@ -190,6 +222,7 @@ export default function VendorsPage() {
   };
 
   const loading = useInitialLoading();
+  const perm = usePermissions("/vendors");
 
   const columns = [
     {
@@ -233,17 +266,21 @@ export default function VendorsPage() {
         );
       },
     },
-    {
-      header: "Aksi",
-      accessor: (item: Vendor) => (
-        <button
-          onClick={() => handleEditClick(item)}
-          className="p-2 text-gray-400 hover:text-violet-600 dark:hover:text-violet-300 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/12 transition-all"
-        >
-          <IconEdit size={18} />
-        </button>
-      ),
-    },
+    ...(perm.edit
+      ? [
+          {
+            header: "Aksi",
+            accessor: (item: Vendor) => (
+              <button
+                onClick={() => handleEditClick(item)}
+                className="p-2 text-gray-400 hover:text-violet-600 dark:hover:text-violet-300 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/12 transition-all"
+              >
+                <IconEdit size={18} />
+              </button>
+            ),
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -254,12 +291,16 @@ export default function VendorsPage() {
           description="Kelola data supplier dan rekanan bisnis Anda."
           actions={
             <>
-              <Button variant="page-secondary" onClick={() => setIsCategoryModalOpen(true)}>
-                <IconLayoutGrid size={16} /> Vendor Group
-              </Button>
-              <Button variant="page-primary" onClick={() => setIsModalOpen(true)}>
-                <IconPlus size={16} stroke={3} /> Tambah Vendor
-              </Button>
+              {perm.edit && (
+                <Button variant="page-secondary" onClick={() => setIsCategoryModalOpen(true)}>
+                  <IconLayoutGrid size={16} /> Vendor Group
+                </Button>
+              )}
+              {perm.create && (
+                <Button variant="page-primary" onClick={() => setIsModalOpen(true)}>
+                  <IconPlus size={16} stroke={3} /> Tambah Vendor
+                </Button>
+              )}
             </>
           }
         />

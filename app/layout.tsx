@@ -16,6 +16,12 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Inventra - Asset & Inventory Management",
   description: "Modern Asset & Inventory Management System",
+  openGraph: {
+    title: "Inventra - Asset & Inventory Management",
+    description: "Inventory dan aset IT lengkap dengan gudang 3D: pantau stok CPU, RAM, SSD, GPU, dan perangkat jaringan, susun rak, dan cari lokasi barang.",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Inventra: dashboard dan storage 3D" }],
+  },
+  twitter: { card: "summary_large_image", images: ["/og-image.png"] },
 };
 
 const themeInitScript = `

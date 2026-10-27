@@ -96,11 +96,11 @@ export interface ContainerType {
 }
 
 export const DEFAULT_CONTAINERS: ContainerType[] = [
-  { id: "ct-kardus-s", name: "Kardus Kecil", shape: "box", width: 0.3, height: 0.25, depth: 0.3, color: "#d4a373" },
-  { id: "ct-kardus-l", name: "Kardus Besar", shape: "box", width: 0.45, height: 0.4, depth: 0.4, color: "#c58f5c" },
-  { id: "ct-arsip", name: "Box Arsip", shape: "box", width: 0.25, height: 0.3, depth: 0.38, color: "#e9dcc0" },
-  { id: "ct-crate", name: "Crate Plastik", shape: "crate", width: 0.4, height: 0.25, depth: 0.3, color: "#3b82f6" },
-  { id: "ct-drum", name: "Drum", shape: "cylinder", width: 0.35, height: 0.45, depth: 0.35, color: "#1d4ed8" },
+  { id: "ct-kardus-s", name: "Dus Komponen Kecil", shape: "box", width: 0.3, height: 0.25, depth: 0.3, color: "#d4a373" },
+  { id: "ct-kardus-l", name: "Dus Besar (Casing/Monitor)", shape: "box", width: 0.45, height: 0.4, depth: 0.4, color: "#c58f5c" },
+  { id: "ct-arsip", name: "Box Motherboard", shape: "box", width: 0.25, height: 0.3, depth: 0.38, color: "#e9dcc0" },
+  { id: "ct-crate", name: "Crate ESD (Komponen)", shape: "crate", width: 0.4, height: 0.25, depth: 0.3, color: "#3b82f6" },
+  { id: "ct-drum", name: "Roll Kabel UTP", shape: "cylinder", width: 0.35, height: 0.45, depth: 0.35, color: "#1d4ed8" },
 ];
 
 export function containerFor(list: ContainerType[], id?: string): ContainerType {

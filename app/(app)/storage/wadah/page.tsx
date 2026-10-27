@@ -9,6 +9,7 @@ import Button from "@/components/ui/Button";
 import PageHeader from "@/components/ui/PageHeader";
 import FormLabel from "@/components/ui/FormLabel";
 import ContainerPreview from "@/components/storage/ContainerPreview";
+import { usePermissions } from "@/lib/settings/permissions";
 import { addContainerType, removeContainerType, resetContainerTypes, updateContainerType, useContainers } from "@/lib/storage/container-store";
 import { useRooms } from "@/lib/storage/room-store";
 import { CONTAINER_SHAPES, containerFor, type ContainerShape, type ContainerType } from "@/lib/storage/shelf-model";
@@ -22,6 +23,7 @@ type FormState = { name: string; shape: ContainerShape; width: string; height: s
 const emptyForm: FormState = { name: "", shape: "box", width: "30", height: "25", depth: "30", color: "#d4a373" };
 
 export default function ContainerTypesPage() {
+  const perm = usePermissions("/storage");
   const containers = useContainers();
   const rooms = useRooms();
   const [formOpen, setFormOpen] = useState(false);
@@ -96,12 +98,16 @@ export default function ContainerTypesPage() {
           description="Atur kardus, crate, dan drum yang dipakai untuk menyimpan barang di rak: bentuk, ukuran, dan warna."
           actions={
             <>
-              <Button variant="page-secondary" onClick={() => setResetOpen(true)}>
-                <IconRestore size={16} /> Reset Default
-              </Button>
-              <Button variant="page-primary" onClick={openCreate}>
-                <IconPlus size={16} stroke={3} /> Tambah Wadah
-              </Button>
+              {perm.delete && (
+                <Button variant="page-secondary" onClick={() => setResetOpen(true)}>
+                  <IconRestore size={16} /> Reset Default
+                </Button>
+              )}
+              {perm.create && (
+                <Button variant="page-primary" onClick={openCreate}>
+                  <IconPlus size={16} stroke={3} /> Tambah Wadah
+                </Button>
+              )}
             </>
           }
         />
@@ -121,12 +127,16 @@ export default function ContainerTypesPage() {
                 <p className="text-[11px] text-gray-400">Dipakai {usage(ct)} barang</p>
               </div>
               <div className="flex flex-col gap-1">
-                <button onClick={() => openEdit(ct)} aria-label={`Ubah ${ct.name}`} className="rounded-lg p-2 text-gray-400 hover:bg-violet-50 hover:text-violet-600">
-                  <IconPencil size={16} />
-                </button>
-                <button onClick={() => askDelete(ct)} aria-label={`Hapus ${ct.name}`} className="rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-600">
-                  <IconTrash size={16} />
-                </button>
+                {perm.edit && (
+                  <button onClick={() => openEdit(ct)} aria-label={`Ubah ${ct.name}`} className="rounded-lg p-2 text-gray-400 hover:bg-violet-50 hover:text-violet-600">
+                    <IconPencil size={16} />
+                  </button>
+                )}
+                {perm.delete && (
+                  <button onClick={() => askDelete(ct)} aria-label={`Hapus ${ct.name}`} className="rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-600">
+                    <IconTrash size={16} />
+                  </button>
+                )}
               </div>
             </div>
           ))}

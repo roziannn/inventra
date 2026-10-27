@@ -260,7 +260,7 @@ export default function RoleSettingsPage() {
                 </table>
               </div>
               <p className="border-t border-gray-100 px-4 py-2.5 text-[11px] text-gray-400 dark:border-gray-100/10">
-                Hak Lihat menentukan menu yang muncul di sidebar. Menu inti Settings selalu tampil untuk semua role.
+                Lihat: menu muncul di sidebar dan halamannya bisa dibuka. Tambah, Ubah, Hapus: tombol terkait di halaman tampil atau disembunyikan. Menu inti Settings selalu tampil untuk semua role.
               </p>
             </div>
           )}

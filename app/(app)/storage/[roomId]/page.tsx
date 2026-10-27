@@ -12,6 +12,7 @@ import { blockedByDoor, clampToRoom, shelfsOverlap, SHELF_TYPES, type ShelfData,
 import { OPENING_KINDS, clampOffset, openingFits, openingsCollide, wallLength, WALL_IDS, type Opening, type OpeningKind } from "@/lib/storage/room-openings";
 import { itemCatalog, type Room } from "@/lib/storage/storage-data";
 import { updateRoom, useHydrated, useRooms } from "@/lib/storage/room-store";
+import { usePermissions } from "@/lib/settings/permissions";
 import { useContainers } from "@/lib/storage/container-store";
 import { fillPercent, levelSlots, levelTag } from "@/lib/storage/shelf-model";
 import { IconPlus, IconRotate, IconTrash, IconTool, IconBuildingWarehouse, IconEye, IconArrowBackUp, IconArrowForwardUp, IconCopy, IconSearch, IconX } from "@tabler/icons-react";
@@ -79,6 +80,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ roomId: s
 }
 
 function RoomEditor({ room }: { room: Room }) {
+  const perm = usePermissions("/storage");
   const [history, setHistory] = useState<{ past: Layout[]; present: Layout; future: Layout[] }>({ past: [], present: { shelves: room?.shelves ?? [], openings: room?.openings ?? [] }, future: [] });
   const [selectedShelf, setSelectedShelf] = useState<string | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<number | null>(null);
@@ -428,7 +430,7 @@ function RoomEditor({ room }: { room: Room }) {
               </>
             )}
             <div className="flex rounded-xl bg-gray-100 p-1 dark:bg-white/8" role="tablist" aria-label="Mode">
-              {MODES.map(({ id, label, icon: Icon }) => (
+              {MODES.filter((m) => m.id === "view" || perm.edit).map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
                   role="tab"

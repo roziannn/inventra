@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import DataTable from "@/components/ui/DataTable";
 import Badge, { type BadgeTone } from "@/components/ui/Badge";
 import { useInitialLoading } from "@/lib/use-initial-loading";
+import { usePermissions } from "@/lib/settings/permissions";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import PageHeader from "@/components/ui/PageHeader";
@@ -26,22 +27,11 @@ import {
   IconCircleX,
 } from "@tabler/icons-react";
 import { toast } from "react-hot-toast";
+import { assetCategories, demoAssets } from "@/lib/demo/hardware";
 
-const initialAssets = Array.from({ length: 30 }, (_, i) => ({
-  id: `AST-${2000 + i}`,
-  name: i % 2 === 0 ? `MacBook Pro M${(i % 3) + 1}` : `Monitor Dell UltraSharp ${i + 20}"`,
-  category: i % 4 === 0 ? "IT Equipment" : i % 4 === 1 ? "Office Supply" : i % 4 === 2 ? "Vehicle" : "Machinery",
-  serialNumber: `SN-${10000 + i}XYZ`,
-  condition: i % 5 === 0 ? "Maintenance" : "Good",
-  assignee: i % 3 === 0 ? "Budi S." : i % 3 === 1 ? "Siti A." : "Unassigned",
-}));
+const initialAssets = demoAssets;
 
-const initialCategories = [
-  { name: "IT Equipment", isActive: true },
-  { name: "Office Supply", isActive: true },
-  { name: "Vehicle", isActive: true },
-  { name: "Machinery", isActive: true },
-];
+const initialCategories = assetCategories.map((name) => ({ name: name as string, isActive: true }));
 
 type Asset = (typeof initialAssets)[number];
 
@@ -56,7 +46,7 @@ export default function AssetsPage() {
   const [formData, setFormData] = useState({
     name: "",
     serialNumber: "",
-    category: "IT Equipment",
+    category: "Laptop",
     assignee: "Unassigned",
     condition: "Good",
   });
@@ -64,7 +54,7 @@ export default function AssetsPage() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingAsset(null);
-    setFormData({ name: "", serialNumber: "", category: "IT Equipment", assignee: "Unassigned", condition: "Good" });
+    setFormData({ name: "", serialNumber: "", category: "Laptop", assignee: "Unassigned", condition: "Good" });
   };
 
   const handleEditClick = (asset: Asset) => {
@@ -132,6 +122,7 @@ export default function AssetsPage() {
   };
 
   const loading = useInitialLoading();
+  const perm = usePermissions("/assets");
 
   const columns = [
     {
@@ -168,17 +159,21 @@ export default function AssetsPage() {
         );
       },
     },
-    {
-      header: "Aksi",
-      accessor: (item: Asset) => (
-        <button
-          onClick={() => handleEditClick(item)}
-          className="p-1.5 text-gray-400 hover:text-violet-600 dark:hover:text-violet-300 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/12 transition-all"
-        >
-          <IconEdit size={18} />
-        </button>
-      ),
-    },
+    ...(perm.edit
+      ? [
+          {
+            header: "Aksi",
+            accessor: (item: Asset) => (
+              <button
+                onClick={() => handleEditClick(item)}
+                className="p-1.5 text-gray-400 hover:text-violet-600 dark:hover:text-violet-300 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/12 transition-all"
+              >
+                <IconEdit size={18} />
+              </button>
+            ),
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -189,12 +184,16 @@ export default function AssetsPage() {
           description="Daftar aset tetap dan inventaris perusahaan Anda."
           actions={
             <>
-              <Button variant="page-secondary" onClick={() => setIsCategoryModalOpen(true)}>
-                <IconLayoutGrid size={16} /> Asset Group
-              </Button>
-              <Button variant="page-primary" onClick={() => setIsModalOpen(true)}>
-                <IconPlus size={16} stroke={3} /> Tambah aset
-              </Button>
+              {perm.edit && (
+                <Button variant="page-secondary" onClick={() => setIsCategoryModalOpen(true)}>
+                  <IconLayoutGrid size={16} /> Asset Group
+                </Button>
+              )}
+              {perm.create && (
+                <Button variant="page-primary" onClick={() => setIsModalOpen(true)}>
+                  <IconPlus size={16} stroke={3} /> Tambah aset
+                </Button>
+              )}
             </>
           }
         />

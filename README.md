@@ -1,5 +1,7 @@
 # Inventra
 
+![Inventra: dashboard, storage 3D, dan pencarian lokasi barang](./public/thumbnail.png)
+
 Sistem manajemen inventory dan aset: stok barang, aset, vendor, pengguna, laporan kerusakan, audit trail, pelabelan (QR), dan **Storage 3D** untuk menyusun ruangan, rak, pintu, dan jendela lalu menaruh barang di tiap tingkat rak.
 
 Dibangun dengan Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, three.js, dan Prisma.

@@ -8,14 +8,9 @@ import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import PageHeader from "@/components/ui/PageHeader";
 import { IconPrinter, IconSearch, IconFilter, IconSquare, IconSquareCheckFilled, IconCopy, IconMaximize, IconFileText, IconBarcode } from "@tabler/icons-react";
+import { hardwareCatalog, hardwareCategories } from "@/lib/demo/hardware";
 
-const dummyItems = Array.from({ length: 20 }, (_, i) => ({
-  id: `INV-${1000 + i}`,
-  name: i % 2 === 0 ? `MacBook Pro M1 Pro` : `Dell UltraSharp Monitor`,
-  category: i % 3 === 0 ? "Electronic" : i % 3 === 1 ? "Furniture" : "Stationery",
-  sku: `SKU-${8000 + i}`,
-  stock: (i * 7 + 5) % 100,
-}));
+const dummyItems = hardwareCatalog.slice(0, 24).map((item) => ({ id: item.id, name: item.name, category: item.category as string, sku: item.sku, stock: item.stock }));
 
 type LabelItem = (typeof dummyItems)[number];
 
@@ -181,9 +176,11 @@ export default function PrintLabelPage() {
               className="bg-transparent border-b border-gray-200 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:border-violet-700 transition-all cursor-pointer"
             >
               <option value="Semua kategori">Semua kategori</option>
-              <option value="Electronic">Electronic</option>
-              <option value="Furniture">Furniture</option>
-              <option value="Stationery">Stationery</option>
+              {hardwareCategories.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
             </select>
           </div>
         </div>
