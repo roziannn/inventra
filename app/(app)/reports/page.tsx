@@ -1,0 +1,876 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
+
+import React, { useState } from "react";
+import DataTable from "@/components/ui/DataTable";
+import { useInitialLoading } from "@/lib/use-initial-loading";
+import Modal from "@/components/ui/Modal";
+import Button from "@/components/ui/Button";
+import PageHeader from "@/components/ui/PageHeader";
+import Badge from "@/components/ui/Badge";
+import FormLabel from "@/components/ui/FormLabel";
+import SearchableSelect from "@/components/ui/SearchableSelect";
+import {
+  IconSearch,
+  IconPlus,
+  IconEye,
+  IconEdit,
+  IconTrash,
+  IconChevronLeft,
+  IconUser,
+  IconTool,
+  IconTruck,
+  IconMessage,
+  IconCheck,
+  IconBookmark,
+  IconSend,
+  IconFilter,
+  IconLock,
+  IconMail,
+  IconAlertTriangle,
+  IconFileExport,
+  IconCalendar,
+  IconCircleCheckFilled,
+  IconCircleXFilled,
+  IconLoader,
+} from "@tabler/icons-react";
+import { toast } from "react-hot-toast";
+
+const userOptions = [
+  { id: "1", label: "Budi Santoso", sublabel: "IT Department" },
+  { id: "2", label: "Siti Aminah", sublabel: "Finance" },
+  { id: "3", label: "Andi Wijaya", sublabel: "Operations" },
+  { id: "4", label: "Sarah Miller", sublabel: "HR" },
+  { id: "5", label: "John Doe", sublabel: "Procurement" },
+];
+
+const assigneeOptions = [
+  { id: "t1", label: "Teknisi Andi", sublabel: "Internal IT" },
+  { id: "t2", label: "Teknisi Budi", sublabel: "Maintenance" },
+  { id: "v1", label: "PT Sejahtera Service", sublabel: "Vendor" },
+  { id: "v2", label: "Dell Support Indonesia", sublabel: "Vendor" },
+  { id: "v3", label: "CV Maju Jaya", sublabel: "Vendor" },
+];
+
+const initialReports = Array.from({ length: 25 }, (_, i) => ({
+  id: `TRX-${1000 + i}`,
+  item: i % 2 === 0 ? "MacBook Pro M1" : 'Monitor Dell 24"',
+  reporter: i % 2 === 0 ? "Budi Santoso" : "Siti Aminah",
+  author: "Admin System",
+  status: i % 3 === 0 ? "Pending" : i % 3 === 1 ? "In progress" : "Resolved",
+  reportDate: new Date(2026, 2, (i % 28) + 1),
+  token: `TOKEN-${1000 + i}X`,
+  problem: "Layar berkedip saat digunakan lebih dari 2 jam. Kemungkinan overheat pada chipset grafis.",
+  serviceType: i % 2 === 0 ? "Self service" : "By vendor",
+  assignee: i % 2 === 0 ? "Teknisi Andi" : "PT Sejahtera Service",
+  comments: [
+    { user: "Andi", text: "Sudah dicek, butuh ganti thermal paste.", date: "2026-03-20 11:00" },
+    { user: "Admin", text: "Silahkan diproses segera.", date: "2026-03-20 11:30" },
+  ],
+  solutions: [{ id: "SOL-1", text: "Pembersihan debu pada fan dan penggantian thermal paste.", author: "Andi", date: "2026-03-20 14:00", isReference: i === 0 }],
+  createdAt: new Date(2026, 2, (i % 28) + 1),
+}));
+
+const formatDateTimeShort = (dateStr: string) => {
+  const d = new Date(dateStr);
+  return d
+    .toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    })
+    .replace(/,/g, "");
+};
+
+type Report = (typeof initialReports)[number];
+
+export default function ReportsPage() {
+  const [reports, setReports] = useState(initialReports);
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [view, setView] = useState<"list" | "detail">("list");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [commentInput, setCommentInput] = useState("");
+  const [editingReport, setEditingReport] = useState<Report | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [reportToDelete, setReportToDelete] = useState<Report | null>(null);
+  const [confirmEmail, setConfirmEmail] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [mounted, setMounted] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("Semua status");
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const today = mounted ? new Date().toISOString().split("T")[0] : "";
+
+  const [formData, setFormData] = useState({
+    item: "",
+    reporter: "",
+    problem: "",
+    serviceType: "Self service",
+    assignee: "",
+  });
+
+  const formatDate = (date: Date) => {
+    return new Date(date).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const filteredReports = React.useMemo(() => {
+    const query = searchQuery.toLowerCase().trim();
+
+    return reports.filter((report) => {
+      const matchSearch =
+        report.id.toLowerCase().includes(query) || report.item.toLowerCase().includes(query) || report.reporter.toLowerCase().includes(query) || report.token.toLowerCase().includes(query);
+
+      const matchStatus = statusFilter === "Semua status" || report.status === statusFilter;
+
+      return matchSearch && matchStatus;
+    });
+  }, [reports, searchQuery, statusFilter]);
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingReport(null);
+    setFormData({ item: "", reporter: "", problem: "", serviceType: "Self service", assignee: "" });
+  };
+
+  const handleCloseDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setReportToDelete(null);
+    setConfirmEmail("");
+    setConfirmPassword("");
+  };
+
+  const handleCloseExportModal = () => {
+    setIsExportModalOpen(false);
+    setStartDate("");
+    setEndDate("");
+  };
+
+  const handleExport = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // the PDF libraries are large, so they are only downloaded when an export is requested
+    const exportPromise = (async () => {
+      try {
+        const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([import("jspdf"), import("jspdf-autotable")]);
+        const start = new Date(`${startDate}T00:00:00`);
+        const end = new Date(`${endDate}T23:59:59.999`);
+
+        const exportData = reports.filter((r) => {
+          const d = new Date(r.reportDate);
+          return d >= start && d <= end;
+        });
+
+        const doc = new jsPDF({
+          orientation: "portrait",
+          unit: "mm",
+          format: "a4",
+          putOnlyUsedFonts: true,
+          compress: true,
+        });
+
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const marginX = 14;
+        const headerTop = 12;
+        const headerHeight = 22;
+        const contentTop = headerTop + headerHeight;
+        const footerTop = pageHeight - 18;
+        const footerHeight = 10;
+
+        const exportedAt = new Date().toLocaleString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        });
+
+        autoTable(doc, {
+          startY: contentTop,
+          margin: { top: contentTop, left: marginX, right: marginX, bottom: 20 },
+          tableWidth: pageWidth - marginX * 2,
+          head: [["ID / Token", "Barang", "Pelapor", "Status", "Assignee"]],
+          body: exportData.length
+            ? exportData.map((r) => [`${r.id}\n${r.token.toLowerCase()}`, r.item, r.reporter, r.status, r.assignee])
+            : [
+                [
+                  {
+                    content: "Tidak ada data pada rentang tanggal yang dipilih.",
+                    colSpan: 5,
+                    styles: { halign: "center", textColor: [150, 150, 150] },
+                  },
+                ],
+              ],
+          styles: {
+            font: "helvetica",
+            fontSize: 8.5,
+            textColor: 0,
+            lineColor: 0,
+            lineWidth: 0.2,
+            cellPadding: 2,
+            valign: "middle",
+          },
+          headStyles: {
+            fillColor: [245, 246, 250],
+            textColor: 0,
+            lineColor: 0,
+            lineWidth: 0.25,
+            fontStyle: "bold",
+            fontSize: 8.5,
+          },
+          bodyStyles: {
+            fillColor: false,
+          },
+          alternateRowStyles: {
+            fillColor: [252, 252, 255],
+          },
+          columnStyles: {
+            0: { cellWidth: 35, fontSize: 7.5 },
+            1: { cellWidth: 45 },
+            2: { cellWidth: 35 },
+            3: { cellWidth: 30 },
+            4: { cellWidth: 37 },
+          },
+          didDrawPage: () => {
+            // Header
+            doc.setDrawColor(0);
+            doc.setLineWidth(0.3);
+            doc.rect(marginX, headerTop, pageWidth - marginX * 2, headerHeight);
+
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(9);
+            doc.text("INVENTRA", marginX + 4, headerTop + 5);
+            doc.setFontSize(16);
+            doc.text("Reports Data", marginX + 4, headerTop + 11);
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(9);
+            const rangeStr = `${new Date(startDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })} - ${new Date(endDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}`;
+            doc.text(`Periode ${rangeStr}`, marginX + 4, headerTop + 16);
+
+            const exportedBoxWidth = 58;
+            const exportedBoxX = pageWidth - marginX - exportedBoxWidth;
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(8);
+            doc.text("Exported at", exportedBoxX + exportedBoxWidth - 3, headerTop + 5, { align: "right" });
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(8);
+            doc.text(exportedAt, exportedBoxX + exportedBoxWidth - 3, headerTop + 10, { align: "right" });
+            doc.text(`Total data: ${exportData.length}`, exportedBoxX + exportedBoxWidth - 3, headerTop + 15, { align: "right" });
+          },
+        });
+
+        const totalPages = doc.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
+          doc.setPage(i);
+          doc.rect(marginX, footerTop, pageWidth - marginX * 2, footerHeight);
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(8);
+          doc.text("INVENTRA - Reports Export | Dicetak oleh Administrator", marginX + 3, footerTop + 6.2);
+          doc.text(`Halaman ${i} dari ${totalPages}`, pageWidth - marginX - 3, footerTop + 6.2, { align: "right" });
+        }
+
+        const fileName = `reports-${startDate}-to-${endDate}.pdf`;
+        doc.save(fileName);
+
+        return `Data laporan berhasil diunduh.`;
+      } catch (err) {
+        console.error(err);
+        throw err;
+      }
+    })();
+
+    toast.promise(exportPromise, {
+      loading: "Mengekspor PDF...",
+      success: (msg: any) => msg,
+      error: "Gagal mengekspor PDF.",
+    });
+
+    handleCloseExportModal();
+  };
+
+  const handleDeleteClick = (report: Report) => {
+    setReportToDelete(report);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (reportToDelete && confirmEmail && confirmPassword) {
+      setReports(reports.filter((r) => r.id !== reportToDelete.id));
+      toast.success(`Laporan ${reportToDelete.id} berhasil dihapus`);
+      handleCloseDeleteModal();
+    }
+  };
+
+  const handleEditClick = (report: Report) => {
+    setEditingReport(report);
+    setFormData({
+      item: report.item,
+      reporter: report.reporter,
+      problem: report.problem,
+      serviceType: report.serviceType,
+      assignee: report.assignee,
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (editingReport) {
+      // Logic Update
+      const updatedReports = reports.map((r) => {
+        if (r.id === editingReport.id) {
+          return {
+            ...r,
+            ...formData,
+          };
+        }
+        return r;
+      });
+      setReports(updatedReports);
+      toast.success("Laporan berhasil diperbarui");
+    } else {
+      // Logic Create
+      const newReport = {
+        ...formData,
+        id: `TRX-${1000 + reports.length}`,
+        token: `TOKEN-${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
+        author: "Admin System",
+        status: "Pending",
+        reportDate: new Date(),
+        comments: [],
+        solutions: [],
+        createdAt: new Date(),
+      };
+      setReports([newReport, ...reports]);
+      toast.success("Laporan baru berhasil dibuat");
+    }
+
+    handleCloseModal();
+  };
+
+  const handleAddComment = () => {
+    if (!commentInput.trim() || !selectedReport) return;
+
+    const newComment = {
+      user: "Admin",
+      text: commentInput,
+      date: formatDateTimeShort(new Date().toISOString()),
+    };
+
+    const updatedReport = {
+      ...selectedReport,
+      comments: [...selectedReport.comments, newComment],
+    };
+
+    setSelectedReport(updatedReport);
+    setReports(reports.map((r) => (r.id === selectedReport.id ? updatedReport : r)));
+    setCommentInput("");
+    toast.success("Komentar ditambahkan");
+  };
+
+  const toggleReference = (solId: string) => {
+    if (!selectedReport) return;
+    let isNowReference = false;
+    const updatedSolutions = selectedReport.solutions.map((sol) => {
+      if (sol.id === solId) {
+        isNowReference = !sol.isReference;
+        return { ...sol, isReference: isNowReference };
+      }
+      return sol;
+    });
+    const updatedReport = { ...selectedReport, solutions: updatedSolutions };
+    setSelectedReport(updatedReport);
+    setReports(reports.map((r) => (r.id === selectedReport.id ? updatedReport : r)));
+    toast.success(isNowReference ? "Solusi dijadikan referensi" : "Referensi dihapus");
+  };
+
+  const handleMarkAsComplete = () => {
+    if (!selectedReport) return;
+    const updatedReport = {
+      ...selectedReport,
+      status: "Resolved", // Matching existing status logic for 'Complete'
+    };
+
+    setSelectedReport(updatedReport);
+    setReports(reports.map((r) => (r.id === selectedReport.id ? updatedReport : r)));
+    toast.success(`Laporan ${selectedReport.id} ditandai sebagai Selesai`);
+  };
+
+  const loading = useInitialLoading();
+
+  const columns = [
+    {
+      header: "ID / Token",
+      className: "w-[220px]",
+      accessor: (item: Report) => (
+        <div className="max-w-52 flex items-center gap-2 py-1">
+          <p className="font-bold truncate">{item.id}</p>
+          <span className="shrink-0 text-xs px-1.5 py-0.5 rounded-md bg-gray-50 border border-gray-100 lowercase text-gray-500 font-semibold">{item.token}</span>
+        </div>
+      ),
+    },
+
+    { header: "Barang", accessor: "item" as const },
+
+    {
+      header: "Pelapor",
+      accessor: (item: Report) => <span className="text-sm text-gray-700 font-medium">{item.reporter}</span>,
+    },
+
+    {
+      header: "Service",
+      accessor: (item: Report) => <span className="text-sm text-gray-700 font-medium">{item.serviceType}</span>,
+    },
+    {
+      header: "Status",
+      accessor: (item: Report) => {
+        const isResolved = item.status === "Resolved";
+        const isProgress = item.status === "In progress";
+        return (
+          <Badge
+            tone={isResolved ? "success" : isProgress ? "info" : "warning"}
+            icon={isResolved ? <IconCircleCheckFilled size={12} /> : isProgress ? <IconLoader size={12} /> : <IconCircleXFilled size={12} />}
+          >
+            {item.status}
+          </Badge>
+        );
+      },
+    },
+    {
+      header: "Created by",
+      accessor: (item: Report) => <span className="text-sm text-gray-700 font-medium">{item.author}</span>,
+    },
+    {
+      header: "Created at",
+      accessor: (item: Report) => <span className="text-sm text-gray-700 font-medium">{formatDate(item.createdAt)}</span>,
+    },
+
+    {
+      header: "Aksi",
+      className: "text-center w-[120px]",
+      accessor: (item: Report) => (
+        <div className="flex items-center justify-center gap-1">
+          <button
+            onClick={() => {
+              setSelectedReport(item);
+              setView("detail");
+            }}
+            className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-300 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/12 transition-all"
+          >
+            <IconEye size={16} />
+          </button>
+
+          <button
+            onClick={() => handleEditClick(item)}
+            className="p-1.5 text-gray-400 hover:text-violet-600 dark:hover:text-violet-300 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-500/12 transition-all"
+          >
+            <IconEdit size={16} />
+          </button>
+
+          <button onClick={() => handleDeleteClick(item)} className="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-300 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/12 transition-all">
+            <IconTrash size={16} />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
+  if (view === "detail" && selectedReport) {
+    return (
+      <>
+        <div className="flex flex-col gap-4 pb-10">
+          <div className="flex items-center gap-4">
+            <button onClick={() => setView("list")} className="p-2 hover:bg-gray-100 rounded-lg text-gray-500">
+              <IconChevronLeft size={20} stroke={3} />
+            </button>{" "}
+          </div>
+
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            <div className="xl:col-span-2 space-y-6">
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-6">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">{selectedReport.item}</h2>
+                    <p className="text-sm text-gray-500 font-medium">Token ID: {selectedReport.token}</p>
+                  </div>
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${selectedReport.status === "Resolved" ? "bg-violet-100 text-violet-700" : "bg-amber-100 text-amber-700"}`}>
+                    {selectedReport.status}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-6 py-6 border-y border-gray-50">
+                  <div className="space-y-1">
+                    <p className="text-xs font-bold text-gray-400">Reporter</p>
+                    <div className="flex items-center gap-2">
+                      <IconUser size={16} className="text-gray-400" />
+                      <span className="text-sm font-bold text-gray-800">{selectedReport.reporter}</span>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs font-bold text-gray-400">Service type</p>
+                    <div className="flex items-center gap-2">
+                      {selectedReport.serviceType === "Self service" ? <IconTool size={16} className="text-blue-500" /> : <IconTruck size={16} className="text-purple-500" />}
+                      <span className="text-sm font-bold text-gray-800">{selectedReport.serviceType}</span>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs font-bold text-gray-400">Assign to</p>
+                    <span className="text-sm font-bold text-violet-500">{selectedReport.assignee}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <h4 className="text-sm font-bold text-gray-900">Problem Description</h4>
+                  <p className="text-sm text-gray-600 italic bg-gray-50 p-4 rounded-xl border border-gray-100">&quot;{selectedReport.problem}&quot;</p>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+                <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/20 flex justify-between items-center">
+                  <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
+                    <IconBookmark size={18} className="text-blue-500" /> Solusi & Penanganan
+                  </h3>
+                  <button className="text-xs font-bold text-violet-500 hover:text-violet-500 transition-colors">Tambah solusi</button>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead className="bg-gray-50/50 text-xs font-bold text-gray-400">
+                      <tr>
+                        <th className="px-6 py-3">Deskripsi Solusi</th>
+                        <th className="px-6 py-3">Posted By</th>
+                        <th className="px-6 py-3">Tanggal</th>
+                        <th className="px-6 py-3 text-center">Referesi</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {selectedReport.solutions.length > 0 ? (
+                        selectedReport.solutions.map((sol) => (
+                          <tr key={sol.id} className="text-sm group">
+                            <td className="px-6 py-4 font-medium text-gray-700">
+                              <div className="flex items-center gap-2">
+                                {sol.text}
+                                {sol.isReference && (
+                                  <span className="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-black">
+                                    <IconCheck size={10} stroke={4} /> Verified ref
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-gray-600 font-semibold">{sol.author}</td>
+                            <td className="px-6 py-4 text-gray-400 text-xs font-medium">{formatDateTimeShort(sol.date)}</td>
+                            <td className="px-6 py-4">
+                              <div className="flex justify-center">
+                                <button
+                                  onClick={() => toggleReference(sol.id)}
+                                  className={`p-2 rounded-lg transition-all flex items-center gap-2 text-xs font-bold ${
+                                    sol.isReference ? "text-blue-600 bg-blue-50 ring-1 ring-blue-200" : "text-gray-300 hover:text-blue-600 hover:bg-blue-50"
+                                  }`}
+                                >
+                                  <IconBookmark size={16} stroke={sol.isReference ? 3 : 2} />
+                                  {sol.isReference ? "Hapus ref" : "Jadikan ref"}
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={4} className="px-6 py-10 text-center text-gray-400 text-xs italic">
+                            Belum ada solusi yang ditambahkan.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col gap-4">
+                <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                  <IconMessage size={18} className="text-gray-400" /> Diskusi
+                </h4>
+                <div className="space-y-4 max-h-75 overflow-y-auto pr-2 scrollbar-hide">
+                  {selectedReport.comments.length > 0 ? (
+                    selectedReport.comments.map((c, i) => (
+                      <div key={i} className="bg-gray-50 p-3 rounded-xl space-y-1 group">
+                        <div className="flex justify-between text-xs">
+                          <span className="font-bold text-gray-900">{c.user}</span>
+                          <span className="text-gray-400">{formatDateTimeShort(c.date)}</span>
+                        </div>
+                        <p className="text-xs text-gray-600 leading-relaxed">{c.text}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-gray-400 text-center py-4 italic">Belum ada diskusi.</p>
+                  )}
+                </div>
+                <div className="relative mt-2">
+                  <input
+                    type="text"
+                    value={commentInput}
+                    onChange={(e) => setCommentInput(e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && handleAddComment()}
+                    placeholder="Tulis balasan..."
+                    className="w-full pl-4 pr-12 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all"
+                  />
+                  <button
+                    onClick={handleAddComment}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-zinc-900 text-white rounded-lg flex items-center justify-center hover:bg-zinc-800 transition-all shadow-md active:scale-95"
+                  >
+                    <IconSend size={14} stroke={2.5} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-zinc-900 rounded-2xl p-6 text-white space-y-4 shadow-xl">
+                <p className="text-xs font-bold text-violet-400">Quick action</p>
+                <div className="space-y-3">
+                  <button className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border border-white/10">
+                    Gunakan Referensi Solusi
+                  </button>
+                  <button
+                    onClick={handleMarkAsComplete}
+                    disabled={selectedReport.status === "Resolved"}
+                    className="w-full py-3 bg-violet-500 hover:bg-violet-600 disabled:bg-gray-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg active:translate-y-0.5"
+                  >
+                    <IconCheck size={16} stroke={3} /> {selectedReport.status === "Resolved" ? "Laporan Selesai" : "Mark as Complete"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <div className="flex flex-col gap-4">
+        <PageHeader
+          title="Reports"
+          description="Laporan kerusakan dan perbaikan inventaris."
+          actions={
+            <>
+              <Button variant="page-secondary" onClick={() => setIsExportModalOpen(true)}>
+                <IconFileExport size={16} stroke={3} /> Export Data
+              </Button>
+              <Button variant="page-primary" onClick={() => setIsModalOpen(true)}>
+                <IconPlus size={16} stroke={3} /> Buat laporan baru
+              </Button>
+            </>
+          }
+        />
+
+        {/* Search & Filter */}
+        <div className="flex flex-col md:flex-row gap-4 justify-between items-center py-2">
+          <div className="relative w-full md:w-80 group">
+            <IconSearch className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-violet-500 transition-colors" size={18} />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari ID, barang, pelapor..."
+              className="w-full pl-7 pr-4 py-2 bg-transparent border-b border-gray-200 text-sm focus:outline-none focus:border-violet-400 transition-all"
+            />
+          </div>
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <div className="flex items-center gap-2 text-sm font-medium text-gray-500">
+              <IconFilter size={16} />
+              <span>Status:</span>
+            </div>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="bg-transparent border-b border-gray-200 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:border-violet-400 transition-all"
+            >
+              <option value="Semua status">Semua status</option>
+              <option value="Pending">Pending</option>
+              <option value="In progress">In progress</option>
+              <option value="Resolved">Resolved</option>
+            </select>
+          </div>
+        </div>
+
+        <DataTable loading={loading} data={filteredReports} columns={columns} pageSize={10} density="dense" />
+
+        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Buat Laporan Baru">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1">
+              <FormLabel icon={<IconBookmark size={16} />}>Nama Barang</FormLabel>
+              <input
+                required
+                type="text"
+                value={formData.item}
+                onChange={(e) => setFormData({ ...formData, item: e.target.value })}
+                placeholder="Contoh: MacBook Pro M1"
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all"
+              />
+            </div>
+
+            <SearchableSelect
+              label="Nama Pelapor"
+              options={userOptions}
+              value={formData.reporter}
+              onChange={(val) => setFormData({ ...formData, reporter: val })}
+              placeholder="Pilih pelapor..."
+              required
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <FormLabel icon={<IconTool size={16} />}>Tipe Layanan</FormLabel>
+                <select
+                  value={formData.serviceType}
+                  onChange={(e) => setFormData({ ...formData, serviceType: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all"
+                >
+                  <option value="Self service">Self service</option>
+                  <option value="By vendor">By vendor</option>
+                </select>
+              </div>
+              <SearchableSelect label="Assign ke" options={assigneeOptions} value={formData.assignee} onChange={(val) => setFormData({ ...formData, assignee: val })} placeholder="Pilih teknisi..." />
+            </div>
+
+            <div className="space-y-1">
+              <FormLabel icon={<IconAlertTriangle size={16} />}>Deskripsi Masalah</FormLabel>
+              <textarea
+                required
+                value={formData.problem}
+                onChange={(e) => setFormData({ ...formData, problem: e.target.value })}
+                rows={3}
+                placeholder="Jelaskan detail kerusakan..."
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all resize-none"
+              />
+            </div>
+
+            <div className="pt-4 flex gap-3">
+              <Button variant="modal-secondary" type="button" onClick={() => setIsModalOpen(false)} className="flex-1">
+                Batal
+              </Button>
+              <Button variant="modal-primary" type="submit" className="flex-1">
+                Simpan Laporan
+              </Button>
+            </div>
+          </form>
+        </Modal>
+
+        {/* Delete Confirmation Modal */}
+        <Modal isOpen={isDeleteModalOpen} onClose={handleCloseDeleteModal} title="Konfirmasi Hapus Laporan">
+          <form onSubmit={handleConfirmDelete} className="space-y-6">
+            <div className="flex flex-col items-center text-center gap-2 p-4 bg-red-50 dark:bg-red-500/10 rounded-2xl border border-red-100 dark:border-red-500/20">
+              <div className="w-12 h-12 bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mb-2">
+                <IconAlertTriangle size={28} />
+              </div>
+              <h3 className="text-lg font-bold text-red-900 dark:text-red-400">Apakah Anda yakin?</h3>
+              <p className="text-sm text-red-600 dark:text-red-300/80 font-medium leading-relaxed">
+                Tindakan ini tidak dapat dibatalkan. Menghapus laporan <span className="font-black uppercase">{reportToDelete?.id}</span> akan menghapus seluruh data terkait secara permanen.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <FormLabel icon={<IconMail size={16} />}>Konfirmasi Email</FormLabel>
+                <input
+                  required
+                  type="email"
+                  value={confirmEmail}
+                  onChange={(e) => setConfirmEmail(e.target.value)}
+                  placeholder="Masukkan email Anda"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/5 transition-all"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <FormLabel icon={<IconLock size={16} />}>Kata Sandi</FormLabel>
+                <input
+                  required
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/5 transition-all"
+                />
+              </div>
+            </div>
+
+            <div className="pt-2 flex gap-3">
+              <Button variant="modal-secondary" type="button" onClick={handleCloseDeleteModal} className="flex-1">
+                Batal
+              </Button>
+              <Button variant="modal-danger" type="submit" className="flex-1">
+                <IconTrash size={16} stroke={3} /> Hapus Permanen
+              </Button>
+            </div>
+          </form>
+        </Modal>
+
+        {/* Export Reports Modal */}
+        <Modal isOpen={isExportModalOpen} onClose={handleCloseExportModal} title="Export Data Laporan">
+          <form onSubmit={handleExport} className="space-y-6">
+            <div className="p-4 bg-violet-50 dark:bg-violet-500/10 rounded-xl border border-violet-100 dark:border-violet-500/20">
+              <p className="text-sm text-violet-800 dark:text-violet-300 leading-relaxed font-medium">Pilih rentang tanggal untuk mengekspor data laporan kerusakan dan perbaikan.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <FormLabel icon={<IconCalendar size={16} />}>Dari Tanggal</FormLabel>
+                <input
+                  required
+                  type="date"
+                  max={today}
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <FormLabel icon={<IconCalendar size={16} />}>Hingga Tanggal</FormLabel>
+                <input
+                  required
+                  type="date"
+                  min={startDate}
+                  max={today}
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/10 transition-all"
+                />
+              </div>
+            </div>
+
+            <div className="pt-4 flex gap-4">
+              <Button variant="modal-secondary" type="button" onClick={handleCloseExportModal} className="flex-1">
+                Batal
+              </Button>
+              <Button variant="modal-primary" type="submit" disabled={!startDate || !endDate || endDate < startDate} className="flex-1">
+                <IconFileExport size={16} /> Mulai Export
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      </div>
+    </>
+  );
+}

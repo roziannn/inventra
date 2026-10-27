@@ -10,7 +10,10 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
-    "db:seed": "node prisma/seed.js"
+    "db:seed": "node prisma/seed.js",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write \"{app,components,lib,types}/**/*.{ts,tsx,css}\"",
+    "format:check": "prettier --check \"{app,components,lib,types}/**/*.{ts,tsx,css}\""
   },
   "prisma": {
     "seed": "node prisma/seed.js"
@@ -39,6 +42,7 @@
     "@types/three": "^0.186.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.7",
+    "prettier": "^3.9.10",
     "prisma": "^7.5.0",
     "tailwindcss": "^4",
     "typescript": "^5"

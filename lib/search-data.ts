@@ -10,7 +10,7 @@ export const searchData = {
   ],
   reports: [
     { id: "TRX-1000", title: "MacBook Pro M1", reporter: "Budi Santoso", token: "TOKEN-ABC" },
-    { id: "TRX-1001", title: "Monitor Dell 24\"", reporter: "Siti Aminah", token: "TOKEN-DEF" },
+    { id: "TRX-1001", title: 'Monitor Dell 24"', reporter: "Siti Aminah", token: "TOKEN-DEF" },
   ],
   users: [
     { id: "USR-500", title: "Ahmad", email: "user0@inventra.co.id" },
@@ -20,5 +20,5 @@ export const searchData = {
   vendors: [
     { id: "VND-100", title: "PT. Global Teknologi", email: "contact@globaltek.co.id", category: "IT Hardware" },
     { id: "VND-101", title: "CV. Alat Tulis Makmur", email: "sales@atkmakmur.com", category: "Office Supplies" },
-  ]
+  ],
 };
