@@ -21,14 +21,16 @@ import { useInitialLoading } from "@/lib/use-initial-loading";
 import dynamic from "next/dynamic";
 import { demoAssets, lowStockItems, lowStockLevel, totalStock } from "@/lib/demo/hardware";
 
+// asset condition for the 30 demo assets (see lib/demo/hardware.ts)
 const inventoryStatusData = [
-  { status: "Good", total: 2450, color: "#877FC1" },
-  { status: "New", total: 775, color: "#A78BFA" },
-  { status: "Repairing", total: 280, color: "#DBD3F5" },
-  { status: "Maintenance", total: 420, color: "#F59E0B" },
-  { status: "Damaged", total: 150, color: "#EF4444" },
-  { status: "Lost", total: 45, color: "#94A3B8" },
+  { status: "Good", total: 20, color: "#877FC1" },
+  { status: "New", total: 4, color: "#A78BFA" },
+  { status: "Repairing", total: 2, color: "#DBD3F5" },
+  { status: "Maintenance", total: 3, color: "#F59E0B" },
+  { status: "Damaged", total: 1, color: "#EF4444" },
+  { status: "Lost", total: 0, color: "#94A3B8" },
 ];
+const healthyPercent = Math.round(((inventoryStatusData[0].total + inventoryStatusData[1].total) / inventoryStatusData.reduce((n, d) => n + d.total, 0)) * 100);
 
 const mostReportedByCategory = [
   { category: "Laptop", reports: 24 },
@@ -201,10 +203,10 @@ export default function FullDashboard() {
               <div className="relative z-10">
                 <p className="text-violet-400 text-xs font-bold">Kondisi aset</p>
                 <div className="flex items-baseline mt-1.5">
-                  <h4 className="text-3xl font-black">94</h4>
+                  <h4 className="text-3xl font-black">{healthyPercent}</h4>
                   <span className="text-lg text-violet-400 ml-1">%</span>
                 </div>
-                <p className="text-violet-100/60 text-sm mt-1 font-medium">Seluruh aset dalam kondisi prima.</p>
+                <p className="text-violet-100/60 text-sm mt-1 font-medium">dari aset dalam kondisi baik atau baru.</p>
                 <button className="mt-4 w-full bg-white text-violet-500 py-2.5 rounded-md text-xs font-bold hover:bg-violet-50 transition-all flex items-center justify-center gap-2 shadow-lg active:translate-y-0.5">
                   Export data <IconArrowUpRight size={14} stroke={3} />
                 </button>
