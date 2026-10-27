@@ -95,7 +95,7 @@ export default function RoleSettingsPage() {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto flex max-w-6xl flex-col gap-4">
+      <div className="flex flex-col gap-4">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Role</h2>
