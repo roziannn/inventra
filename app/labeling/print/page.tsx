@@ -108,7 +108,7 @@ export default function PrintLabelPage() {
     {
       header: "Nama item",
       accessor: (item: any) => (
-        <div className="min-w-0 py-1 flex items-center gap-2">
+        <div className="min-w-0 max-w-72 py-1 flex items-center gap-2">
           <p className="font-bold text-gray-900 truncate leading-tight">{item.name}</p>
           <span className="shrink-0 text-xs px-1.5 py-0.5 rounded-md bg-gray-50 border border-gray-100 text-gray-500 font-semibold uppercase">{item.id}</span>
         </div>

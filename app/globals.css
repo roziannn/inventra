@@ -145,9 +145,7 @@
   }
   thead th {
     background: color-mix(in srgb, var(--muted) 70%, transparent);
-    text-transform: uppercase;
     font-size: 12px;
-    letter-spacing: 0.04em;
     color: var(--muted-foreground);
   }
   tbody tr:hover {
