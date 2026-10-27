@@ -7,7 +7,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import Modal from "@/components/Modal";
 import Button from "@/components/Button";
 import FormLabel from "@/components/FormLabel";
-import { IconBuildingWarehouse, IconLayoutRows, IconPlus, IconPencil, IconTrash, IconDoor, IconBox, IconRuler2 } from "@tabler/icons-react";
+import { IconBuildingWarehouse, IconLayoutRows, IconPlus, IconPencil, IconTrash, IconDoor, IconBox, IconRuler2, IconPackages } from "@tabler/icons-react";
 import { addRoom, removeRoom, updateRoom, useHydrated, useRooms } from "@/lib/room-store";
 import type { Room } from "@/lib/storage-data";
 
@@ -81,9 +81,14 @@ export default function StoragePage() {
             <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Storage</h2>
             <p className="text-xs text-gray-500 font-medium">Kelola ruangan dan rak penyimpanan barang.</p>
           </div>
-          <Button variant="page-primary" onClick={openCreate}>
-            <IconPlus size={16} stroke={3} /> Tambah Ruangan
-          </Button>
+          <div className="flex gap-2">
+            <Link href="/storage/wadah" className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-xs font-bold text-gray-700 shadow-sm transition-all hover:bg-gray-50 active:scale-95 dark:border-gray-100/10 dark:bg-white/6 dark:text-gray-100 dark:hover:bg-white/10">
+              <IconPackages size={16} /> Jenis Wadah
+            </Link>
+            <Button variant="page-primary" onClick={openCreate}>
+              <IconPlus size={16} stroke={3} /> Tambah Ruangan
+            </Button>
+          </div>
         </div>
 
         {!hydrated ? (

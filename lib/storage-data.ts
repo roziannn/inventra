@@ -1,4 +1,4 @@
-import { levelSlots, type ShelfData, type ShelfItem, type ShelfType } from "@/lib/shelf-model";
+import { DEFAULT_CONTAINERS, levelSlots, type ShelfData, type ShelfItem, type ShelfType } from "@/lib/shelf-model";
 import type { Opening } from "@/lib/room-openings";
 
 export interface Room {
@@ -30,7 +30,7 @@ function seedItems(shelfId: string, levels: number, percent: number, type: Shelf
   const items: ShelfItem[] = [];
   for (let n = 0; n < target; n++) {
     const c = itemCatalog[(n + Number(shelfId.slice(-1))) % itemCatalog.length];
-    items.push({ id: `${shelfId}-I${n + 1}`, level: Math.floor(n / slots), name: c.name, sku: c.sku, qty: 1 + ((n * 7) % 20) });
+    items.push({ id: `${shelfId}-I${n + 1}`, level: Math.floor(n / slots), name: c.name, sku: c.sku, qty: 1 + ((n * 7) % 20), containerId: DEFAULT_CONTAINERS[(n + 1) % 4].id });
   }
   return items;
 }
@@ -84,6 +84,10 @@ export const rooms: Room[] = [
       { id: "RK-302", name: "Rak 2", levels: 4, items: seedItems("RK-302", 4, 85, "standard", 1.6), x: -1, z: -2, rotated: false, type: "standard", length: 1.6, height: 2.2, color: "#a78bfa" },
       { id: "RK-303", name: "Rak 3", levels: 4, items: seedItems("RK-303", 4, 30, "standard", 1.6), x: 1.5, z: -2, rotated: false, type: "standard", length: 1.6, height: 2.2, color: "#a78bfa" },
       { id: "RK-304", name: "Rak 4", levels: 3, items: seedItems("RK-304", 3, 10, "standard", 1.6), x: 4, z: -2, rotated: false, type: "standard", length: 1.6, height: 2.2, color: "#a78bfa" },
+      { id: "RK-305", name: "Rak Bin 1", levels: 4, items: seedItems("RK-305", 4, 60, "bin", 1.8), x: -3, z: 0.4, rotated: false, type: "bin", length: 1.8, height: 2, color: "#2563eb" },
+      { id: "RK-306", name: "Rak Kubus 1", levels: 4, items: seedItems("RK-306", 4, 50, "cubby", 1.6), x: -0.8, z: 0.4, rotated: false, type: "cubby", length: 1.6, height: 1.8, color: "#d6b88c" },
+      { id: "RK-307", name: "Rak Cantilever 1", levels: 3, items: seedItems("RK-307", 3, 50, "cantilever", 3), x: 2.9, z: 0.6, rotated: false, type: "cantilever", length: 3, height: 2.5, color: "#ea580c" },
+      { id: "RK-308", name: "Rak Kawat 1", levels: 4, items: seedItems("RK-308", 4, 40, "wire", 1.2), x: 5.3, z: 0.6, rotated: false, type: "wire", length: 1.2, height: 1.8, color: "#cbd5e1" },
     ],
   },
 ];
