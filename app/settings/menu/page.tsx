@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 import DashboardLayout from "@/components/DashboardLayout";
-import Breadcrumb from "@/components/Breadcrumb";
 import Modal from "@/components/Modal";
 import Button from "@/components/Button";
 import FormLabel from "@/components/FormLabel";
@@ -92,7 +91,6 @@ export default function MenuSettingsPage() {
   return (
     <DashboardLayout>
       <div className="mx-auto flex max-w-5xl flex-col gap-4">
-        <Breadcrumb items={[{ label: "Settings", href: "/settings" }, { label: "Menu" }]} />
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Menu</h2>

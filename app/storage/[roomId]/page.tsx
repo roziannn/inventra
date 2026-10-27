@@ -5,7 +5,6 @@ import dynamic from "next/dynamic";
 import { notFound } from "next/navigation";
 import toast from "react-hot-toast";
 import DashboardLayout from "@/components/DashboardLayout";
-import Breadcrumb from "@/components/Breadcrumb";
 import Button from "@/components/Button";
 import ShelfContents from "@/components/ShelfContents";
 import RoomBuilderPanel from "@/components/RoomBuilderPanel";
@@ -408,7 +407,6 @@ function RoomEditor({ room }: { room: Room }) {
   return (
     <DashboardLayout>
       <div className="flex flex-col gap-3">
-        <Breadcrumb items={[{ label: "Storage", href: "/storage" }, { label: room.name }]} />
         <div className="flex items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 tracking-tight">{room.name}</h2>
