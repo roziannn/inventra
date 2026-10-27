@@ -85,19 +85,18 @@ export default function NotificationsPage() {
     {
       header: "Notifikasi",
       accessor: (item: NotificationItem) => (
-        <button type="button" onClick={() => handleOpenNotification(item)} className="flex w-full min-w-0 items-start gap-3 py-1 text-left transition-opacity hover:opacity-80">
-          <div className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${item.color}`}>
-            <item.icon size={20} stroke={2} />
+        <button type="button" onClick={() => handleOpenNotification(item)} className="flex w-full min-w-0 items-center gap-3 py-1 text-left transition-opacity hover:opacity-80">
+          <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${item.color}`}>
+            <item.icon size={18} stroke={2} />
           </div>
-          <div className="min-w-0 space-y-1">
-            <div className="flex items-center gap-2">
-              <p className={`truncate font-bold ${item.isRead ? "text-gray-700" : "text-gray-900"}`}>{item.title}</p>
-              {!item.isRead && <span className="h-2 w-2 shrink-0 rounded-full bg-violet-500" />}
-            </div>
-            <p className="line-clamp-2 text-sm text-gray-500">{item.description}</p>
-          </div>
+          <p className={`truncate font-bold ${item.isRead ? "text-gray-700" : "text-gray-900"}`}>{item.title}</p>
+          {!item.isRead && <span className="h-2 w-2 shrink-0 rounded-full bg-violet-500" />}
         </button>
       ),
+    },
+    {
+      header: "Deskripsi",
+      accessor: (item: NotificationItem) => <span className="block max-w-md truncate text-sm text-gray-500">{item.description}</span>,
     },
     {
       header: "Kategori",

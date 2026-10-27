@@ -174,13 +174,12 @@ export default function UsersPage() {
 
   const columns = [
     {
-      header: "User",
-      accessor: (item: any) => (
-        <div className="min-w-0 py-1">
-          <p className="font-bold text-gray-900 truncate leading-tight">{item.name}</p>
-          <p className="text-xs text-gray-400 truncate tracking-wide">{item.email}</p>
-        </div>
-      ),
+      header: "Nama",
+      accessor: (item: any) => <span className="block max-w-56 truncate py-1 font-bold text-gray-900">{item.name}</span>,
+    },
+    {
+      header: "Email",
+      accessor: (item: any) => <span className="block max-w-64 truncate text-sm text-gray-600">{item.email}</span>,
     },
     {
       header: "Role",

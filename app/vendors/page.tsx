@@ -119,7 +119,7 @@ export default function VendorsPage() {
     {
       header: "Vendor",
       accessor: (item: any) => (
-        <div className="min-w-0 py-1 flex items-center gap-2">
+        <div className="min-w-0 max-w-72 py-1 flex items-center gap-2">
           <p className="font-bold text-gray-900 truncate">{item.name}</p>
           <span className="shrink-0 text-xs px-1.5 py-0.5 rounded-md bg-gray-50 border border-gray-100 text-gray-500 font-semibold uppercase">{item.id}</span>
         </div>
@@ -127,12 +127,11 @@ export default function VendorsPage() {
     },
     {
       header: "Kontak",
-      accessor: (item: any) => (
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-gray-700 truncate">{item.contactPerson}</p>
-          <p className="text-xs text-gray-400 truncate">{item.email}</p>
-        </div>
-      ),
+      accessor: (item: any) => <span className="block max-w-48 truncate text-sm font-medium text-gray-700">{item.contactPerson}</span>,
+    },
+    {
+      header: "Email",
+      accessor: (item: any) => <span className="block max-w-64 truncate text-sm text-gray-600">{item.email}</span>,
     },
     {
       header: "Kategori",
