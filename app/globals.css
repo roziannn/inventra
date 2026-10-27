@@ -82,7 +82,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground transition-colors duration-300;
+    @apply bg-background text-foreground;
     font-feature-settings:
       "rlig" 1,
       "calt" 1;
@@ -172,6 +172,14 @@
   .section-subheader {
     @apply text-sm text-gray-500 dark:text-gray-300;
   }
+}
+
+/* Theme switch: no transitions for the frames around the class flip, so light/dark changes in one paint */
+html.theme-switching,
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition: none !important;
 }
 
 /* Custom Scrollbar agar lebih Clean */

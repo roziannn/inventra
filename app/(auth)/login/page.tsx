@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { IconMail, IconLock, IconEye, IconEyeOff, IconBoxSeam, IconArrowRight, IconHeadset, IconBrandWhatsapp, IconExternalLink } from "@tabler/icons-react";
 import { Sulphur_Point } from "next/font/google";
 import toast from "react-hot-toast";
-import Modal from "@/components/Modal";
-import Button from "@/components/Button";
-import FormLabel from "@/components/FormLabel";
+import Modal from "@/components/ui/Modal";
+import Button from "@/components/ui/Button";
+import FormLabel from "@/components/ui/FormLabel";
 
 const sulphurPoint = Sulphur_Point({
   subsets: ["latin"],
@@ -44,7 +44,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-white font-sans transition-colors duration-300 dark:bg-background">
+    <div className="flex h-screen overflow-hidden bg-white font-sans dark:bg-background">
       {/* --- Left Side: Branding & Illustration (Hidden on Mobile) --- */}
       <div className="hidden lg:flex lg:w-1/2 bg-zinc-900 relative items-center justify-center p-12 overflow-hidden">
         {/* Abstract Background Decoration */}
@@ -84,7 +84,7 @@ export default function LoginPage() {
       </div>
 
       {/* --- Right Side: Login Form --- */}
-      <div className="flex w-full items-center justify-center bg-slate-100 p-6 transition-colors duration-300 dark:bg-background sm:p-12 lg:w-1/2 lg:bg-white lg:p-24 dark:lg:bg-background">
+      <div className="flex w-full items-center justify-center bg-slate-100 p-6 dark:bg-background sm:p-12 lg:w-1/2 lg:bg-white lg:p-24 dark:lg:bg-background">
         <div className="w-full max-w-md space-y-8">
           {/* Header Mobile Only */}
           <div className="lg:hidden flex flex-col items-center mb-10">
