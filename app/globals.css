@@ -140,15 +140,16 @@
     border-color: var(--border) !important;
   }
 
-  .dark .text-gray-900,
-  .dark .text-gray-800,
-  .dark .text-gray-700,
-  .dark .text-gray-600 {
+  /* :not(:disabled) lets disabled controls keep their own muted color */
+  .dark .text-gray-900:not(:disabled),
+  .dark .text-gray-800:not(:disabled),
+  .dark .text-gray-700:not(:disabled),
+  .dark .text-gray-600:not(:disabled) {
     color: var(--foreground) !important;
   }
 
-  .dark .text-gray-500,
-  .dark .text-gray-400 {
+  .dark .text-gray-500:not(:disabled),
+  .dark .text-gray-400:not(:disabled) {
     color: #cbd5e1 !important;
   }
 
