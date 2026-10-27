@@ -28,7 +28,7 @@ export default function ProfilePage() {
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 text-center">
               <div className="w-24 h-24 bg-zinc-900 rounded-full flex items-center justify-center text-white text-3xl font-bold mx-auto shadow-lg mb-4">AD</div>
               <h2 className="text-lg font-bold text-gray-900">Admin User</h2>
-              <p className="text-sm text-violet-500 font-semibold uppercase tracking-wider mt-1">Manager</p>
+              <p className="text-sm text-violet-500 font-semibold mt-1">Manager</p>
 
               <div className="mt-6 pt-6 border-t border-gray-50 flex flex-col gap-4 text-left text-sm text-gray-600">
                 <div className="flex items-center gap-3">

@@ -76,7 +76,7 @@ export default function LoginPage() {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-pulse"></div>
-              <span className="text-xs text-violet-100/50 font-semibold uppercase ">System Online</span>
+              <span className="text-xs text-violet-100/50 font-semibold ">System online</span>
             </div>
             <span className="text-xs px-2 py-0.5 bg-white/5 border border-white/10 text-violet-100/50 rounded-md font-mono">v1.0.2</span>
           </div>

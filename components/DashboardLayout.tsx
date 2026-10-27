@@ -390,7 +390,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {showSuggestions && filteredResults.length > 0 && (
                 <div className="absolute top-full left-0 w-full mt-2 bg-card rounded-xl shadow-2xl border border-border overflow-hidden z-[200]">
                   <div className="p-2 border-b border-border/60 bg-muted">
-                    <p className="text-xs font-bold text-gray-400 dark:text-gray-200 uppercase tracking-widest px-2">Hasil Pencarian</p>
+                    <p className="text-xs font-bold text-gray-400 dark:text-gray-200 px-2">Hasil pencarian</p>
                   </div>
                   <div className="max-h-80 overflow-y-auto custom-scrollbar">
                     {filteredResults.map((result, idx) => (
@@ -446,7 +446,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Footer */}
         <footer className="h-12 bg-card flex items-center justify-between px-4 lg:px-8 shrink-0 z-80 transition-colors duration-300">
           <p className="text-xs text-gray-400 dark:text-gray-300 font-medium tracking-wider">
-            &copy; {mounted ? new Date().getFullYear() : ""} <span className="text-violet-500 dark:text-violet-400 font-bold">INVENTRA</span>. ASSET & INVENTORY.
+            &copy; {mounted ? new Date().getFullYear() : ""} <span className="text-violet-500 dark:text-violet-400 font-bold">INVENTRA</span>. Asset & inventory.
           </p>
         </footer>
       </main>

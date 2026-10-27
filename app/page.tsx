@@ -100,7 +100,7 @@ export default function FullDashboard() {
       <div className="flex flex-col gap-3">
         <div className="rounded-xl border border-amber-200/80 bg-amber-50/80 px-4 py-3 shadow-sm">
           <div className="relative flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-            <div className="inline-flex self-start rounded-full bg-amber-500/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-amber-700 md:order-2 md:self-start">What&apos;s New</div>
+            <div className="inline-flex self-start rounded-full bg-amber-500/10 px-2.5 py-1 text-[11px] font-bold text-amber-700 md:order-2 md:self-start">What&apos;s new</div>
             <div className="flex items-start gap-3">
               <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-full bg-amber-500/12 text-amber-700">
                 <IconSpeakerphone size={18} stroke={2.1} className="animate-[pulse_2.6s_ease-in-out_infinite]" />
@@ -132,7 +132,7 @@ export default function FullDashboard() {
                 <stat.icon size={20} stroke={2} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest leading-none mb-1.5">{stat.label}</p>
+                <p className="text-xs font-bold text-gray-400 leading-none mb-1.5">{stat.label}</p>
                 <div className="flex items-baseline gap-1.5 justify-between">
                   <div className="flex items-baseline gap-1.5">
                     <h3 className="text-lg font-bold text-gray-900 leading-none">{stat.val}</h3>
@@ -187,7 +187,7 @@ export default function FullDashboard() {
           <div className="flex flex-col gap-4">
             <div className="bg-zinc-900 rounded-lg p-5 text-white relative overflow-hidden shadow-lg shrink-0">
               <div className="relative z-10">
-                <p className="text-violet-400 text-xs font-bold tracking-widest uppercase">Kondisi aset</p>
+                <p className="text-violet-400 text-xs font-bold">Kondisi aset</p>
                 <div className="flex items-baseline mt-1.5">
                   <h4 className="text-3xl font-black">94</h4>
                   <span className="text-lg text-violet-400 ml-1">%</span>
@@ -316,7 +316,7 @@ export default function FullDashboard() {
             <div className="flex-1 overflow-y-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-xs text-gray-400 uppercase tracking-wide">
+                  <tr className="text-xs text-gray-400">
                     <th className="text-left py-2">Item</th>
                     <th className="text-left py-2">SKU</th>
                     <th className="text-right py-2">Stock</th>

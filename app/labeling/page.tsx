@@ -68,8 +68,8 @@ export default function LabelingOverviewPage() {
                 Kami menyediakan panduan lengkap tentang cara terbaik mencetak dan menempelkan label untuk durabilitas maksimal pada berbagai jenis permukaan.
               </p>
             </div>
-            <button className="px-6 py-3 bg-violet-500 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-violet-600 transition-all active:scale-95 shadow-lg shadow-violet-500/20">
-              Lihat Panduan
+            <button className="px-6 py-3 bg-violet-500 text-white rounded-xl font-bold text-xs hover:bg-violet-600 transition-all active:scale-95 shadow-lg shadow-violet-500/20">
+              Lihat panduan
             </button>
           </div>
           <IconQrcode className="absolute -right-10 -bottom-10 w-48 h-48 text-white/5 rotate-12" />

@@ -156,7 +156,7 @@ export default function RoleSettingsPage() {
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[34rem] text-left">
                   <thead>
-                    <tr className="bg-gray-50/70 text-xs font-bold uppercase tracking-wide text-gray-400 dark:bg-white/6">
+                    <tr className="bg-gray-50/70 text-xs font-bold text-gray-400 dark:bg-white/6">
                       <th className="px-4 py-2.5">Menu</th>
                       {PERMISSION_KEYS.map((key) => (
                         <th key={key} className="w-20 px-2 py-2.5 text-center">
