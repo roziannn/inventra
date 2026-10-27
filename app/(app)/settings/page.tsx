@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { IconSettings, IconLock, IconBell, IconChevronRight, IconEye, IconEyeOff } from "@tabler/icons-react";
 import toast from "react-hot-toast";
+import Button from "@/components/ui/Button";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<"general" | "security">("general");
@@ -155,9 +156,9 @@ export default function SettingsPage() {
 
                   <div className="pb-6 flex items-center justify-between border-t border-gray-50">
                     <p className="text-xs text-gray-400 font-medium italic">*Anda akan diminta untuk login kembali setelah mengganti kata sandi.</p>
-                    <button type="submit" className="px-6 py-2.5 bg-zinc-900 text-white rounded-xl text-sm font-bold shadow-md hover:bg-zinc-800 transition-colors">
+                    <Button variant="page-primary" type="submit" className="!px-6 !py-2.5 !text-sm">
                       Perbarui Kata Sandi
-                    </button>
+                    </Button>
                   </div>
                 </form>
               </div>

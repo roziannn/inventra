@@ -130,6 +130,12 @@
     background-color: var(--card) !important;
   }
 
+  /* translucent light grays (bg-gray-50/30, ...) wash out on dark cards; use the muted tone instead, unless the element already sets its own dark: background */
+  .dark [class*="bg-gray-50/"]:not([class*="dark:bg-"]),
+  .dark [class*="bg-gray-100/"]:not([class*="dark:bg-"]) {
+    background-color: color-mix(in srgb, var(--muted) 55%, transparent) !important;
+  }
+
   .dark .hover\:bg-white:hover,
   .dark .hover\:bg-gray-50:hover,
   .dark .hover\:bg-gray-100:hover {
