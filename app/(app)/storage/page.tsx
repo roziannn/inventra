@@ -7,17 +7,20 @@ import Modal from "@/components/ui/Modal";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import EmptyState from "@/components/ui/EmptyState";
 import { fieldClass } from "@/components/ui/Input";
+import GroupManagerModal from "@/components/ui/GroupManagerModal";
 import Button from "@/components/ui/Button";
 import PageHeader from "@/components/ui/PageHeader";
 import FormLabel from "@/components/ui/FormLabel";
-import { IconBuildingWarehouse, IconLayoutRows, IconPlus, IconPencil, IconTrash, IconDoor, IconBox, IconRuler2, IconPackages } from "@tabler/icons-react";
+import { IconBuildingWarehouse, IconLayoutRows, IconPlus, IconPencil, IconTrash, IconDoor, IconBox, IconRuler2, IconPackages, IconLayoutGrid, IconSearch, IconFilter } from "@tabler/icons-react";
 import { addRoom, removeRoom, updateRoom, useHydrated, useRooms } from "@/lib/storage/room-store";
+import { addLocationGroup, toggleLocationGroup, useLocationGroups } from "@/lib/storage/location-store";
 import type { Room } from "@/lib/storage/storage-data";
 
 const MIN_SIZE = 3;
 const MAX_SIZE = 50;
 
 type FormState = { name: string; location: string; width: string; depth: string };
+const ALL_LOCATIONS = "Semua lokasi";
 const emptyForm: FormState = { name: "", location: "", width: "10", depth: "6" };
 
 export default function StoragePage() {
@@ -27,10 +30,24 @@ export default function StoragePage() {
   const [editing, setEditing] = useState<Room | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [deleting, setDeleting] = useState<Room | null>(null);
+  const locationGroups = useLocationGroups();
+  const [groupsOpen, setGroupsOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [locationFilter, setLocationFilter] = useState(ALL_LOCATIONS);
+
+  const activeGroups = locationGroups.filter((g) => g.isActive);
+  const filteredRooms = rooms.filter((r) => {
+    const q = query.trim().toLowerCase();
+    const matchesQuery = !q || r.name.toLowerCase().includes(q) || r.location.toLowerCase().includes(q);
+    return matchesQuery && (locationFilter === ALL_LOCATIONS || r.location === locationFilter);
+  });
+  // an edited room may sit in a group that was deactivated later, so its current value stays selectable
+  const formLocationOptions = activeGroups.map((g) => g.name);
+  if (form.location && !formLocationOptions.includes(form.location)) formLocationOptions.unshift(form.location);
 
   const openCreate = () => {
     setEditing(null);
-    setForm(emptyForm);
+    setForm({ ...emptyForm, location: activeGroups[0]?.name ?? "" });
     setFormOpen(true);
   };
 
@@ -46,6 +63,10 @@ export default function StoragePage() {
     const location = form.location.trim();
     if (!name) {
       toast.error("Nama ruangan wajib diisi");
+      return;
+    }
+    if (!location) {
+      toast.error("Pilih lokasi ruangan. Tambah lokasi lewat Location Group bila belum ada.");
       return;
     }
     if (rooms.some((r) => r.id !== editing?.id && r.name.toLowerCase() === name.toLowerCase())) {
@@ -83,6 +104,9 @@ export default function StoragePage() {
           description="Kelola ruangan dan rak penyimpanan barang."
           actions={
             <>
+              <Button variant="page-secondary" onClick={() => setGroupsOpen(true)}>
+                <IconLayoutGrid size={16} /> Location Group
+              </Button>
               <Link
                 href="/storage/wadah"
                 className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-xs font-bold text-gray-700 shadow-sm transition-all hover:bg-gray-50 active:scale-95 dark:border-gray-100/10 dark:bg-white/6 dark:text-gray-100 dark:hover:bg-white/10"
@@ -95,6 +119,37 @@ export default function StoragePage() {
             </>
           }
         />
+
+        <div className="flex flex-col items-center justify-between gap-4 py-2 md:flex-row">
+          <div className="group relative w-full md:w-80">
+            <IconSearch className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 transition-colors group-focus-within:text-violet-500" size={18} />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Cari nama ruangan atau lokasi..."
+              className="w-full border-b border-gray-200 bg-transparent py-2 pl-7 pr-4 text-sm transition-all focus:border-violet-700 focus:outline-none"
+            />
+          </div>
+          <div className="flex w-full items-center gap-3 md:w-auto">
+            <div className="flex items-center gap-2 text-sm font-medium text-gray-500">
+              <IconFilter size={16} />
+              <span>Filter:</span>
+            </div>
+            <select
+              value={locationFilter}
+              onChange={(e) => setLocationFilter(e.target.value)}
+              className="cursor-pointer border-b border-gray-200 bg-transparent py-2 text-sm font-bold text-gray-700 transition-all focus:border-violet-700 focus:outline-none"
+            >
+              <option>{ALL_LOCATIONS}</option>
+              {activeGroups.map((g) => (
+                <option key={g.name} value={g.name}>
+                  {g.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
 
         {!hydrated ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -113,9 +168,11 @@ export default function StoragePage() {
               </Button>
             }
           />
+        ) : filteredRooms.length === 0 ? (
+          <EmptyState icon={<IconSearch size={32} className="text-gray-300" />} title="Ruangan tidak ditemukan" description="Coba kata kunci lain atau pilih lokasi yang berbeda." />
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {rooms.map((room) => {
+            {filteredRooms.map((room) => {
               const itemCount = room.shelves.reduce((n, s) => n + s.items.length, 0);
               return (
                 <div
@@ -168,6 +225,23 @@ export default function StoragePage() {
         )}
       </div>
 
+      <GroupManagerModal
+        isOpen={groupsOpen}
+        onClose={() => setGroupsOpen(false)}
+        title="Manajemen Location Group"
+        description="Kelompokkan ruangan berdasarkan lokasi, misalnya gedung atau lantai. Lokasi yang dinonaktifkan tidak bisa dipilih untuk ruangan baru."
+        addLabel="Tambah lokasi baru"
+        addPlaceholder="Contoh: Gedung C - Lantai 1"
+        listLabel="Lokasi terdaftar"
+        groups={locationGroups}
+        usage={(name) => `${rooms.filter((r) => r.location === name).length} ruangan`}
+        onAdd={(name) => {
+          if (!addLocationGroup(name)) return "Lokasi sudah ada";
+          toast.success("Lokasi ditambahkan");
+        }}
+        onToggle={toggleLocationGroup}
+      />
+
       <Modal isOpen={formOpen} onClose={() => setFormOpen(false)} title={editing ? "Ubah Ruangan" : "Tambah Ruangan"}>
         <form onSubmit={submit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
@@ -176,7 +250,16 @@ export default function StoragePage() {
           </div>
           <div className="flex flex-col gap-1.5">
             <FormLabel htmlFor="room-location">Lokasi</FormLabel>
-            <input id="room-location" className={fieldClass} placeholder="Contoh: Gedung A - Lantai 2" value={form.location} onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))} />
+            <select id="room-location" className={fieldClass} value={form.location} onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}>
+              <option value="" disabled>
+                Pilih lokasi
+              </option>
+              {formLocationOptions.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
           </div>
           {!editing ? (
             <div className="grid grid-cols-2 gap-3">

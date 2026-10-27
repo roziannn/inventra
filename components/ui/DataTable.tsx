@@ -17,11 +17,13 @@ interface DataTableProps<T> {
   pageSize?: number;
   density?: "dense" | "normal";
   bodyCellClassName?: string;
+  /** makes every row clickable (pointer cursor, Enter/Space for keyboard users) */
+  onRowClick?: (item: T) => void;
   /** show skeleton rows instead of data */
   loading?: boolean;
 }
 
-export default function DataTable<T extends { id?: string | number }>({ data, columns, pageSize = 10, density = "normal", bodyCellClassName = "", loading = false }: DataTableProps<T>) {
+export default function DataTable<T extends { id?: string | number }>({ data, columns, pageSize = 10, density = "normal", bodyCellClassName = "", loading = false, onRowClick }: DataTableProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
@@ -76,7 +78,21 @@ export default function DataTable<T extends { id?: string | number }>({ data, co
               ))
             ) : currentData.length > 0 ? (
               currentData.map((item, rowIndex) => (
-                <tr key={item.id || `row-${rowIndex}`} className="hover:bg-violet-50/60 dark:hover:bg-white/6 transition-colors border-0">
+                <tr
+                  key={item.id || `row-${rowIndex}`}
+                  className={`hover:bg-violet-50/60 dark:hover:bg-white/6 transition-colors border-0 ${onRowClick ? "cursor-pointer focus-visible:bg-violet-50/60 focus-visible:outline-none dark:focus-visible:bg-white/6" : ""}`}
+                  {...(onRowClick && {
+                    tabIndex: 0,
+                    onClick: () => onRowClick(item),
+                    onKeyDown: (e: React.KeyboardEvent) => {
+                      if (e.target !== e.currentTarget) return;
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        onRowClick(item);
+                      }
+                    },
+                  })}
+                >
                   {columns.map((col, colIndex) => (
                     <td key={`cell-${colIndex}`} className={`${bodyCellClass} align-middle whitespace-nowrap ${col.className || ""} ${bodyCellClassName} border-0`}>
                       {typeof col.accessor === "function" ? col.accessor(item) : (item[col.accessor] as React.ReactNode)}

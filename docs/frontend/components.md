@@ -46,6 +46,7 @@ Judul halaman. Dipakai di **setiap** halaman supaya judul dan tombol aksi sejaja
 | `pageSize` | Baris per halaman (10) |
 | `density` | `"dense"` atau `"normal"` |
 | `loading` | Menampilkan skeleton menggantikan baris |
+| `onRowClick` | Membuat seluruh baris bisa diklik (kursor pointer, `Enter`/`Spasi` untuk keyboard), mis. membuka detail di modal |
 | `bodyCellClassName` | Kelas tambahan untuk semua sel |
 
 Aturan tampilan: **satu baris per data**. Sel tidak membungkus teks (`whitespace-nowrap`); teks panjang dipotong dengan `truncate` dan `max-w-*`. Jangan menumpuk dua informasi di satu sel (mis. nama dan email); buat kolom sendiri.
@@ -75,6 +76,25 @@ Aturan tampilan: **satu baris per data**. Sel tidak membungkus teks (`whitespace
 ```
 
 Setiap aksi yang menghapus data atau tidak bisa dibatalkan **wajib** memakai `ConfirmDialog` dan menyebut apa yang ikut hilang. `confirmLabel` bawaan "Hapus"; `tone="primary"` untuk konfirmasi non-destruktif. `Modal` ditutup dengan Esc atau klik latar.
+
+### GroupManagerModal
+
+Dialog untuk mengelola grup (kategori, lokasi, dsb.): tambah grup baru dan aktifkan atau nonaktifkan. Tata letaknya sama dengan dialog grup di Inventory dan Assets.
+
+```tsx
+<GroupManagerModal
+  isOpen={open}
+  onClose={() => setOpen(false)}
+  title="Manajemen Location Group"
+  description="Kelompokkan ruangan berdasarkan lokasi."
+  groups={locationGroups}
+  usage={(name) => `${countRooms(name)} ruangan`}
+  onAdd={(name) => (addLocationGroup(name) ? undefined : "Lokasi sudah ada")}
+  onToggle={toggleLocationGroup}
+/>
+```
+
+`onAdd` mengembalikan pesan galat untuk menolak nama, atau tidak mengembalikan apa pun bila diterima. Grup nonaktif tetap melekat pada data lama tetapi tidak bisa dipilih untuk data baru.
 
 ### Input, Select, FormLabel
 

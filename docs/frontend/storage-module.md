@@ -32,9 +32,14 @@ ContainerType   { id, name, shape: "box" | "crate" | "cylinder", width, height, 
 
 Satu slot menampung satu barang beserta wadahnya. Tingkat yang penuh menolak barang baru.
 
+## Location group
+
+`Room.location` berisi nama sebuah *location group* (mis. gedung atau lantai). Grup dikelola di `/storage` lewat tombol **Location Group** (`GroupManagerModal`) dan disimpan di `lib/storage/location-store.ts` (`useLocationGroups`, `addLocationGroup`, `toggleLocationGroup`). Form ruangan memilih lokasi dari grup aktif, dan daftar ruangan bisa dicari dan difilter per lokasi. Grup yang dinonaktifkan tidak bisa dipilih untuk ruangan baru, tetapi ruangan lama tetap tampil di bawah grup itu.
+
 ## Store
 
 - `room-store.ts`: `useRooms()`, `addRoom`, `updateRoom`, `removeRoom`. Halaman ruangan menyimpan `shelves`, `openings`, ukuran ke store setiap berubah.
+- `location-store.ts`: `useLocationGroups()`, `addLocationGroup`, `toggleLocationGroup`.
 - `container-store.ts`: `useContainers()`, `addContainerType`, `updateContainerType`, `removeContainerType`, `resetContainerTypes`.
 - Data awal ada di `storage-data.ts` (`rooms`, `itemCatalog`) dan `shelf-model.ts` (`DEFAULT_CONTAINERS`).
 

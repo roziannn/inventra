@@ -81,6 +81,27 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /* Tailwind 4 resets buttons to the default cursor; anything that acts on click should show a pointer */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="tab"],
+  [role="switch"],
+  summary,
+  select,
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="range"],
+  input[type="color"],
+  input[type="file"],
+  label[for],
+  a[href] {
+    cursor: pointer;
+  }
+  button:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-feature-settings:

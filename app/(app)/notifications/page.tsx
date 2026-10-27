@@ -89,13 +89,13 @@ export default function NotificationsPage() {
     {
       header: "Notifikasi",
       accessor: (item: NotificationItem) => (
-        <button type="button" onClick={() => handleOpenNotification(item)} className="flex w-full min-w-0 items-center gap-3 py-1 text-left transition-opacity hover:opacity-80">
+        <div className="flex w-full min-w-0 items-center gap-3 py-1">
           <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${item.color}`}>
             <item.icon size={18} stroke={2} />
           </div>
           <p className={`truncate font-bold ${item.isRead ? "text-gray-700" : "text-gray-900"}`}>{item.title}</p>
           {!item.isRead && <span className="h-2 w-2 shrink-0 rounded-full bg-violet-500" />}
-        </button>
+        </div>
       ),
     },
     {
@@ -133,7 +133,7 @@ export default function NotificationsPage() {
           }
         />
 
-        <DataTable loading={loading} data={notifications} columns={columns} pageSize={10} density="dense" bodyCellClassName="!py-3" />
+        <DataTable loading={loading} onRowClick={handleOpenNotification} data={notifications} columns={columns} pageSize={10} density="dense" bodyCellClassName="!py-3" />
 
         <Modal isOpen={Boolean(selectedNotification)} onClose={handleCloseModal} title={selectedNotification?.title || "Detail Notifikasi"}>
           {selectedNotification && (
