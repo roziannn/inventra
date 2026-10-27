@@ -27,6 +27,7 @@
 - **Tabel:** satu baris per data, satu informasi per kolom (lihat [components.md](./components.md#datatable)).
 - **Halaman:** rata kiri dan lebar penuh. Jangan memakai `mx-auto max-w-*` di pembungkus halaman.
 - **Judul halaman** lewat `PageHeader`. **Breadcrumb** otomatis dari header.
+- **Kursor:** semua yang bisa diklik menampilkan pointer. Aturan global di `globals.css` mencakup `button`, `a[href]`, `select`, checkbox/radio/range, `role="button|tab|switch"`; tombol nonaktif memakai `not-allowed`. Jangan memasang `onClick` pada `div`/`span`/`tr` biasa; pakai `<button>`, `<a>`, atau `DataTable onRowClick`. Bila terpaksa, beri `role="button"`, `tabIndex={0}`, dan penangan keyboard.
 - **Aksi destruktif** lewat `ConfirmDialog`.
 - **Umpan balik:** `toast.success` untuk berhasil, `toast.error` dengan alasan dan langkah berikutnya untuk gagal.
 - **Keadaan kosong, memuat, dan error** selalu ada: `EmptyState`, skeleton, `error.tsx`.

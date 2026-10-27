@@ -63,6 +63,7 @@ Aturan arah ketergantungan: `app` boleh memakai `components` dan `lib`; `compone
 | Data contoh halaman tabel | `useState` di halaman | `app/(app)/*/page.tsx` |
 | Ruangan, rak, isi rak | store `localStorage` | `lib/storage/room-store.ts` |
 | Jenis wadah | store `localStorage` | `lib/storage/container-store.ts` |
+| Location group | store `localStorage` | `lib/storage/location-store.ts` |
 | Menu, role, role aktif | store `localStorage` | `lib/settings/settings-store.ts` |
 | Tema | store `localStorage` (`theme`) | `lib/theme.ts` |
 
@@ -72,7 +73,7 @@ Semua store memakai pola yang sama:
 - `useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)`; snapshot server adalah data bawaan, sehingga render server dan hidrasi cocok.
 - Fungsi perubahan (`addRoom`, `updateMenu`, ...) adalah fungsi biasa, bukan hook, jadi bisa dipanggil dari mana saja.
 
-Kunci `localStorage`: `theme`, `inventra:storage-rooms:v1`, `inventra:containers:v1`, `inventra:settings:v1`. Naikkan akhiran versi bila bentuk data berubah dan tambahkan migrasi.
+Kunci `localStorage`: `theme`, `inventra:storage-rooms:v1`, `inventra:containers:v1`, `inventra:storage-locations:v1`, `inventra:settings:v1`. Naikkan akhiran versi bila bentuk data berubah dan tambahkan migrasi.
 
 ### Membaca data browser dengan aman
 
