@@ -1,8 +1,12 @@
-export type ShelfType = "standard" | "angle" | "pallet";
+export type ShelfType = "standard" | "angle" | "wire" | "bin" | "cubby" | "cantilever" | "pallet";
 
 export const SHELF_TYPES: Record<ShelfType, { label: string; depth: number; length: number; height: number; color: string }> = {
   standard: { label: "Rak Standar", depth: 0.7, length: 1.6, height: 2.2, color: "#a78bfa" },
   angle: { label: "Rak Besi Siku (Boltless)", depth: 0.5, length: 3, height: 2, color: "#e5e7eb" },
+  wire: { label: "Rak Kawat (Wire Shelving)", depth: 0.5, length: 1.2, height: 1.8, color: "#cbd5e1" },
+  bin: { label: "Rak Bin (Kotak Plastik)", depth: 0.5, length: 1.8, height: 2, color: "#2563eb" },
+  cubby: { label: "Rak Kubus (Pigeonhole)", depth: 0.4, length: 1.6, height: 1.8, color: "#d6b88c" },
+  cantilever: { label: "Rak Cantilever (Barang Panjang)", depth: 1, length: 3, height: 2.5, color: "#ea580c" },
   pallet: { label: "Rak Pallet (Heavy Duty)", depth: 0.9, length: 3.6, height: 3, color: "#f97316" },
 };
 
@@ -35,9 +39,20 @@ export interface ShelfData {
   tags?: Record<number, string>;
 }
 
-/** how many items fit on one level (one box slot per item) */
+/** how many items fit on one level (one slot per item: a box, a bin, a cell or a bar) */
 export function levelSlots(s: Pick<ShelfData, "type" | "length">) {
-  return s.type === "pallet" ? Math.max(1, Math.round(s.length / 1.8)) : Math.max(1, Math.floor(s.length / 0.55));
+  switch (s.type) {
+    case "pallet":
+      return Math.max(1, Math.round(s.length / 1.8));
+    case "bin":
+      return Math.max(1, Math.floor(s.length / 0.45));
+    case "cubby":
+      return Math.max(1, Math.round(s.length / 0.4));
+    case "cantilever":
+      return 4;
+    default:
+      return Math.max(1, Math.floor(s.length / 0.55));
+  }
 }
 
 export function itemsAtLevel(s: Pick<ShelfData, "items">, level: number) {

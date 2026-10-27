@@ -3,9 +3,10 @@
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { IconPlus, IconMinus } from "@tabler/icons-react";
+import { SHELF_BUILDERS } from "@/components/shelf-builders";
 import { OPENING_KINDS, clampOffset, doorClearances, openingsCollide, wallLength, type Opening, type Rect, type WallId } from "@/lib/room-openings";
 
-import { SHELF_TYPES, itemsAtLevel, levelSlots, levelTag, type ShelfData } from "@/lib/shelf-model";
+import { SHELF_TYPES, itemsAtLevel, levelTag, type ShelfData } from "@/lib/shelf-model";
 
 export { SHELF_TYPES, defaultLevelTag, fillPercent, itemsAtLevel, levelSlots, levelTag } from "@/lib/shelf-model";
 export type { ShelfData, ShelfItem, ShelfType } from "@/lib/shelf-model";
@@ -133,6 +134,7 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
     scene.add(grid);
 
     const frameMat = new THREE.MeshStandardMaterial({ color: 0x52525b });
+    const chromeMat = new THREE.MeshStandardMaterial({ color: 0xe5e7eb, metalness: 0.7, roughness: 0.3 });
     const metalMat = new THREE.MeshStandardMaterial({ color: 0x9ca3af, metalness: 0.4, roughness: 0.5 });
     const blueMat = new THREE.MeshStandardMaterial({ color: 0x1e40af });
     const woodMat = new THREE.MeshStandardMaterial({ color: 0xc99a5b });
@@ -210,84 +212,13 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
         group.add(m);
       };
 
-      if (shelf.type === "standard") {
-        for (const sx of [-1, 1]) for (const sz of [-1, 1]) add(0.06, H, 0.06, frameMat, (sx * W) / 2, H / 2, (sz * D) / 2);
-        const step = H / shelf.levels;
-        const perLevel = levelSlots(shelf);
-        for (let l = 0; l < shelf.levels; l++) {
-          add(W, 0.05, D, levelMats[l], 0, l * step + 0.03, 0);
-          addTag(levelTag(roomCode, shelfIndex, shelf, l), -W / 2 + 0.38, l * step + 0.08, D / 2 + 0.012);
-          const count = Math.min(perLevel, itemsAtLevel(shelf, l).length);
-          for (let b = 0; b < count; b++) {
-            add(0.4, step * 0.6, 0.45, boxMat, (b - (perLevel - 1) / 2) * (W / perLevel), l * step + 0.05 + (step * 0.6) / 2, 0);
-          }
-        }
-      } else if (shelf.type === "angle") {
-        // galvanized angle-iron racking: L-profile posts shared between bays, light panels with a front lip
-        const bays = Math.max(1, Math.round(W / 1.5));
-        const bayW = W / bays;
-        const zf = D / 2 - 0.02;
-        for (let i = 0; i <= bays; i++) {
-          const x = -W / 2 + i * bayW;
-          for (const sz of [-1, 1]) {
-            add(0.05, H, 0.012, metalMat, x, H / 2, sz * zf + sz * 0.019);
-            add(0.012, H, 0.04, metalMat, x - 0.019, H / 2, sz * zf);
-          }
-        }
-        const perLevel = levelSlots(shelf);
-        const step = shelf.levels > 1 ? (H - 0.25) / (shelf.levels - 1) : 0;
-        for (let l = 0; l < shelf.levels; l++) {
-          const y = 0.1 + l * step;
-          for (let b = 0; b < bays; b++) {
-            const cx = -W / 2 + (b + 0.5) * bayW;
-            add(bayW - 0.06, 0.02, D, levelMats[l], cx, y, 0);
-            add(bayW - 0.06, 0.06, 0.012, levelMats[l], cx, y - 0.02, D / 2 + 0.006);
-            add(bayW - 0.06, 0.06, 0.012, levelMats[l], cx, y - 0.02, -D / 2 - 0.006);
-          }
-          addTag(levelTag(roomCode, shelfIndex, shelf, l), -W / 2 + 0.34, y - 0.02, D / 2 + 0.02);
-          const count = Math.min(perLevel, itemsAtLevel(shelf, l).length);
-          const boxH = Math.max(0.18, Math.min(0.45, (step || H) * 0.6));
-          for (let b = 0; b < count; b++) {
-            add(Math.min(0.4, (W / perLevel) * 0.8), boxH, D * 0.8, boxMat, -W / 2 + (b + 0.5) * (W / perLevel), y + 0.01 + boxH / 2, 0);
-          }
-        }
-      } else {
-        // heavy duty pallet racking: blue braced upright frames, colored beams, wooden decks
-        const bays = Math.max(1, Math.round(W / 1.8));
-        const bayW = W / bays;
-        const zf = D / 2 - 0.04;
-        for (let i = 0; i <= bays; i++) {
-          const x = -W / 2 + i * bayW;
-          add(0.07, H, 0.07, blueMat, x, H / 2, -zf);
-          add(0.07, H, 0.07, blueMat, x, H / 2, zf);
-          const seg = 0.5;
-          const segs = Math.max(1, Math.round(H / seg));
-          const sh = H / segs;
-          for (let k = 0; k < segs; k++) {
-            const y0 = k * sh;
-            const dz = (k % 2 === 0 ? 1 : -1) * 2 * zf;
-            const len = Math.hypot(sh, dz);
-            const diag = add(0.03, len, 0.03, blueMat, x, y0 + sh / 2, 0);
-            diag.rotation.x = Math.atan2(dz, sh);
-            add(0.03, 0.03, 2 * zf, blueMat, x, y0, 0);
-          }
-        }
-        const step = (H - 0.3) / shelf.levels;
-        for (let l = 0; l < shelf.levels; l++) {
-          const stocked = itemsAtLevel(shelf, l).length;
-          const y = 0.25 + l * step;
-          add(W, 0.12, 0.05, levelMats[l], 0, y, -zf);
-          add(W, 0.12, 0.05, levelMats[l], 0, y, zf);
-          addTag(levelTag(roomCode, shelfIndex, shelf, l), -W / 2 + 0.5, y, zf + 0.03);
-          for (let b = 0; b < bays; b++) {
-            const cx = -W / 2 + (b + 0.5) * bayW;
-            add(bayW - 0.12, 0.03, D - 0.12, woodMat, cx, y + 0.04, 0);
-            if (b >= stocked) continue;
-            const bh = Math.max(0.2, Math.min(step - 0.3, 0.9));
-            add(bayW * 0.8, bh, D * 0.8, boxMat, cx, y + 0.055 + bh / 2, 0);
-          }
-        }
-      }
+      SHELF_BUILDERS[shelf.type]({
+        shelf,
+        add,
+        addTag: (level, x, y, z) => addTag(levelTag(roomCode, shelfIndex, shelf, level), x, y, z),
+        levelMats,
+        mats: { frame: frameMat, metal: metalMat, blue: blueMat, wood: woodMat, box: boxMat, chrome: chromeMat, body: coverMat },
+      });
 
       // closed panels
       if (shelf.coverTop) add(W + 0.04, 0.03, D + 0.04, coverMat, 0, H + 0.015, 0);
@@ -656,7 +587,7 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
       wallGeoms.forEach((g) => g.dispose());
       grid.geometry.dispose();
       (grid.material as THREE.Material).dispose();
-      [...beamMats, frameMat, metalMat, blueMat, woodMat, selectedFloorMat, dangerFloorMat, boxMat, bandMat, bandEdgeMat, hlMat, hlEdgeMat, hitMat, floorMat, wallMat, doorLeafMat, doorFrameMat, windowFrameMat, glassMat, selectedFrameMat, clearanceMat].forEach((m) => m.dispose());
+      [...beamMats, frameMat, chromeMat, metalMat, blueMat, woodMat, selectedFloorMat, dangerFloorMat, boxMat, bandMat, bandEdgeMat, hlMat, hlEdgeMat, hitMat, floorMat, wallMat, doorLeafMat, doorFrameMat, windowFrameMat, glassMat, selectedFrameMat, clearanceMat].forEach((m) => m.dispose());
       renderer.dispose();
       container.removeChild(dom);
     };
