@@ -1,4 +1,4 @@
-import { levelSlots, type ShelfData, type ShelfItem, type ShelfType } from "@/lib/shelf-model";
+import { DEFAULT_CONTAINERS, levelSlots, type ShelfData, type ShelfItem, type ShelfType } from "@/lib/shelf-model";
 import type { Opening } from "@/lib/room-openings";
 
 export interface Room {
@@ -30,7 +30,7 @@ function seedItems(shelfId: string, levels: number, percent: number, type: Shelf
   const items: ShelfItem[] = [];
   for (let n = 0; n < target; n++) {
     const c = itemCatalog[(n + Number(shelfId.slice(-1))) % itemCatalog.length];
-    items.push({ id: `${shelfId}-I${n + 1}`, level: Math.floor(n / slots), name: c.name, sku: c.sku, qty: 1 + ((n * 7) % 20) });
+    items.push({ id: `${shelfId}-I${n + 1}`, level: Math.floor(n / slots), name: c.name, sku: c.sku, qty: 1 + ((n * 7) % 20), containerId: DEFAULT_CONTAINERS[(n + 1) % 4].id });
   }
   return items;
 }

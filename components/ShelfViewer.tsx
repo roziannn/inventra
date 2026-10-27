@@ -3,13 +3,13 @@
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { IconPlus, IconMinus } from "@tabler/icons-react";
-import { SHELF_BUILDERS } from "@/components/shelf-builders";
+import { SHELF_BUILDERS, type BuildContext } from "@/components/shelf-builders";
 import { OPENING_KINDS, clampOffset, doorClearances, openingsCollide, wallLength, type Opening, type Rect, type WallId } from "@/lib/room-openings";
 
-import { SHELF_TYPES, itemsAtLevel, levelTag, type ShelfData } from "@/lib/shelf-model";
+import { SHELF_TYPES, containerFor, itemsAtLevel, levelTag, type ContainerType, type ShelfData } from "@/lib/shelf-model";
 
 export { SHELF_TYPES, defaultLevelTag, fillPercent, itemsAtLevel, levelSlots, levelTag } from "@/lib/shelf-model";
-export type { ShelfData, ShelfItem, ShelfType } from "@/lib/shelf-model";
+export type { ContainerType, ShelfData, ShelfItem, ShelfType } from "@/lib/shelf-model";
 
 export type ShelfPlace = Pick<ShelfData, "x" | "z" | "rotated" | "length" | "type">;
 
@@ -18,6 +18,7 @@ export type ViewerMode = "view" | "rak" | "ruangan";
 interface ShelfViewerProps {
   shelves: ShelfData[];
   openings: Opening[];
+  containers: ContainerType[];
   roomWidth: number;
   roomDepth: number;
   roomCode: string;
@@ -66,7 +67,7 @@ export function blockedByDoor(s: ShelfPlace, openings: Opening[], roomWidth: num
   return doorClearances(openings, roomWidth, roomDepth).some((r) => hitsRect(s, r));
 }
 
-export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, roomCode, selectedId, selectedOpeningId, selectedLevel, highlights, mode, onSelect, onSelectOpening, onMove, onMoveOpening, onBlocked }: ShelfViewerProps) {
+export default function ShelfViewer({ shelves, openings, containers, roomWidth, roomDepth, roomCode, selectedId, selectedOpeningId, selectedLevel, highlights, mode, onSelect, onSelectOpening, onMove, onMoveOpening, onBlocked }: ShelfViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const selectedRef = useRef(selectedId);
   const modeRef = useRef(mode);
@@ -134,6 +135,17 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
     scene.add(grid);
 
     const frameMat = new THREE.MeshStandardMaterial({ color: 0x52525b });
+    // one material per container color, shared by every container of that color
+    const containerMats = new Map<string, THREE.MeshStandardMaterial>();
+    const containerMat = (color: string) => {
+      let m = containerMats.get(color);
+      if (!m) {
+        m = new THREE.MeshStandardMaterial({ color });
+        containerMats.set(color, m);
+      }
+      return m;
+    };
+    const tapeMat = new THREE.MeshStandardMaterial({ color: 0xf3e8cc });
     const chromeMat = new THREE.MeshStandardMaterial({ color: 0xe5e7eb, metalness: 0.7, roughness: 0.3 });
     const metalMat = new THREE.MeshStandardMaterial({ color: 0x9ca3af, metalness: 0.4, roughness: 0.5 });
     const blueMat = new THREE.MeshStandardMaterial({ color: 0x1e40af });
@@ -212,8 +224,37 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
         group.add(m);
       };
 
+      const addContainer: BuildContext["addContainer"] = (item, x, baseY, z, maxW, maxH, maxD) => {
+        const t = containerFor(containers, item.containerId);
+        const w = Math.max(0.05, Math.min(t.width, maxW));
+        const h = Math.max(0.05, Math.min(t.height, maxH));
+        const d = Math.max(0.05, Math.min(t.depth, maxD));
+        const mat = containerMat(t.color);
+        if (t.shape === "cylinder") {
+          const r = Math.min(w, d) / 2;
+          const g = new THREE.CylinderGeometry(r, r, h, 20);
+          geoms.push(g);
+          const m = new THREE.Mesh(g, mat);
+          m.position.set(x, baseY + h / 2, z);
+          group.add(m);
+        } else if (t.shape === "crate") {
+          const k = 0.02;
+          add(w, k, d, mat, x, baseY + k / 2, z);
+          add(w, h, k, mat, x, baseY + h / 2, z - d / 2 + k / 2);
+          add(w, h, k, mat, x, baseY + h / 2, z + d / 2 - k / 2);
+          add(k, h, d, mat, x - w / 2 + k / 2, baseY + h / 2, z);
+          add(k, h, d, mat, x + w / 2 - k / 2, baseY + h / 2, z);
+        } else {
+          add(w, h, d, mat, x, baseY + h / 2, z);
+          add(Math.max(0.03, w * 0.16), 0.004, d + 0.002, tapeMat, x, baseY + h + 0.002, z);
+        }
+      };
+
       SHELF_BUILDERS[shelf.type]({
         shelf,
+        addContainer,
+        containerOf: (item) => containerFor(containers, item.containerId),
+        matFor: containerMat,
         add,
         addTag: (level, x, y, z) => addTag(levelTag(roomCode, shelfIndex, shelf, level), x, y, z),
         levelMats,
@@ -587,11 +628,11 @@ export default function ShelfViewer({ shelves, openings, roomWidth, roomDepth, r
       wallGeoms.forEach((g) => g.dispose());
       grid.geometry.dispose();
       (grid.material as THREE.Material).dispose();
-      [...beamMats, frameMat, chromeMat, metalMat, blueMat, woodMat, selectedFloorMat, dangerFloorMat, boxMat, bandMat, bandEdgeMat, hlMat, hlEdgeMat, hitMat, floorMat, wallMat, doorLeafMat, doorFrameMat, windowFrameMat, glassMat, selectedFrameMat, clearanceMat].forEach((m) => m.dispose());
+      [...beamMats, ...containerMats.values(), tapeMat, frameMat, chromeMat, metalMat, blueMat, woodMat, selectedFloorMat, dangerFloorMat, boxMat, bandMat, bandEdgeMat, hlMat, hlEdgeMat, hitMat, floorMat, wallMat, doorLeafMat, doorFrameMat, windowFrameMat, glassMat, selectedFrameMat, clearanceMat].forEach((m) => m.dispose());
       renderer.dispose();
       container.removeChild(dom);
     };
-  }, [shelves, openings, roomWidth, roomDepth, roomCode]);
+  }, [shelves, openings, containers, roomWidth, roomDepth, roomCode]);
 
   const zoomBtn = "flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-50 active:scale-95 dark:border-gray-100/10 dark:bg-zinc-800 dark:text-gray-100";
 

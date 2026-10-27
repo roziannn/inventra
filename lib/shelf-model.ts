@@ -17,6 +17,8 @@ export interface ShelfItem {
   name: string;
   sku: string;
   qty: number;
+  /** packaging this item sits in (a ContainerType id); unknown or missing falls back to the first type */
+  containerId?: string;
 }
 
 export interface ShelfData {
@@ -74,4 +76,33 @@ export function defaultLevelTag(roomCode: string, shelfIndex: number, level: num
 
 export function levelTag(roomCode: string, shelfIndex: number, shelf: Pick<ShelfData, "tags">, level: number) {
   return shelf.tags?.[level]?.trim() || defaultLevelTag(roomCode, shelfIndex, level);
+}
+
+// ---------- containers: the boxes, crates and drums stored on shelves ----------
+
+export type ContainerShape = "box" | "crate" | "cylinder";
+
+export const CONTAINER_SHAPES: Record<ContainerShape, string> = { box: "Kardus (tertutup)", crate: "Crate / bak terbuka", cylinder: "Drum / tong" };
+
+export interface ContainerType {
+  id: string;
+  name: string;
+  shape: ContainerShape;
+  /** meters; for a cylinder the diameter is min(width, depth) */
+  width: number;
+  height: number;
+  depth: number;
+  color: string;
+}
+
+export const DEFAULT_CONTAINERS: ContainerType[] = [
+  { id: "ct-kardus-s", name: "Kardus Kecil", shape: "box", width: 0.3, height: 0.25, depth: 0.3, color: "#d4a373" },
+  { id: "ct-kardus-l", name: "Kardus Besar", shape: "box", width: 0.45, height: 0.4, depth: 0.4, color: "#c58f5c" },
+  { id: "ct-arsip", name: "Box Arsip", shape: "box", width: 0.25, height: 0.3, depth: 0.38, color: "#e9dcc0" },
+  { id: "ct-crate", name: "Crate Plastik", shape: "crate", width: 0.4, height: 0.25, depth: 0.3, color: "#3b82f6" },
+  { id: "ct-drum", name: "Drum", shape: "cylinder", width: 0.35, height: 0.45, depth: 0.35, color: "#1d4ed8" },
+];
+
+export function containerFor(list: ContainerType[], id?: string): ContainerType {
+  return list.find((c) => c.id === id) ?? list[0] ?? DEFAULT_CONTAINERS[0];
 }

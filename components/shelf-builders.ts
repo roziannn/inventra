@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { SHELF_TYPES, itemsAtLevel, levelSlots, type ShelfData, type ShelfType } from "@/lib/shelf-model";
+import { SHELF_TYPES, itemsAtLevel, levelSlots, type ContainerType, type ShelfData, type ShelfItem, type ShelfType } from "@/lib/shelf-model";
 
 type Add = (w: number, h: number, d: number, mat: THREE.Material, x: number, y: number, z: number) => THREE.Mesh;
 
@@ -21,6 +21,10 @@ export interface BuildContext {
   /** one material per level so unselected levels can be dimmed */
   levelMats: THREE.Material[];
   mats: BuildMats;
+  /** draws an item's container on a surface at baseY, scaled down to fit the slot (maxW x maxH x maxD) */
+  addContainer: (item: ShelfItem, x: number, baseY: number, z: number, maxW: number, maxH: number, maxD: number) => void;
+  containerOf: (item: ShelfItem) => ContainerType;
+  matFor: (color: string) => THREE.Material;
 }
 
 const dims = (c: BuildContext) => ({ W: c.shelf.length, H: c.shelf.height, D: SHELF_TYPES[c.shelf.type].depth });
@@ -34,10 +38,9 @@ function standard(c: BuildContext) {
   for (let l = 0; l < shelf.levels; l++) {
     add(W, 0.05, D, levelMats[l], 0, l * step + 0.03, 0);
     addTag(l, -W / 2 + 0.38, l * step + 0.08, D / 2 + 0.012);
-    const count = Math.min(perLevel, itemsAtLevel(shelf, l).length);
-    for (let b = 0; b < count; b++) {
-      add(0.4, step * 0.6, 0.45, mats.box, (b - (perLevel - 1) / 2) * (W / perLevel), l * step + 0.05 + (step * 0.6) / 2, 0);
-    }
+    itemsAtLevel(shelf, l)
+      .slice(0, perLevel)
+      .forEach((it, b) => c.addContainer(it, (b - (perLevel - 1) / 2) * (W / perLevel), l * step + 0.05, 0, W / perLevel - 0.05, step - 0.08, D * 0.9));
   }
 }
 
@@ -66,11 +69,9 @@ function angle(c: BuildContext) {
       add(bayW - 0.06, 0.06, 0.012, levelMats[l], cx, y - 0.02, -D / 2 - 0.006);
     }
     addTag(l, -W / 2 + 0.34, y - 0.02, D / 2 + 0.02);
-    const count = Math.min(perLevel, itemsAtLevel(shelf, l).length);
-    const boxH = Math.max(0.18, Math.min(0.45, (step || H) * 0.6));
-    for (let b = 0; b < count; b++) {
-      add(Math.min(0.4, (W / perLevel) * 0.8), boxH, D * 0.8, mats.box, -W / 2 + (b + 0.5) * (W / perLevel), y + 0.01 + boxH / 2, 0);
-    }
+    itemsAtLevel(shelf, l)
+      .slice(0, perLevel)
+      .forEach((it, b) => c.addContainer(it, -W / 2 + (b + 0.5) * (W / perLevel), y + 0.01, 0, (W / perLevel) * 0.9, (step || H) - 0.05, D * 0.9));
   }
 }
 
@@ -91,10 +92,9 @@ function wire(c: BuildContext) {
     add(0.025, 0.025, D, mat, W / 2 - 0.015, y, 0);
     for (let k = 1; k < slats; k++) add(0.008, 0.012, D - 0.03, mat, -W / 2 + (k * W) / slats, y, 0);
     addTag(l, -W / 2 + 0.34, y, D / 2 + 0.012);
-    const count = Math.min(perLevel, itemsAtLevel(shelf, l).length);
-    for (let b = 0; b < count; b++) {
-      add(0.38, step * 0.55, D * 0.8, mats.box, -W / 2 + (b + 0.5) * (W / perLevel), y + 0.0125 + (step * 0.55) / 2, 0);
-    }
+    itemsAtLevel(shelf, l)
+      .slice(0, perLevel)
+      .forEach((it, b) => c.addContainer(it, -W / 2 + (b + 0.5) * (W / perLevel), y + 0.0125, 0, W / perLevel - 0.04, step - 0.1, D * 0.9));
   }
 }
 
@@ -114,7 +114,7 @@ function bin(c: BuildContext) {
     const mat = levelMats[l];
     add(W, 0.03, D, mats.metal, 0, y, 0);
     addTag(l, -W / 2 + 0.3, y, D / 2 + 0.012);
-    const stocked = itemsAtLevel(shelf, l).length;
+    const stocked = itemsAtLevel(shelf, l);
     for (let b = 0; b < perLevel; b++) {
       const cx = -W / 2 + (b + 0.5) * slotW;
       const base = y + 0.015;
@@ -123,9 +123,7 @@ function bin(c: BuildContext) {
       add(0.02, bh, bd, mat, cx - bw / 2 + 0.01, base + bh / 2, 0);
       add(0.02, bh, bd, mat, cx + bw / 2 - 0.01, base + bh / 2, 0);
       add(bw, bh * 0.45, 0.02, mat, cx, base + (bh * 0.45) / 2, bd / 2 - 0.01);
-      if (b < stocked) {
-        add(bw * 0.7, bh * 0.45, bd * 0.55, mats.box, cx, base + 0.02 + (bh * 0.45) / 2, -0.04);
-      }
+      if (stocked[b]) c.addContainer(stocked[b], cx, base + 0.02, -0.02, (bw - 0.05) * 0.9, bh - 0.02, (bd - 0.05) * 0.8);
     }
   }
 }
@@ -147,11 +145,9 @@ function cubby(c: BuildContext) {
     add(W - 2 * t, t, D, levelMats[l], 0, y + t / 2, 0);
     for (let k = 1; k < cols; k++) add(t * 0.8, step - t, D, levelMats[l], -W / 2 + t + k * cellW, y + t + (step - t) / 2, 0);
     addTag(l, -W / 2 + 0.3, y + t, D / 2 + 0.012);
-    const stocked = itemsAtLevel(shelf, l).length;
-    for (let b = 0; b < Math.min(cols, stocked); b++) {
-      const bh = Math.min(step * 0.55, 0.3);
-      add(cellW * 0.7, bh, D * 0.6, mats.box, -W / 2 + t + (b + 0.5) * cellW, y + t + bh / 2, 0);
-    }
+    itemsAtLevel(shelf, l)
+      .slice(0, cols)
+      .forEach((it, b) => c.addContainer(it, -W / 2 + t + (b + 0.5) * cellW, y + t, 0, cellW * 0.9, step - t - 0.02, D * 0.85));
   }
 }
 
@@ -174,10 +170,13 @@ function cantilever(c: BuildContext) {
     const y = 0.35 + l * step;
     for (let i = 0; i < cols; i++) add(0.06, 0.06, D, levelMats[l], -W / 2 + i * colGap, y, 0);
     addTag(l, -W / 2 + 0.32, y, D / 2 + 0.035);
-    const stocked = itemsAtLevel(shelf, l).length;
-    for (let b = 0; b < Math.min(bars, stocked); b++) {
-      add(W - 0.1, 0.12, 0.12, mats.box, 0, y + 0.09, -D / 2 + (b + 0.5) * (D / bars));
-    }
+    itemsAtLevel(shelf, l)
+      .slice(0, bars)
+      .forEach((it, b) => {
+        const t = c.containerOf(it);
+        const thick = Math.max(0.08, Math.min(0.2, Math.min(t.width, t.depth) * 0.4));
+        add(W - 0.1, thick, thick, c.matFor(t.color), 0, y + 0.03 + thick / 2, -D / 2 + (b + 0.5) * (D / bars));
+      });
   }
 }
 
@@ -204,7 +203,7 @@ function pallet(c: BuildContext) {
   }
   const step = (H - 0.3) / shelf.levels;
   for (let l = 0; l < shelf.levels; l++) {
-    const stocked = itemsAtLevel(shelf, l).length;
+    const stocked = itemsAtLevel(shelf, l);
     const y = 0.25 + l * step;
     add(W, 0.12, 0.05, levelMats[l], 0, y, -zf);
     add(W, 0.12, 0.05, levelMats[l], 0, y, zf);
@@ -212,9 +211,7 @@ function pallet(c: BuildContext) {
     for (let b = 0; b < bays; b++) {
       const cx = -W / 2 + (b + 0.5) * bayW;
       add(bayW - 0.12, 0.03, D - 0.12, mats.wood, cx, y + 0.04, 0);
-      if (b >= stocked) continue;
-      const bh = Math.max(0.2, Math.min(step - 0.3, 0.9));
-      add(bayW * 0.8, bh, D * 0.8, mats.box, cx, y + 0.055 + bh / 2, 0);
+      if (stocked[b]) c.addContainer(stocked[b], cx, y + 0.055, 0, bayW * 0.8, Math.max(0.2, Math.min(step - 0.3, 0.9)), D * 0.8);
     }
   }
 }

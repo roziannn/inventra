@@ -14,6 +14,7 @@ import { blockedByDoor, clampToRoom, shelfsOverlap, SHELF_TYPES, type ShelfData,
 import { OPENING_KINDS, clampOffset, openingFits, openingsCollide, wallLength, WALL_IDS, type Opening, type OpeningKind } from "@/lib/room-openings";
 import { itemCatalog, type Room } from "@/lib/storage-data";
 import { updateRoom, useHydrated, useRooms } from "@/lib/room-store";
+import { useContainers } from "@/lib/container-store";
 import { fillPercent, levelSlots, levelTag } from "@/lib/shelf-model";
 import { IconPlus, IconRotate, IconTrash, IconTool, IconBuildingWarehouse, IconEye, IconArrowBackUp, IconArrowForwardUp, IconCopy, IconSearch, IconX } from "@tabler/icons-react";
 
@@ -96,6 +97,7 @@ function RoomEditor({ room }: { room: Room }) {
   const [size, setSize] = useState({ width: room?.width ?? 10, depth: room?.depth ?? 6 });
   const [sizeDraft, setSizeDraft] = useState({ width: String(room?.width ?? 10), depth: String(room?.depth ?? 6) });
   const nextId = useRef(0);
+  const containers = useContainers();
   const roomCode = (room?.id.replace(/\D/g, "").slice(-2) ?? "01").padStart(2, "0");
   const [draft, setDraft] = useState({ name: "", levels: 4, type: "standard" as ShelfType, coverTop: false, coverBack: false, coverSides: false, ...pick("standard") });
 
@@ -238,18 +240,21 @@ function RoomEditor({ room }: { room: Room }) {
     setSelectedLevel(level);
   };
 
-  const addItem = (shelf: ShelfData, level: number, item: { name: string; sku: string }, qty: number) => {
+  const addItem = (shelf: ShelfData, level: number, item: { name: string; sku: string }, qty: number, containerId: string) => {
     if (shelf.items.filter((i) => i.level === level).length >= levelSlots(shelf)) {
       toast.error(`Tingkat ${level + 1} sudah penuh`);
       return;
     }
     nextId.current += 1;
-    const entry = { id: `${shelf.id}-new-${nextId.current}`, level, name: item.name, sku: item.sku, qty };
+    const entry = { id: `${shelf.id}-new-${nextId.current}`, level, name: item.name, sku: item.sku, qty, containerId };
     setShelves((prev) => prev.map((s) => (s.id === shelf.id ? { ...s, items: [...s.items, entry] } : s)));
   };
 
   const setTag = (shelfId: string, level: number, text: string) =>
     setShelves((prev) => prev.map((s) => (s.id === shelfId ? { ...s, tags: { ...s.tags, [level]: text } } : s)), `${shelfId}:tag:${level}`);
+
+  const setItemContainer = (shelfId: string, itemId: string, containerId: string) =>
+    setShelves((prev) => prev.map((s) => (s.id === shelfId ? { ...s, items: s.items.map((i) => (i.id === itemId ? { ...i, containerId } : i)) } : s)));
 
   const removeItem = (shelfId: string, itemId: string) => {
     setShelves((prev) => prev.map((s) => (s.id === shelfId ? { ...s, items: s.items.filter((i) => i.id !== itemId) } : s)));
@@ -445,6 +450,7 @@ function RoomEditor({ room }: { room: Room }) {
             <ShelfViewer
               shelves={shelves}
               openings={openings}
+              containers={containers}
               roomWidth={size.width}
               roomDepth={size.depth}
               roomCode={roomCode}
@@ -593,8 +599,10 @@ function RoomEditor({ room }: { room: Room }) {
                         level={selectedLevel !== null && selectedLevel < s.levels ? selectedLevel : null}
                         onLevel={setSelectedLevel}
                         catalog={itemCatalog}
+                        containers={containers}
                         editable={editMode}
-                        onAdd={(level, item, qty) => addItem(s, level, item, qty)}
+                        onAdd={(level, item, qty, containerId) => addItem(s, level, item, qty, containerId)}
+                        onContainer={(itemId, containerId) => setItemContainer(s.id, itemId, containerId)}
                         onRemove={(itemId) => removeItem(s.id, itemId)}
                         onTag={(level, text) => setTag(s.id, level, text)}
                       />
