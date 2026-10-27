@@ -102,6 +102,20 @@
     cursor: not-allowed;
   }
 
+  /* native dropdown lists ignore most styling, but they do honor these two; without them dark mode shows light text on a white list */
+  select option,
+  select optgroup {
+    background-color: var(--card);
+    color: var(--foreground);
+  }
+  select option:disabled {
+    color: var(--muted-foreground);
+  }
+  select option:checked {
+    background-color: var(--accent);
+    color: var(--accent-foreground);
+  }
+
   body {
     @apply bg-background text-foreground;
     font-feature-settings:
