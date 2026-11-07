@@ -71,6 +71,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredResults, setFilteredResults] = useState<SearchResult[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -169,12 +170,39 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     setIsProfileOpen(false);
   }, [pathname]);
 
-  const handleLogout = () => {
-    toast.error("Anda telah keluar dari sistem.");
-    setTimeout(() => {
-      router.push("/login");
-    }, 300);
-  };
+  
+const handleLogout = async () => {
+  if (isLoggingOut) return;
+
+  try {
+    setIsLoggingOut(true);
+
+    const response = await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "same-origin",
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      toast.error(result.message || "Gagal logout. Silakan coba lagi.");
+      return;
+    }
+
+    setIsProfileOpen(false);
+
+    toast.success("Anda telah keluar dari sistem.");
+
+    router.replace("/login");
+    router.refresh();
+  } catch (error) {
+    console.error("Logout error:", error);
+    toast.error("Tidak dapat terhubung ke server.");
+  } finally {
+    setIsLoggingOut(false);
+  }
+};
+
 
   return (
     <div className="flex h-screen bg-background text-foreground font-sans overflow-hidden relative">
@@ -319,9 +347,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <div className="h-px bg-white/5 my-2 mx-4"></div>
 
               <div className="px-2">
-                <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-xl transition-colors group">
+                <button
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-xl transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   <IconLogout size={18} stroke={1.5} />
-                  <span className="font-bold">Keluar Aplikasi</span>
+
+                  <span className="font-bold">
+                    {isLoggingOut ? "Sedang keluar..." : "Keluar Aplikasi"}
+                  </span>
                 </button>
               </div>
             </div>
