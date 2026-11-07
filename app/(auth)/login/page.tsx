@@ -27,21 +27,51 @@ export default function LoginPage() {
     setMounted(true);
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setTimeout(() => {
-      if (!email.trim() || !password.trim()) {
-        toast.error("Email dan kata sandi wajib diisi.");
-        setIsLoading(false);
-        return;
-      }
+  
+const handleLogin = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-      toast.success("Selamat datang kembali, Admin!");
-      router.push("/");
-      setIsLoading(false);
-    }, 800);
-  };
+  if (!email.trim() || !password.trim()) {
+    toast.error("Email/username dan kata sandi wajib diisi.");
+    return;
+  }
+
+  try {
+    setIsLoading(true);
+
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "same-origin",
+      body: JSON.stringify({
+        identifier: email.trim(),
+        password,
+      }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      toast.error(
+        result.message || "Login gagal. Periksa kembali akun Anda."
+      );
+      return;
+    }
+
+    toast.success(`Selamat datang, ${result.data.user.FullName}!`);
+
+    router.push("/");
+    router.refresh();
+  } catch (error) {
+    console.error("Login error:", error);
+    toast.error("Tidak dapat terhubung ke server. Silakan coba lagi.");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   return (
     <div className="flex h-screen overflow-hidden bg-white font-sans dark:bg-background">
@@ -107,10 +137,11 @@ export default function LoginPage() {
               <div className="relative">
                 <input
                   required
-                  type="email"
+                  type="text"
+                  autoComplete="username"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@company.com"
+                  placeholder="Username atau email"
                   className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3.5 pl-4 pr-4 text-sm text-gray-900 transition-all focus:border-violet-400 focus:outline-none focus:ring-4 focus:ring-violet-500/10 dark:border-border dark:bg-card dark:text-foreground dark:placeholder:text-gray-500"
                 />
               </div>
@@ -130,6 +161,7 @@ export default function LoginPage() {
                   required
                   type={showPassword ? "text" : "password"}
                   value={password}
+                  autoComplete="current-password"
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
                   className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3.5 pl-4 pr-12 text-sm text-gray-900 transition-all focus:border-violet-400 focus:outline-none focus:ring-4 focus:ring-violet-500/10 dark:border-border dark:bg-card dark:text-foreground dark:placeholder:text-gray-500"

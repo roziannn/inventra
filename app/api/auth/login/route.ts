@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: "Invalid username/email or password",
+          message: "Invalid email or password",
         },
         { status: 401 }
       );
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: "Invalid username/email or password",
+          message: "Invalid email or password",
         },
         { status: 401 }
       );
